@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- For PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#003366" />
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UCJC Convocation App</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Font Awesome 6 CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+  <!-- Firebase Messaging -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-messaging-compat.js"></script>
+  <!-- Eventbrite -->
+  <script type="module" src="https://www.eventbrite.com/static/widgets/eb_widgets.js"></script>
+
+</head>
+<body>
+
+
+      <div class="home-header">
+        <img src="icons/icon-192.png" alt="UCJC Logo" class="ucjc-logo" />
+        <div class="home-title">
+          <h1>United Churches of Jesus Christ <span class="subtitle">(Apostolic)</span></h1>
+          <!-- Android Install Button -->
+          <button id="install-btn" hidden class="slim-btn">Install App</button>
+
+          <!-- iOS Install Banner -->
+          <div id="ios-install-banner" hidden class="install-banner">
+            <p><strong>To unlock full features:</strong> Tap <span style="font-size:1.2em;">&#x1F5D2;</span> then “Add to Home Screen”</p>
+          </div>
+        </div>
+      </div>
+    <div id="app">
+
+    
+    <!-- Sections -->
+    <section id="home" class="active">
+
+      <!-- Banner -->
+      <div class="card"  id="home-banner-cards">
+        <!-- Full-day event cards will be injected here -->
+      </div>
+
+      <div id="push-modal" class="modal">
+        <div class="modal-content">
+          <h3>Notification Preferences</h3>
+          <p>Select the ministries you'd like to receive updates for:</p>
+          <form id="push-preferences">
+            <label><input type="checkbox" name="category" value="#General"> General Conference</label><br/>
+            <label><input type="checkbox" name="category" value="#WomenOfRoyalty"> Women of Royalty</label><br/>
+            <label><input type="checkbox" name="category" value="#ManCave"> Man Cave</label><br/>
+            <label><input type="checkbox" name="category" value="#Youth"> Youth Ministry</label><br/>
+            <label><input type="checkbox" name="category" value="#YoungAdult"> Young Adults</label><br/>
+            <label><input type="checkbox" name="category" value="#Rehearsal"> Rehearsals</label><br/>
+            <button type="submit" class="slim-btn">Save Preferences</button>
+          </form>
+          <button onclick="closeModal('push-modal')" class="remove-btn">Close</button>
+        </div>
+      </div>
+
+      <div id="description-modal" class="modal">
+        <div class="modal-content">
+          <h2 id="modal-title"></h2>
+          <p id="modal-description"></p>
+          <button id="description-close-btn" class="slim-btn">Close</button>
+        </div>
+      </div>
+
+      <!-- My Reminders Card -->
+      <div class="card" id="reminder-card">
+        <h2><i class="fa-solid fa-user-clock"></i> Personalized Schedule</h2>
+        <ul id="reminder-list"></ul>
+      </div>
+      <div id="feedback-modal" class="modal">
+        <div class="modal-content">
+          <h3>Session Feedback</h3>
+          <form name="feedback" id="feedback-form" action="https://formspree.io/f/xyznbkdd" method="POST">
+            <input type="hidden" name="eventId" id="feedback-event-id" />
+            <input type="hidden" name="eventTitle" id="feedback-event-title" />
+            <input type="hidden" name="eventTime" id="feedback-event-time" />
+            <input type="hidden" name="eventTags" id="feedback-event-tags" />
+            <label>How was the session?</label><br/>
+            <textarea name="comments" rows="4" required></textarea><br/>
+            <button type="submit" class="slim-btn">Submit Feedback</button>
+          </form>
+          <button onclick="closeModal('feedback-modal')" class="remove-btn">Close</button>
+        </div>
+      </div>
+
+      <!-- Registration -->
+      <div class="card">
+          <h2><i class="fa-solid fa-calendar-check"></i> Event Registration</h2>
+          <div id="event-feed"></div>
+      </div>   
+    </section>
+
+
+    <section id="schedule">
+      <h2><i class="fa-solid fa-calendar-days"></i> Conference Schedule</h2>
+        <div id="schedule-header">
+            <div id="category-dropdown">
+              <label for="category-select"><i class="fa-solid fa-filter" style="margin: 10px;"></i>Category:</label>
+              <select id="category-select">
+                <option value="All">All Ministries</option>
+                <option value="#General">General Conference</option>
+                <option value="#WomenOfRoyalty">Women of Royalty</option>
+                <option value="#ManCave">Man Cave</option>
+                <option value="#Youth">Youth Ministry</option>
+                <option value="#YoungAdult">Young Adults</option>
+                <option value="#Rehearsal">Rehearsals</option>
+              </select>
+              <button id="refresh-schedule" class="slim-btn" style="margin-left: auto"><i class="fa-solid fa-arrows-rotate"></i></button>
+            </div>
+        </div>
+
+      <ul id="event-list"></ul>
+    </section>
+
+    <section id="book">
+      <h2><i class="fa-solid fa-book-open"></i> Conference Program</h2>
+      <div class="card">
+        <canvas id="pdf-canvas"></canvas>
+        <div class="controls">
+          <button id="prev-page">◀ Previous</button>
+          <span id="page-info">Page 1</span>
+          <button id="next-page">Next ▶</button>
+        </div>
+      </div>
+      
+    </section>
+
+
+<section id="settings">
+  <h2><i class="fa-solid fa-sliders"></i> Settings</h2>
+  <div class="card">
+    <h3>Reminders:</h3>
+    <div class="setting-row">
+      <i class="fa-solid fa-bell"></i>
+      <span>Event Reminders</span>
+      <label class="switch">
+        <input type="checkbox" id="toggle-reminders" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="setting-row">
+      <i class="fa-solid fa-clock"></i>
+      <span id="reminder-label">5 minutes before</span>
+      <div class="slider-wrapper">
+          <input type="range" id="reminder-slider" min="0" max="4" step="0" />
+      </div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h3>Notifications:</h3>  
+    <div class="setting-row">
+      <i class="fa-solid fa-mobile-screen-button"></i>
+      <span>Push Notifications</span>
+      <label class="switch">
+        <input type="checkbox" id="toggle-push" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Appearance:</h3>
+    <div class="setting-row">
+      <i class="fa-solid fa-moon"></i>
+      <span>Dark Mode</span>
+      <label class="switch">
+        <input type="checkbox" id="toggle-dark">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="setting-row">
+      <i class="fa-solid fa-text-height"></i>
+      <span id="text-size-label">Text Size: Small</span>
+      <div class="slider-wrapper">
+        <input type="range" id="text-size-slider" min="0" max="2" step="1" value="0" />
+      </div>
+    </div>
+  </div>
+</section>
+
+  </div>
+
+  <!-- Navigation Bar -->
+  <nav class="nav-bar">
+    <button data-target="home" onclick="showSection('home')"><i class="fa-solid fa-house"></i><span style="font-size: small">Home</span></button>
+    <button data-target="schedule" onclick="showSection('schedule')"><i class="fa-solid fa-calendar-alt"></i><span style="font-size: small">Schedule</span></button>
+    <button data-target="book" onclick="showSection('book')"><i class="fa-solid fa-book"></i><span style="font-size: small">Program</span></button>
+    <button data-target="settings" onclick="showSection('settings')"><i class="fa-solid fa-gear"></i><span style="font-size: small">Settings</span></button>
+  </nav>
+
+  <script type="module" src="app.js"></script>
+  <!-- Load UMD build first -->
+  <script type="module" src="pdf.umd.js"></script>
+  <script type="module" src="viewer.js"></script>
+</body>
+</html>

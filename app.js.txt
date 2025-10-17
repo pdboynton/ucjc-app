@@ -1,0 +1,914 @@
+// app.js — UCJC Convocation App (Modular Version)
+
+// Global IndexedDB reference
+let db;
+
+// In-memory fallback store
+const memoryStore = [];
+
+// DOM Ready
+document.addEventListener("DOMContentLoaded", () => {
+  initThemeToggle();
+  initTextSizeSlider();
+  initReminderSlider();
+  initFirebase();
+  initServiceWorker();
+  initIndexedDB();
+  initEventListeners();
+
+  setTimeout(() => {
+    loadEventsWithFallback();
+  }, 100); // 100ms delay helps iOS render reliably
+});
+
+
+// Theme Toggle
+function initThemeToggle() {
+  const darkToggle = document.getElementById("toggle-dark");
+  if (!darkToggle) return;
+
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+    darkToggle.checked = true;
+  }
+
+  darkToggle.addEventListener("change", (e) => {
+    const isDark = e.target.checked;
+    document.body.classList.toggle("dark", isDark);
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  });
+}
+
+// Text Size Slider
+function initTextSizeSlider() {
+  const slider = document.getElementById("text-size-slider");
+  const label = document.getElementById("text-size-label");
+  const scaleValues = [1, 1.2, 1.4];
+  const sizeLabels = ["Small", "Medium", "Large"];
+
+  function applyScale(index) {
+    const scale = scaleValues[index];
+    document.documentElement.style.setProperty("--text-scale", scale);
+    label.textContent = `Text Size: ${sizeLabels[index]}`;
+    localStorage.setItem("textScaleIndex", index);
+  }
+
+  const savedIndex = parseInt(localStorage.getItem("textScaleIndex"));
+  const initialIndex = !isNaN(savedIndex) && scaleValues[savedIndex] ? savedIndex : 0;
+
+  slider.value = initialIndex;
+  applyScale(initialIndex);
+
+  slider.addEventListener("input", () => {
+    applyScale(parseInt(slider.value));
+  });
+}
+
+// Reminder Slider
+function initReminderSlider() {
+  const slider = document.getElementById("reminder-slider");
+  const label = document.getElementById("reminder-label");
+  const leadTimes = [5, 10, 15, 30, 60];
+
+  function updateLabel() {
+    const minutes = leadTimes[slider.value];
+    label.textContent = `${minutes} minutes before`;
+    localStorage.setItem("reminderLeadTime", minutes);
+  }
+
+  const saved = parseInt(localStorage.getItem("reminderLeadTime"));
+  if (leadTimes.includes(saved)) {
+    slider.value = leadTimes.indexOf(saved);
+    updateLabel();
+  }
+
+  slider.addEventListener("input", updateLabel);
+}
+
+// Firebase Setup
+function initFirebase() {
+  const config = {
+    apiKey: "AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg",
+    authDomain: "ucjcconvocation.firebaseapp.com",
+    projectId: "ucjcconvocation",
+    storageBucket: "ucjcconvocation.firebasestorage.app",
+    messagingSenderId: "698752970791",
+    appId: "1:698752970791:web:0ae1b0094858609579de02",
+    measurementId: "G-0M5WBTR83N"
+  };
+
+  firebase.initializeApp(config);
+  const messaging = firebase.messaging();
+
+  Notification.requestPermission().then(permission => {
+    if (permission === "granted") {
+      navigator.serviceWorker.ready.then(reg => {
+        messaging.getToken({
+          vapidKey: "BBrSRxtM6M6j_FQoWdGPpjf2QodXhGyevf-5ng_MqXhdHV6OJQVcQful0X1wKWYxUpt3Gc_6IN-sfyDTbHGXGO8",
+          serviceWorkerRegistration: reg
+        }).then(token => {
+          console.log("FCM Token:", token);
+        }).catch(err => console.error("FCM token error:", err));
+      });
+    }
+  });
+}
+
+// Service Worker
+function initServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").then(reg => {
+      console.log("Service Worker registered:", reg);
+    });
+  }
+}
+
+// IndexedDB Setup
+function initIndexedDB() {
+  const request = indexedDB.open("ucjcDB", 1);
+
+  request.onupgradeneeded = (event) => {
+    const db = event.target.result;
+    if (!db.objectStoreNames.contains("events")) {
+      const store = db.createObjectStore("events", { keyPath: "id" });
+      store.createIndex("start", "start", { unique: false });
+      store.createIndex("reminderSet", "reminderSet", { unique: false });
+      store.createIndex("inSchedule", "inSchedule", { unique: false });
+    }
+  };
+
+  request.onsuccess = (e) => {
+    db = e.target.result;
+    loadEventsWithFallback();
+    loadReminders();
+  };
+}
+
+// Load Events
+async function loadInitialEvents() {
+  const events = await fetchCalendarEvents();
+
+  if (!isIndexedDBAvailable()) {
+    showPrivateModeWarning();
+    events.forEach(ev => putInMemoryStore(ev));
+    renderBannerCards(memoryStore.filter(ev => ev.description?.includes("#Banner")));
+    renderEventList(memoryStore);
+  } else {
+    const tx = db.transaction("events", "readwrite");
+    const store = tx.objectStore("events");
+    store.clear();
+    events.forEach(ev => store.put(ev));
+    renderBannerCards(events.filter(ev => ev.description?.includes("#Banner")));
+    loadEventsWithFallback();
+  }
+}
+
+// Event Listeners
+function initEventListeners() {
+  document.getElementById("category-select")?.addEventListener("change", (e) => {
+    loadEventsWithFallback(e.target.value);
+  });
+
+  document.getElementById("refresh-schedule")?.addEventListener("click", async () => {
+    const events = await fetchCalendarEvents();
+
+    if (!events || events.length === 0) {
+      showToast("⚠️ Unable to refresh schedule. Please check your connection.");
+      return;
+    }
+
+    try {
+      const tx = db.transaction("events", "readwrite");
+      const store = tx.objectStore("events");
+      store.clear();
+      events.forEach(ev => store.put(ev));
+
+      renderBannerCards(events.filter(ev => ev.description?.includes("#Banner")));
+      loadEventsWithFallback();
+
+      showToast("✅ Schedule refreshed successfully.");
+    } catch (err) {
+      console.error("Refresh failed:", err);
+      showToast("⚠️ Failed to update schedule. Please try again.");
+    }
+  });
+
+  document.getElementById("description-close-btn")?.addEventListener("click", () => {
+    const modal = document.getElementById("description-modal");
+    if (modal) modal.classList.remove("show");
+  });
+
+}
+
+// Utility Functions
+function isIndexedDBAvailable() {
+  try {
+    const testDB = window.indexedDB.open("test");
+    testDB.onerror = () => console.warn("IndexedDB blocked — likely Private Mode.");
+    return !!window.indexedDB;
+  } catch {
+    return false;
+  }
+}
+
+function putInMemoryStore(ev) {
+  const index = memoryStore.findIndex(e => e.id === ev.id);
+  if (index >= 0) memoryStore[index] = ev;
+  else memoryStore.push(ev);
+}
+
+function showPrivateModeWarning() {
+  const banner = document.createElement("div");
+  banner.className = "private-mode-warning";
+  banner.innerHTML = `<p><i class="fa-solid fa-triangle-exclamation"></i> You're in Private Mode. Event reminders won't be saved after you exit.</p>`;
+  document.body.prepend(banner);
+}
+
+// Fetch Events
+async function fetchCalendarEvents() {
+  const url = '/.netlify/functions/calendar';
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!res.ok) throw new Error("Calendar fetch failed");
+
+    const data = await res.json();
+    if (!data.items || data.items.length === 0) {
+      showCalendarError("No events returned from calendar.");
+    }
+
+    return data.items || [];
+  } catch (err) {
+    console.error("Calendar fetch error:", err);
+    showCalendarError("Unable to load schedule. Please try again.");
+    return [];
+  }
+}
+
+// Calendar Errors
+function showCalendarError(message) {
+  showToast(`⚠️ ${message}`);
+}
+
+
+// Render Events
+function renderEventList(events, selectedCategory = "All") {
+  const list = document.getElementById("event-list");
+  list.innerHTML = "";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+const filtered = events
+  .filter(ev => ev.start?.dateTime) // Exclude all-day events
+  .filter(ev => {
+    const start = new Date(ev.start.dateTime);
+    return start >= today;
+  })
+
+
+    .filter(ev => {
+      const tags = extractHashtags(ev.description || "").map(t => t.toLowerCase());
+      return selectedCategory === "All" || tags.includes(selectedCategory.toLowerCase());
+    })
+    .sort((a, b) => new Date(a.start) - new Date(b.start));
+
+  filtered.forEach(ev => {
+    const rawStart = ev.start?.dateTime || ev.start?.date;
+    const startDate = new Date(rawStart);
+    const rawEnd = ev.end?.dateTime || ev.end?.date;
+    const endDate = new Date(rawEnd);
+    const formattedDate = startDate.toLocaleDateString(undefined, {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    const formattedTime = startDate.toLocaleTimeString(undefined, {
+      hour: 'numeric', minute: '2-digit', hour12: true
+    });
+    const formattedEnd = endDate.toLocaleTimeString(undefined, {
+      hour: 'numeric', minute: '2-digit', hour12: true
+    });
+
+    const iconClass = getIconForEvent(extractHashtags(ev.description || ""));
+
+    const li = document.createElement("li");
+    const isSet = ev.reminderSet === true;
+    const buttonClass = isSet ? "slim-btn reminder-set" : "slim-btn";
+    const buttonIcon = isSet ? "fa-check" : "fa-bell";
+    const buttonText = isSet ? "Event Added" : "Add Event";
+    const buttonDisabled = isSet ? "disabled" : "";
+
+    li.innerHTML = `
+      <div class="event-container">
+        <div class="event-time"><i class="fa-solid ${iconClass}"></i></div>
+        <div class="event-info">
+          <div class="event-time"><strong>${formattedDate}</strong></div>
+          <div class="event-time">${formattedTime} – ${formattedEnd}</div>
+          <div class="event-title clickable" style="font-weight: bold; cursor: pointer;">${ev.summary}</div>
+          ${ev.location ? `<div class="event-location">${ev.location}</div>` : ""}
+        </div>
+        <div style="width: 100px; min-width:100px; margin-left: auto;">
+          <button class="${buttonClass}" ${buttonDisabled}>
+            <i class="fa-solid ${buttonIcon}"></i> ${buttonText}
+          </button>
+        </div>
+      </div>
+    `;
+
+    li.querySelector(".event-title").addEventListener("click", () => {
+      showDescriptionModal(ev.summary, ev.description);
+    });
+
+
+    
+const reminderBtn = li.querySelector("button.slim-btn");
+if (reminderBtn && !isSet) {
+  reminderBtn.addEventListener("click", () => setReminder(ev.id, reminderBtn));
+}
+
+
+    list.appendChild(li);
+  });
+
+  if (!list.innerHTML) {
+    list.innerHTML = `<li>No events found for this category.</li>`;
+  }
+}
+
+function extractHashtags(text) {
+  return typeof text === "string" ? text.match(/#[\w]+/g) || [] : [];
+}
+
+function getIconForEvent(tags) {
+  const icons = {
+    "#general": "fa-church",
+    "#womenofroyalty": "fa-crown",
+    "#mancave": "fa-person",
+    "#youth": "fa-children",
+    "#youngadult": "fa-user-graduate",
+    "#rehearsal": "fa-music"
+  };
+
+  for (const tag of tags) {
+    const normalized = tag.toLowerCase();
+    if (icons[normalized]) {
+      return icons[normalized];
+    }
+  }
+
+  return "fa-calendar-days"; // Default icon
+}
+
+function setReminder(eventId, reminderBtn) {
+  if (!db) {
+    console.warn("IndexedDB not initialized");
+    return;
+  }
+
+  const tx = db.transaction("events", "readwrite");
+  const store = tx.objectStore("events");
+  const req = store.get(eventId);
+
+  req.onsuccess = function () {
+  const event = req.result;
+  if (!event) return;
+
+  event.reminderSet = true;
+  event.inSchedule = true;
+  store.put(event);
+
+  const leadMinutes = parseInt(localStorage.getItem("reminderLeadTime") || "30");
+  const rawStart = event.start?.dateTime || event.start?.date;
+  if (!rawStart) return;
+
+  const eventTime = new Date(rawStart);
+  const notifyTime = new Date(eventTime.getTime() - leadMinutes * 60000);
+  if (notifyTime > new Date()) {
+    scheduleLocalNotification(event.summary, eventTime, notifyTime);
+  }
+
+  if (reminderBtn) {
+    reminderBtn.innerHTML = `<i class="fa-solid fa-check"></i> Event Added`;
+    reminderBtn.disabled = true;
+    reminderBtn.classList.add("reminder-set");
+  }
+
+  loadReminders();
+};
+
+
+  req.onerror = function () {
+    console.error("Failed to retrieve event from IndexedDB:", eventId);
+  };
+}
+
+function toggleReminder(eventId, iconElement) {
+  const tx = db.transaction("events", "readwrite");
+  const store = tx.objectStore("events");
+  const req = store.get(eventId);
+
+  req.onsuccess = function () {
+    const event = req.result;
+    if (!event) return;
+
+    event.reminderSet = !event.reminderSet;
+    store.put(event);
+
+    const icon = event.reminderSet ? "fa-bell" : "fa-bell-slash";
+    iconElement.className = `fa-solid ${icon} reminder-icon`;
+
+    if (event.reminderSet) {
+      const leadMinutes = parseInt(localStorage.getItem("reminderLeadTime") || "30");
+      const rawStart = event.start?.dateTime || event.start?.date;
+      const eventTime = new Date(rawStart);
+      const notifyTime = new Date(eventTime.getTime() - leadMinutes * 60000);
+      if (notifyTime > new Date()) {
+        scheduleLocalNotification(event.summary, eventTime, notifyTime);
+      }
+    }
+
+    // No removal — item stays in list
+    loadReminders(); // Refresh icon state
+    loadEventsWithFallback(); // Optional: refresh other views
+  };
+}
+
+
+
+function scheduleLocalNotification(title, eventTime, notifyTime) {
+  const delay = notifyTime.getTime() - Date.now();
+  setTimeout(() => {
+    sendLocalNotification(title, `Starting at ${formatTime(eventTime)}`);
+    triggerMobileFeedback();
+  }, delay);
+}
+
+function sendLocalNotification(title, body) {
+  if (Notification.permission === "granted") {
+    navigator.serviceWorker.getRegistration().then(reg => {
+      if (reg) {
+        reg.showNotification(title, {
+          body,
+          icon: "/icons/notification-icon.png"
+        });
+      }
+    });
+  }
+}
+
+function formatTime(date) {
+  return date.toLocaleTimeString(undefined, {
+    hour: 'numeric', minute: '2-digit', hour12: true
+  });
+}
+
+function triggerMobileFeedback() {
+  if ("vibrate" in navigator) {
+    navigator.vibrate([200, 100, 200]);
+  }
+
+  const audio = new Audio("/sounds/notification.mp3");
+  audio.play().catch(err => console.warn("Sound playback failed:", err));
+}
+
+function loadReminders() {
+  const tx = db.transaction("events", "readonly");
+  const store = tx.objectStore("events");
+  const req = store.getAll();
+
+  req.onsuccess = function () {
+    const list = document.getElementById("reminder-list");
+    list.innerHTML = "";
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const reminders = req.result
+      .filter(ev => {
+        const rawStart = ev.start?.dateTime || ev.start?.date;
+        return ev.inSchedule === true && new Date(rawStart) >= today;
+      })
+      .sort((a, b) => {
+        const aStart = new Date(a.start?.dateTime || a.start?.date);
+        const bStart = new Date(b.start?.dateTime || b.start?.date);
+        return aStart - bStart;
+      });
+
+    reminders.forEach(ev => {
+      const rawStart = ev.start?.dateTime || ev.start?.date;
+      const rawEnd = ev.end?.dateTime || ev.end?.date;
+      const startDate = new Date(rawStart);
+      const endDate = new Date(rawEnd);
+
+      const formattedDate = startDate.toLocaleDateString(undefined, {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+      const formattedStart = startDate.toLocaleTimeString(undefined, {
+        hour: 'numeric', minute: '2-digit', hour12: true
+      });
+      const formattedEnd = endDate.toLocaleTimeString(undefined, {
+        hour: 'numeric', minute: '2-digit', hour12: true
+      });
+
+      const isSet = ev.reminderSet === true;
+      const iconClass = isSet ? "fa-bell" : "fa-bell-slash";
+
+      const li = document.createElement("li");
+
+      li.innerHTML = `
+        <i class="fa-solid ${iconClass} reminder-icon" style="cursor: pointer; color: #E3B23C;"></i>
+        <div>
+          <div><strong>${formattedDate}</strong></div>
+          <div>${formattedStart} – ${formattedEnd}</div>
+          <div class="event-summary clickable" style="font-weight: bold; cursor: pointer;">${ev.summary}</div>
+          ${ev.location ? `<div>${ev.location}</div>` : ""}
+        </div>
+        <button class="remove-btn" style="margin-left:auto;"><i class="fa-solid fa-trash"></i></button>
+      `;
+
+      li.querySelector(".event-summary").addEventListener("click", () => {
+        showDescriptionModal(ev.summary, ev.description);
+      });
+
+      li.querySelector(".remove-btn").addEventListener("click", () => removeReminder(ev.id));
+      li.querySelector(".reminder-icon").addEventListener("click", () => toggleReminder(ev.id, li.querySelector(".reminder-icon")));
+
+      // ✅ Add feedback button for past events
+      const now = new Date();
+      const isPast = startDate < now;
+
+      if (isPast) {
+        const feedbackBtn = document.createElement("button");
+        feedbackBtn.className = "slim-btn";
+        feedbackBtn.id = `feedback-btn-${ev.id}`; // ✅ Unique ID
+        feedbackBtn.innerHTML = `<i class="fa-solid fa-comment-dots"></i> Give Feedback`;
+
+        feedbackBtn.addEventListener("click", () => {
+          document.getElementById("feedback-event-id").value = ev.id;
+          document.getElementById("feedback-event-title").value = ev.summary || "Untitled";
+          document.getElementById("feedback-event-time").value = startDate.toLocaleString();
+          document.getElementById("feedback-event-tags").value = extractHashtags(ev.description || "").join(", ");
+          openModal("feedback-modal");
+        });
+
+        li.appendChild(feedbackBtn);
+      }
+
+      list.appendChild(li);
+    });
+  };
+}
+
+
+document.getElementById("feedback-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const form = e.target;
+  const data = new FormData(form);
+  const eventId = data.get("eventId");
+
+  try {
+    const res = await fetch(form.action, {
+      method: "POST",
+      body: data,
+      headers: { Accept: "application/json" }
+    });
+
+    if (res.ok) {
+      removeReminder(eventId);
+      closeModal("feedback-modal");
+      showToast("✅ Thank you for your feedback!");
+
+      // ✅ Hide the feedback button
+      const btn = document.getElementById(`feedback-btn-${eventId}`);
+      if (btn) btn.style.display = "none";
+    } else {
+      showToast("⚠️ Submission failed. Please try again.");
+    }
+  } catch (err) {
+    console.error("Formspree error:", err);
+    showToast("⚠️ Network error. Please try again.");
+  }
+});
+
+
+
+
+function removeReminder(eventId) {
+  const tx = db.transaction("events", "readwrite");
+  const store = tx.objectStore("events");
+  const req = store.get(eventId);
+
+  req.onsuccess = function () {
+    const event = req.result;
+    event.reminderSet = false;
+    event.inSchedule = false;
+    store.put(event);
+    loadReminders();
+    loadEventsWithFallback();
+  };
+
+}
+
+function renderBannerCards(events) {
+  const container = document.getElementById("home-banner-cards");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  events.forEach(ev => {
+    const title = ev.summary || "Untitled Event";
+    const startDate = new Date(ev.start.date).toLocaleDateString();
+    const endDate = new Date(ev.end.date).toLocaleDateString();
+    const location = ev.location || "New York, NY";
+
+    const mapQuery = encodeURIComponent(location);
+    const mapEmbed = `
+      <iframe
+        class="map-embed"
+        frameborder="0"
+        style="border:0"
+        src="https://www.google.com/maps?q=${mapQuery}&output=embed"
+      ></iframe>
+    `;
+
+    const card = document.createElement("div");
+    card.innerHTML = `
+      <h2 style="margin: 0;">${title}</h2>
+      <h3 style="margin: 0.25rem;">${startDate} – ${endDate}</h3>
+      ${mapEmbed}
+    `;
+    container.appendChild(card);
+  });
+}
+
+async function loadEventsWithFallback(selectedCategory = "All") {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let events = [];
+
+  // First fallback: IndexedDB or memoryStore
+  try {
+    if (!isIndexedDBAvailable()) {
+      console.warn("IndexedDB unavailable — using memoryStore");
+      events = memoryStore;
+    } else {
+      const tx = db.transaction("events", "readonly");
+      const store = tx.objectStore("events");
+      events = await new Promise((resolve, reject) => {
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject([]);
+      });
+    }
+  } catch (err) {
+    console.warn("Local cache failed:", err);
+  }
+
+  // If local cache is empty, fallback to live fetch
+  if (!events.length) {
+    console.warn("Local cache empty — fetching live data");
+    events = await fetchCalendarEvents();
+
+    if (isIndexedDBAvailable()) {
+      const tx = db.transaction("events", "readwrite");
+      const store = tx.objectStore("events");
+      events.forEach(ev => store.put(ev));
+    } else {
+      events.forEach(ev => putInMemoryStore(ev));
+    }
+  }
+
+  if (!events.length) {
+  console.warn("Local cache empty — fetching live data");
+  events = await fetchCalendarEvents();
+
+  if (events.length === 0) {
+    showCalendarError("No events available.");
+  }
+
+  if (isIndexedDBAvailable()) {
+    const tx = db.transaction("events", "readwrite");
+    const store = tx.objectStore("events");
+    events.forEach(ev => store.put(ev));
+  } else {
+    events.forEach(ev => putInMemoryStore(ev));
+  }
+}
+
+  
+  // ✅ Separate banner events (can include all-day)
+  const bannerEvents = events.filter(ev => ev.description?.includes("#Banner"));
+
+  // ✅ Filter timed events for schedule
+  const filteredEvents = events
+    .filter(ev => ev.start?.dateTime) // exclude all-day
+    .filter(ev => {
+      const start = new Date(ev.start.dateTime);
+      return start >= today;
+    })
+    .filter(ev => {
+      const tags = extractHashtags(ev.description || "").map(t => t.toLowerCase());
+      return selectedCategory === "All" || tags.includes(selectedCategory.toLowerCase());
+    })
+    .sort((a, b) => new Date(a.start.dateTime) - new Date(b.start.dateTime));
+
+  // ✅ Render both
+  renderBannerCards(bannerEvents);
+  renderEventList(filteredEvents, selectedCategory);
+}
+
+
+
+function loadEventsFromCache(selectedCategory = "All") {
+  const tx = db.transaction("events", "readonly");
+  const store = tx.objectStore("events");
+  const req = store.getAll();
+
+  req.onsuccess = function () {
+    const list = document.getElementById("event-list");
+    list.innerHTML = "";
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const sortedEvents = req.result
+      .filter(ev => ev.start?.dateTime) // Exclude all-day events
+      .filter(ev => {
+        const rawStart = ev.start.dateTime;
+        return new Date(rawStart) >= today;
+      })
+
+      .sort((a, b) => {
+        const aStart = new Date(a.start?.dateTime || a.start?.date);
+        const bStart = new Date(b.start?.dateTime || b.start?.date);
+        return aStart - bStart;
+      });
+
+    sortedEvents.forEach(ev => {
+      const hashtags = extractHashtags(ev.description || "");
+      const selected = selectedCategory.toLowerCase();
+      const normalizedTags = hashtags.map(tag => tag.toLowerCase());
+
+      if (selected !== "all" && !normalizedTags.includes(selected)) return;
+
+      const rawStart = ev.start?.dateTime || ev.start?.date;
+      const startDate = new Date(rawStart);
+      const formattedDate = startDate.toLocaleDateString(undefined, {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+      const formattedTime = startDate.toLocaleTimeString(undefined, {
+        hour: 'numeric', minute: '2-digit', hour12: true
+      });
+
+      const time = `${formattedDate} at ${formattedTime}`;
+      const iconClass = getIconForEvent(hashtags);
+
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <div class="event-info">
+          <div class="event-time"><i class="fa-solid ${iconClass}"></i> ${time}</div>
+          <div class="event-title">${ev.summary}</div>
+          ${ev.location ? `<div class="event-location">${ev.location}</div>` : ""}
+        </div>
+        <button class="slim-btn ${ev.reminderSet ? 'reminder-set' : ''}" ${ev.reminderSet ? 'disabled' : ''}>
+          <i class="fa-solid ${ev.reminderSet ? 'fa-check' : 'fa-bell'}"></i> ${ev.reminderSet ? 'Event Added' : 'Add Event'}
+        </button>
+      `;
+
+      const reminderBtn = li.querySelector("button.slim-btn");
+      if (reminderBtn && !ev.reminderSet) {
+        reminderBtn.addEventListener("click", () => {
+          setReminder(ev.id, reminderBtn);
+        });
+      }
+
+      list.appendChild(li);
+    });
+
+    if (list.innerHTML === "") {
+      list.innerHTML = `<li>No events found for this category.</li>`;
+    }
+  };
+}
+
+let deferredPrompt;
+const installBtn = document.getElementById("install-btn");
+const iosBanner = document.getElementById("ios-install-banner");
+
+// Detect Android install prompt
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.hidden = false;
+});
+
+installBtn.addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const result = await deferredPrompt.userChoice;
+  console.log("Install result:", result.outcome);
+  deferredPrompt = null;
+  installBtn.hidden = true;
+});
+
+// Detect iOS Safari
+function isIos() {
+  const ua = window.navigator.userAgent.toLowerCase();
+  return /iphone|ipad|ipod/.test(ua);
+}
+
+function isInStandaloneMode() {
+  return window.navigator.standalone === true;
+}
+
+if (isIos() && !isInStandaloneMode()) {
+  iosBanner.hidden = false;
+}
+
+// Modal
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.add("show");
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.remove("show");
+}
+
+document.getElementById("toggle-push").addEventListener("change", (e) => {
+  if (e.target.checked) {
+    openModal("push-modal");
+  } else {
+    closeModal("push-modal");
+  }
+});
+
+document.getElementById("push-preferences").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const selected = Array.from(e.target.elements.category)
+    .filter(el => el.checked)
+    .map(el => el.value);
+  localStorage.setItem("pushCategories", JSON.stringify(selected));
+  closeModal("push-modal");
+});
+
+function showDescriptionModal(title, description) {
+  const cleanDescription = (description || "")
+    .replace(/#[\w]+/g, "")      // Remove hashtags
+    //.replace(/\n/g, "<br/>")     // Preserve line breaks
+    .trim();
+
+  document.getElementById("modal-title").textContent = title || "Event Details";
+  document.getElementById("modal-description").innerHTML = cleanDescription || "<em>No description provided.</em>";
+  openModal("description-modal");
+}
+
+// Close modal when clicking outside modal-content
+document.addEventListener("click", (e) => {
+  const modals = document.querySelectorAll(".modal.show");
+  modals.forEach(modal => {
+    if (e.target === modal) {
+      modal.classList.remove("show");
+    }
+  });
+});
+
+// Close modal on Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    document.querySelectorAll(".modal.show").forEach(modal => modal.classList.remove("show"));
+  }
+});
+
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+
+window.setReminder = setReminder;
+window.removeReminder = removeReminder;
+window.showSection = function(id) {
+  // Show the selected section
+  document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+
+  // Highlight the active nav button
+  document.querySelectorAll('.nav-bar button').forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`.nav-bar button[data-target="${id}"]`)?.classList.add('active');
+};
+

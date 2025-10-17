@@ -1,0 +1,12 @@
+{
+  "name": "ucjc-convocation-app",
+  "version": "1.0.0",
+  "description": "UCJC Convocation App with Netlify Functions",
+  "main": "index.js",
+  "scripts": {
+    "start": "netlify dev"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  }
+}
