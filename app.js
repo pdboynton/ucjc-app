@@ -811,19 +811,21 @@ window.showSection = function(id) {
   document.querySelector(`.nav-bar button[data-target="${id}"]`)?.classList.add('active');
 };
 
-// Social Area Code
+// SOCIAL AREA MODULE — UCJC Conference App
 
-// Firebase setup assumed
-db = firebase.firestore();
-const storage = firebase.storage();
-const auth = firebase.auth();
+// Reuse existing Firebase services
+const attendeeAuth = firebase.auth();
+const attendeeDB = firebase.firestore();
+const attendeeStorage = firebase.storage();
 
-function showTab(tabId) {
+// Tab switching
+window.showSocialTab = function(tabId) {
   document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-  document.getElementById(tabId).style.display = 'block';
-}
+  document.getElementById(tabId)?.style.display = 'block';
+};
 
-document.getElementById('profile-form').addEventListener('submit', async (e) => {
+// Profile form submission
+document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;
   const profile = {
@@ -847,60 +849,124 @@ document.getElementById('profile-form').addEventListener('submit', async (e) => 
   const password = form.password.value;
 
   try {
-    const userCredential = await auth.createUserWithEmailAndPassword(username + "@ucjc.com", password);
-    const uid = userCredential.user.uid;
+    let user;
+    if (!attendeeAuth.currentUser) {
+      const cred = await attendeeAuth.createUserWithEmailAndPassword(username + "@ucjc.com", password);
+      user = cred.user;
+    } else {
+      user = attendeeAuth.currentUser;
+    }
+
+    const uid = user.uid;
 
     if (form.photo.files[0]) {
-      const photoRef = storage.ref(`profiles/${uid}`);
+      const photoRef = attendeeStorage.ref(`profiles/${uid}`);
       await photoRef.put(form.photo.files[0]);
       profile.photoURL = await photoRef.getDownloadURL();
     }
 
-    await db.collection("attendees").doc(uid).set(profile);
+    await attendeeDB.collection("attendees").doc(uid).set(profile);
     localStorage.setItem("attendeeProfile", JSON.stringify(profile));
-    alert("Profile saved!");
+    showToast("✅ Profile saved!");
   } catch (err) {
-    console.error(err);
-    alert("Error saving profile: " + err.message);
+    console.error("Profile error:", err);
+    showToast("⚠️ " + err.message);
   }
 });
 
-async function loadDirectory() {
-  const snapshot = await db.collection("attendees").get();
+// Load attendee directory
+window.loadAttendeeDirectory = async function() {
   const container = document.getElementById("directory-list");
-  container.innerHTML = "";
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const card = document.createElement("div");
-    card.className = "id-card";
-    if (data.visibility.title) {
-      card.innerHTML += `<h4>${data.title} ${data.firstName} ${data.lastName}</h4>`;
-    }
-    if (data.visibility.church) {
-      card.innerHTML += `<p>Church: ${data.church}</p>`;
-    }
-    if (data.visibility.cellphone) {
-      card.innerHTML += `<p>Cell: ${data.cellphone}</p>`;
-    }
-    if (data.visibility.email) {
-      card.innerHTML += `<p>Email: ${data.email}</p>`;
-    }
-    if (data.visibility.social) {
-      card.innerHTML += `<p>Social: ${data.social}</p>`;
-    }
-    if (data.photoURL) {
-      card.innerHTML += `<img src="${data.photoURL}" alt="Profile Photo" />`;
-    }
-    container.appendChild(card);
-  });
-}
+  if (!container) return;
 
-document.getElementById("chatroom-select").addEventListener("change", () => {
+  container.innerHTML = "";
+  try {
+    const snapshot = await attendeeDB.collection("attendees").get();
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const card = document.createElement("div");
+      card.className = "id-card";
+
+      if (data.visibility?.title) {
+        card.innerHTML += `<h4>${data.title} ${data.firstName} ${data.lastName}</h4>`;
+      }
+      if (data.visibility?.church) {
+        card.innerHTML += `<p>Church: ${data.church}</p>`;
+      }
+      if (data.visibility?.cellphone) {
+        card.innerHTML += `<p>Cell: ${data.cellphone}</p>`;
+      }
+      if (data.visibility?.email) {
+        card.innerHTML += `<p>Email: ${data.email}</p>`;
+      }
+      if (data.visibility?.social) {
+        card.innerHTML += `<p>Social: ${data.social}</p>`;
+      }
+      if (data.photoURL) {
+        card.innerHTML += `<img src="${data.photoURL}" alt="Profile Photo" />`;
+      }
+
+      container.appendChild(card);
+    });
+  } catch (err) {
+    console.error("Directory load error:", err);
+    showToast("⚠️ Unable to load directory.");
+  }
+};
+
+// Chatroom logic
+document.getElementById("chatroom-select")?.addEventListener("change", () => {
   const room = document.getElementById("chatroom-select").value;
   const password = document.getElementById("chatroom-password").value;
-  if ((room === "admin" && password !== "UCJC56") || (room === "praise" && password !== "#1IPWT")) {
-    alert("Incorrect password for this room.");
+
+  const protectedRooms = {
+    admin: "UCJC56",
+    praise: "#1IPWT"
+  };
+
+  if (protectedRooms[room] && password !== protectedRooms[room]) {
+    showToast("⚠️ Incorrect password for this room.");
     return;
   }
-  // Load messages from Firestore
+
+  loadChatroom(room);
 });
+
+async function loadChatroom(roomName) {
+  const container = document.getElementById("chatroom-messages");
+  container.innerHTML = "";
+
+  try {
+    const snapshot = await attendeeDB.collection("chatrooms").doc(roomName).collection("messages").orderBy("timestamp").get();
+    snapshot.forEach(doc => {
+      const msg = doc.data();
+      const div = document.createElement("div");
+      div.textContent = `${msg.sender || "Anonymous"}: ${msg.text}`;
+      container.appendChild(div);
+    });
+  } catch (err) {
+    console.error("Chatroom load error:", err);
+    showToast("⚠️ Unable to load messages.");
+  }
+}
+
+window.sendMessage = async function() {
+  const room = document.getElementById("chatroom-select").value;
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if (!text) return;
+
+  try {
+    const sender = attendeeAuth.currentUser?.email?.split("@")[0] || "Anonymous";
+    await attendeeDB.collection("chatrooms").doc(room).collection("messages").add({
+      text,
+      sender,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    input.value = "";
+    loadChatroom(room);
+  } catch (err) {
+    console.error("Send message error:", err);
+    showToast("⚠️ Message failed.");
+  }
+};
