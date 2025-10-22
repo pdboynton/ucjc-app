@@ -516,3 +516,241 @@ button:disabled {
   90% { opacity: 1; transform: translateX(-50%) translateY(0); }
   100% { opacity: 0; transform: translateX(-50%) translateY(10px); }
 }
+
+/* Base styles using light mode variables */
+#social-area {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--bg-light);
+  color: var(--text-light);
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 0.75rem;
+  background: var(--accent-light);
+  color: var(--card-light);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.tabs button:hover {
+  background: var(--secondary-light);
+}
+
+/* Tab content */
+.tab-content {
+  display: none;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Profile form */
+#profile-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+#profile-form input,
+#profile-form select,
+#profile-form textarea {
+  padding: 0.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: var(--card-light);
+  color: var(--text-light);
+}
+
+#profile-form label {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-light);
+}
+
+#profile-form button {
+  grid-column: span 2;
+  padding: 0.75rem;
+  background: var(--highlight);
+  color: var(--bg-light);
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#profile-form button:hover {
+  background: var(--highlight-dark);
+}
+
+/* Directory cards */
+#directory-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.id-card {
+  background: var(--card-light);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  text-align: center;
+  color: var(--text-light);
+}
+
+.id-card h4 {
+  margin: 0.5rem 0;
+  color: var(--accent-light);
+}
+
+.id-card p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.id-card img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+}
+
+/* Chatroom */
+#chatroom-select,
+#chatroom-password,
+#chat-input {
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+  border: 1px solid var(--border-light);
+  background: var(--card-light);
+  color: var(--text-light);
+}
+
+#chatroom-messages {
+  height: 250px;
+  overflow-y: auto;
+  background: var(--card-light);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#chatroom-messages div {
+  margin-bottom: 0.5rem;
+  padding: 0.25rem;
+  background: var(--bg-light);
+  border-left: 4px solid var(--accent-light);
+  border-radius: 4px;
+}
+
+#chatroom button {
+  padding: 0.5rem 1rem;
+  background: var(--accent-light);
+  color: var(--card-light);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#chatroom button:hover {
+  background: var(--secondary-light);
+}
+
+/* Dark mode overrides */
+.dark #social-area {
+  background: var(--bg-dark);
+  color: var(--text-dark);
+}
+
+.dark .tabs button {
+  background: var(--accent-dark);
+  color: var(--card-dark);
+}
+
+.dark .tabs button:hover {
+  background: var(--secondary-dark);
+}
+
+.dark #profile-form input,
+.dark #profile-form select,
+.dark #profile-form textarea {
+  background: var(--card-dark);
+  color: var(--text-dark);
+  border: 1px solid var(--border-dark);
+}
+
+.dark #profile-form label {
+  color: var(--text-dark);
+}
+
+.dark #profile-form button {
+  background: var(--highlight-dark);
+  color: var(--bg-dark);
+}
+
+.dark .id-card {
+  background: var(--card-dark);
+  border: 1px solid var(--border-dark);
+  color: var(--text-dark);
+}
+
+.dark .id-card h4 {
+  color: var(--accent-dark);
+}
+
+.dark #chatroom-select,
+.dark #chatroom-password,
+.dark #chat-input {
+  background: var(--card-dark);
+  color: var(--text-dark);
+  border: 1px solid var(--border-dark);
+}
+
+.dark #chatroom-messages {
+  background: var(--card-dark);
+  border: 1px solid var(--border-dark);
+}
+
+.dark #chatroom-messages div {
+  background: var(--bg-dark);
+  border-left: 4px solid var(--accent-dark);
+}
+
+.dark #chatroom button {
+  background: var(--accent-dark);
+  color: var(--card-dark);
+}
+
+.dark #chatroom button:hover {
+  background: var(--secondary-dark);
+}
