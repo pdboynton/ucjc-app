@@ -814,7 +814,7 @@ window.showSection = function(id) {
 // Social Area Code
 
 // Firebase setup assumed
-const db = firebase.firestore();
+db = firebase.firestore();
 const storage = firebase.storage();
 const auth = firebase.auth();
 
