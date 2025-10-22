@@ -811,3 +811,96 @@ window.showSection = function(id) {
   document.querySelector(`.nav-bar button[data-target="${id}"]`)?.classList.add('active');
 };
 
+// Social Area Code
+
+// Firebase setup assumed
+const db = firebase.firestore();
+const storage = firebase.storage();
+const auth = firebase.auth();
+
+function showTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.getElementById(tabId).style.display = 'block';
+}
+
+document.getElementById('profile-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const profile = {
+    title: form.title.value,
+    firstName: form.firstName.value,
+    lastName: form.lastName.value,
+    church: form.church.value,
+    cellphone: form.cellphone.value,
+    email: form.email.value,
+    social: form.social.value,
+    visibility: {
+      title: form.shareTitle.checked,
+      church: form.shareChurch.checked,
+      cellphone: form.shareCellphone.checked,
+      email: form.shareEmail.checked,
+      social: form.shareSocial.checked
+    }
+  };
+
+  const username = form.username.value;
+  const password = form.password.value;
+
+  try {
+    const userCredential = await auth.createUserWithEmailAndPassword(username + "@ucjc.com", password);
+    const uid = userCredential.user.uid;
+
+    if (form.photo.files[0]) {
+      const photoRef = storage.ref(`profiles/${uid}`);
+      await photoRef.put(form.photo.files[0]);
+      profile.photoURL = await photoRef.getDownloadURL();
+    }
+
+    await db.collection("attendees").doc(uid).set(profile);
+    localStorage.setItem("attendeeProfile", JSON.stringify(profile));
+    alert("Profile saved!");
+  } catch (err) {
+    console.error(err);
+    alert("Error saving profile: " + err.message);
+  }
+});
+
+async function loadDirectory() {
+  const snapshot = await db.collection("attendees").get();
+  const container = document.getElementById("directory-list");
+  container.innerHTML = "";
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const card = document.createElement("div");
+    card.className = "id-card";
+    if (data.visibility.title) {
+      card.innerHTML += `<h4>${data.title} ${data.firstName} ${data.lastName}</h4>`;
+    }
+    if (data.visibility.church) {
+      card.innerHTML += `<p>Church: ${data.church}</p>`;
+    }
+    if (data.visibility.cellphone) {
+      card.innerHTML += `<p>Cell: ${data.cellphone}</p>`;
+    }
+    if (data.visibility.email) {
+      card.innerHTML += `<p>Email: ${data.email}</p>`;
+    }
+    if (data.visibility.social) {
+      card.innerHTML += `<p>Social: ${data.social}</p>`;
+    }
+    if (data.photoURL) {
+      card.innerHTML += `<img src="${data.photoURL}" alt="Profile Photo" />`;
+    }
+    container.appendChild(card);
+  });
+}
+
+document.getElementById("chatroom-select").addEventListener("change", () => {
+  const room = document.getElementById("chatroom-select").value;
+  const password = document.getElementById("chatroom-password").value;
+  if ((room === "admin" && password !== "UCJC56") || (room === "praise" && password !== "#1IPWT")) {
+    alert("Incorrect password for this room.");
+    return;
+  }
+  // Load messages from Firestore
+});
