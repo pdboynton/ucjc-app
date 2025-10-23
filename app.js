@@ -116,9 +116,9 @@ function initFirebase() {
     }
   });
   // Reuse existing Firebase services for social tab
-const attendeeAuth = firebase.auth();
-const attendeeDB = firebase.firestore();
-const attendeeStorage = firebase.storage();
+attendeeAuth = firebase.auth();
+attendeeDB = firebase.firestore();
+attendeeStorage = firebase.storage();
 }
 
 // Service Worker
