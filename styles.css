@@ -558,7 +558,7 @@ button:disabled {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-.tab-content.active {
+.tab-content.active-tab {
   display: block;
 }
 
