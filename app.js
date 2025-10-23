@@ -818,12 +818,6 @@ const attendeeAuth = firebase.auth();
 const attendeeDB = firebase.firestore();
 const attendeeStorage = firebase.storage();
 
-// Tab switching
-window.showSocialTab = function(tabId) {
-  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-  document.getElementById(tabId)?.style.display = 'block';
-};
-
 // Profile form submission
 document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -969,4 +963,11 @@ window.sendMessage = async function() {
     console.error("Send message error:", err);
     showToast("⚠️ Message failed.");
   }
+};
+
+// Tab switching
+console.log("Tab switch ready")
+window.showSocialTab = function(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.getElementById(tabId)?.style.display = 'block';
 };
