@@ -569,15 +569,22 @@ button:disabled {
 
 /* Profile form */
 #profile-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
 #profile-form input,
 #profile-form select,
 #profile-form textarea {
+  width: 100%;
   padding: 0.5rem;
+  font-size: 1rem;
+  box-sizing: border-box;
   border: 1px solid var(--border-light);
   border-radius: 4px;
   background: var(--card-light);
@@ -615,17 +622,20 @@ button:disabled {
 }
 
 .id-card {
+  max-width: 500px;
+  margin: 1rem auto;
   background: var(--card-light);
   border: 1px solid var(--border-light);
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 1rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  /*text-align: center;*/
   color: var(--text-light);
 }
 
 .id-card h4 {
-  margin: 0.5rem 0;
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
   color: var(--accent-light);
 }
 
@@ -635,9 +645,9 @@ button:disabled {
 }
 
 .id-card img {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
+  display: block;
+  max-width: 100px;
+  height: auto;
   border-radius: 50%;
   margin-bottom: 0.5rem;
 }
