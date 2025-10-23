@@ -3,6 +3,9 @@
 // Global IndexedDB reference
 let db;
 
+// Global attendee data reference
+let attendeeAuth, attendeeDB, attendeeStorage;
+
 // In-memory fallback store
 const memoryStore = [];
 
