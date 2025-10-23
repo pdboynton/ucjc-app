@@ -163,23 +163,53 @@
       <input type="email" name="email" placeholder="Email" />
       <input type="text" name="social" placeholder="Social Media" />
       <input type="file" name="photo" accept="image/*" />
-      <label><input type="checkbox" name="shareTitle" /> Share Title/Name</label>
-      <label><input type="checkbox" name="shareChurch" /> Share Church</label>
-      <label><input type="checkbox" name="shareCellphone" /> Share Cellphone</label>
-      <label><input type="checkbox" name="shareEmail" /> Share Email</label>
-      <label><input type="checkbox" name="shareSocial" /> Share Social Media</label>
+      <div class="toggle-row">
+        <span>Share Title/Name</span>
+        <label class="switch">
+          <input type="checkbox" name="shareTitle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <span>Share Church</span>
+        <label class="switch">
+          <input type="checkbox" name="shareChurch" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <span>Share Cellphone</span>
+        <label class="switch">
+          <input type="checkbox" name="shareCellphone" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <span>Share Email</span>
+        <label class="switch">
+          <input type="checkbox" name="shareEmail" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <span>Share Social Media</span>
+        <label class="switch">
+          <input type="checkbox" name="shareSocial" />
+          <span class="slider"></span>
+        </label>
+      </div>
       <input type="text" name="username" placeholder="Username" required />
       <input type="password" name="password" placeholder="Password" required />
       <button type="submit">Save Profile</button>
     </form>
   </div>
 
-  <div id="directory" class="tab-content" style="display:none;">
+  <div id="directory" class="tab-content">
     <h3>Attendee Directory</h3>
     <div id="directory-list"></div>
   </div>
 
-  <div id="chatroom" class="tab-content" style="display:none;">
+  <div id="chatroom" class="tab-content">
     <h3>Conference Chatroom</h3>
     <select id="chatroom-select">
       <option value="general">General</option>
