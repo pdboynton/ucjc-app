@@ -183,6 +183,14 @@ function initEventListeners() {
     if (modal) modal.classList.remove("show");
   });
 
+  // Social tab switching
+  document.querySelectorAll('[data-tab]').forEach(btn => {
+    btn.addEventListener("click", () => {
+      const tabId = btn.getAttribute("data-tab");
+      showSocialTab(tabId);
+    });
+  });
+  
 }
 
 // Utility Functions
@@ -818,12 +826,11 @@ window.showSection = function(id) {
 // SOCIAL AREA MODULE — UCJC Conference App
 
 // Tab switching
-console.log("Tab switching initialized");
-
-window.showSocialTab = function(tabId) {
+function showSocialTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
   document.getElementById(tabId)?.style.display = 'block';
-};
+}
+
 
 // Profile form submission
 document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
