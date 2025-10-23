@@ -827,8 +827,8 @@ window.showSection = function(id) {
 
 // Tab switching
 function showSocialTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-  document.getElementById(tabId)?.style.display = 'block';
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active-tab'));
+  document.getElementById(tabId)?.classList.add('active-tab');
 }
 
 
