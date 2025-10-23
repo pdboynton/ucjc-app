@@ -1,4 +1,4 @@
-// app.js — UCJC Convocation App (Modular Version)
+// app.js — UCJC Conference App (Modular Version)
 
 // Global IndexedDB reference
 let db;
