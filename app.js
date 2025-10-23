@@ -817,12 +817,13 @@ window.showSection = function(id) {
 
 // SOCIAL AREA MODULE — UCJC Conference App
 
-/*/ Tab switching
-console.log("Tab switch ready")
+// Tab switching
+console.log("Tab switching initialized");
+
 window.showSocialTab = function(tabId) {
   document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
   document.getElementById(tabId)?.style.display = 'block';
-};*/
+};
 
 // Profile form submission
 document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
