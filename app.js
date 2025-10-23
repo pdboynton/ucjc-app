@@ -965,9 +965,4 @@ window.sendMessage = async function() {
   }
 };
 
-// Tab switching
-console.log("Tab switch ready")
-window.showSocialTab = function(tabId) {
-  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-  document.getElementById(tabId)?.style.display = 'block';
-};
+
