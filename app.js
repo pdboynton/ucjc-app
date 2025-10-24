@@ -871,10 +871,21 @@ document.getElementById('profile-form')?.addEventListener('submit', async (e) =>
     const uid = user.uid;
 
     if (form.photo.files[0]) {
-      const photoRef = attendeeStorage.ref(`profiles/${uid}`);
-      await photoRef.put(form.photo.files[0]);
-      profile.photoURL = await photoRef.getDownloadURL();
+      const file = form.photo.files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "ucjc_unsigned"); // Your preset name
+
+      const cloudName = "your-cloud-name"; // Replace with your Cloudinary cloud name
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      profile.photoURL = data.secure_url;
     }
+
 
     await attendeeDB.collection("attendees").doc(uid).set(profile);
     localStorage.setItem("attendeeProfile", JSON.stringify(profile));
