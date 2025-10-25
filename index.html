@@ -15,14 +15,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
   <!-- Firebase Messaging -->
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-messaging-compat.js"></script>
-  <!-- Firebase Auth -->
-  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
-  <!-- Firebase Firestore -->
-  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
-  <!-- Firebase Storage (if used) -->
-  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-storage-compat.js"></script>
   <!-- Eventbrite -->
   <script type="module" src="https://www.eventbrite.com/static/widgets/eb_widgets.js"></script>
+
 </head>
 <body>
 
@@ -42,6 +37,15 @@
       </div>
     <div id="app">
 
+    
+    <!-- Sections -->
+    <section id="home" class="active">
+
+      <!-- Banner -->
+      <div class="card"  id="home-banner-cards">
+        <!-- Full-day event cards will be injected here -->
+      </div>
+
       <div id="push-modal" class="modal">
         <div class="modal-content">
           <h3>Notification Preferences</h3>
@@ -58,16 +62,7 @@
           <button onclick="closeModal('push-modal')" class="remove-btn">Close</button>
         </div>
       </div>
-      
-    <!-- Sections -->
-    <section id="home" class="active">
 
-      <!-- Banner -->
-      <div class="card"  id="home-banner-cards">
-        <!-- Full-day event cards will be injected here -->
-      </div>
-      
-      <!-- Modal for Event Description -->
       <div id="description-modal" class="modal">
         <div class="modal-content">
           <h2 id="modal-title"></h2>
@@ -101,22 +96,12 @@
       <div class="card">
           <h2><i class="fa-solid fa-calendar-check"></i> Event Registration</h2>
           <div id="event-feed"></div>
-      </div>   
-
-      <!-- Program Book -->
-      <div class="card">
-        <h2><i class="fa-solid fa-book-open"></i> Conference Program</h2>
-        <div class="card">
-          <canvas id="pdf-canvas"></canvas>
-          <div class="controls">
-            <button id="prev-page">◀ Previous</button>
-            <span id="page-info">Page 1</span>
-            <button id="next-page">Next ▶</button>
+          <div style=" overflow: hidden">
+          <div class='sk-eventbrite-event' data-embed-id='25606440' style="margin-top: -295px; margin-bottom: -80px"></div><script src='https://widgets.sociablekit.com/eventbrite-events/widget.js' defer></script>
           </div>
-        </div>
-      </div>
-
+      </div>   
     </section>
+
 
     <section id="schedule">
       <h2><i class="fa-solid fa-calendar-days"></i> Conference Schedule</h2>
@@ -140,90 +125,18 @@
     </section>
 
     <section id="book">
-
+      <h2><i class="fa-solid fa-book-open"></i> Conference Program</h2>
+      <div class="card">
+        <canvas id="pdf-canvas"></canvas>
+        <div class="controls">
+          <button id="prev-page">◀ Previous</button>
+          <span id="page-info">Page 1</span>
+          <button id="next-page">Next ▶</button>
+        </div>
+      </div>
       
     </section>
 
-<section id="social-area">
-  <h2>Conference Social Area</h2>
-  <div class="tabs">
-    <button data-tab="profile">Attendee Profile</button>
-    <button data-tab="directory">Attendee Directory</button>
-    <button data-tab="chatroom">Conference Chatroom</button>
-  </div>
-
-  <div id="profile" class="tab-content active-tab">
-    <h3>Create or Update Profile</h3>
-    <form id="profile-form">
-      <input type="text" name="title" placeholder="Title" />
-      <input type="text" name="firstName" placeholder="First Name" />
-      <input type="text" name="lastName" placeholder="Last Name" />
-      <input type="text" name="church" placeholder="Church" />
-      <input type="tel" name="cellphone" placeholder="Cellphone" />
-      <input type="email" name="email" placeholder="Email" />
-      <input type="text" name="social" placeholder="Social Media" />
-      <input type="file" id="photo-upload" name="photo" accept="image/*" />
-      <div class="setting-row">
-        <span>Share Title/Name</span>
-        <label class="switch">
-          <input type="checkbox" name="shareTitle" />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="setting-row">
-        <span>Share Church</span>
-        <label class="switch">
-          <input type="checkbox" name="shareChurch" />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="setting-row">
-        <span>Share Cellphone</span>
-        <label class="switch">
-          <input type="checkbox" name="shareCellphone" />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="setting-row">
-        <span>Share Email</span>
-        <label class="switch">
-          <input type="checkbox" name="shareEmail" />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="setting-row">
-        <span>Share Social Media</span>
-        <label class="switch">
-          <input type="checkbox" name="shareSocial" />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <input type="text" name="username" placeholder="Username" required />
-      <input type="password" name="password" placeholder="Password" required />
-      <button type="submit">Save Profile</button>
-    </form>
-  </div>
-
-  <div id="directory" class="tab-content">
-    <h3>Attendee Directory</h3>
-    <div id="directory-list"></div>
-  </div>
-
-  <div id="chatroom" class="tab-content">
-    <h3>Conference Chatroom</h3>
-    <select id="chatroom-select">
-      <option value="general">General</option>
-      <option value="workshops">Workshops</option>
-      <option value="youth">Youth</option>
-      <option value="admin">Admin Team (password required)</option>
-      <option value="praise">Praise & Worship (password required)</option>
-    </select>
-    <input type="password" id="chatroom-password" placeholder="Enter password if required" />
-    <div id="chatroom-messages"></div>
-    <input type="text" id="chat-input" placeholder="Type your message..." />
-    <button onclick="sendMessage()">Send</button>
-  </div>
-</section>
 
 <section id="settings">
   <h2><i class="fa-solid fa-sliders"></i> Settings</h2>
@@ -284,7 +197,7 @@
   <nav class="nav-bar">
     <button data-target="home" onclick="showSection('home')"><i class="fa-solid fa-house"></i><span style="font-size: small">Home</span></button>
     <button data-target="schedule" onclick="showSection('schedule')"><i class="fa-solid fa-calendar-alt"></i><span style="font-size: small">Schedule</span></button>
-    <button data-target="social-area" onclick="showSection('social-area')"><i class="fa-solid fa-users"></i><span style="font-size: small">Social</span></button>
+    <button data-target="book" onclick="showSection('book')"><i class="fa-solid fa-book"></i><span style="font-size: small">Program</span></button>
     <button data-target="settings" onclick="showSection('settings')"><i class="fa-solid fa-gear"></i><span style="font-size: small">Settings</span></button>
   </nav>
 
