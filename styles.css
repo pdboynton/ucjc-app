@@ -38,7 +38,7 @@ li, p, .event-title, .event-location, .event-time, .card p, .card li {
 
 #app {
   padding: 6rem 1rem;
-  max-width: 800px;
+  max-width: 718px;
   margin: auto;
 }
 
@@ -68,45 +68,6 @@ h3{
 
 .dark h3{
   color: var(--text-dark)
-}
-
-.nav-bar {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  background: var(--card-light);
-  border-top: 1px solid var(--border-light);
-  padding: 0.5rem 0;
-}
-
-.dark .nav-bar {
-  background: var(--card-dark);
-  border-top: 1px solid var(--border-dark);
-}
-
-.nav-bar button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--text-light);
-}
-
-.dark .nav-bar button {
-  color: var(--text-dark);
-}
-
-.nav-bar button.active {
-  color: var(--accent-light);
-}
-
-.dark .nav-bar button.active {
-  color: var(--accent-dark);
 }
 
 button.slim-btn {
@@ -189,14 +150,14 @@ input[type="checkbox"] {
 
 /* Header */
 .home-header {
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: stretch;
   z-index: 100; /* ensures it stays above other elements */
   background-color: var(--bg-light)
 }
@@ -529,39 +490,6 @@ button:disabled {
   box-shadow: 0 0 10px rgba(0,0,0,0.05);
 }
 
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.tabs button {
-  flex: 1;
-  padding: 0.75rem;
-  background: var(--accent-light);
-  color: var(--card-light);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s;
-}
-
-.tabs button:hover {
-  background: var(--secondary-light);
-}
-
-/* Tab content */
-.tab-content {
-  display: none;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-.tab-content.active-tab {
-  display: block;
-}
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -656,6 +584,7 @@ button:disabled {
 #chatroom-select,
 #chatroom-password,
 #chat-input {
+  box-sizing: border-box;
   width: 100%;
   padding: 0.5rem;
   margin: 0.5rem 0;
@@ -696,19 +625,67 @@ button:disabled {
   background: var(--secondary-light);
 }
 
+#hamburger-menu {
+  margin-left: auto;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--accent-light);
+}
+
+.dark #hamburger-menu {
+  color: var(--accent-dark);
+}
+
+#side-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 240px;
+  height: 100%;
+  background-color: var(--card-light);
+  box-shadow: -2px 0 6px rgba(0,0,0,0.2);
+  padding: 1rem;
+  z-index: 9999;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+.dark #side-menu {
+  background-color: var(--card-dark);
+  color: var(--text-dark);
+}
+
+#side-menu.show {
+  transform: translateX(0);
+}
+
+#menu-items {
+  list-style: none;
+  padding: 0;
+}
+
+#menu-items li {
+  margin: 1rem 0;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent-light);
+}
+
+.dark #menu-items li {
+  color: var(--accent-dark);
+}
+
+#menu-items li i {
+  font-size: 1.2rem;
+}
+
 /* Dark mode overrides */
 .dark #social-area {
   background: var(--bg-dark);
   color: var(--text-dark);
-}
-
-.dark .tabs button {
-  background: var(--accent-dark);
-  color: var(--card-dark);
-}
-
-.dark .tabs button:hover {
-  background: var(--secondary-dark);
 }
 
 .dark #profile-form input,

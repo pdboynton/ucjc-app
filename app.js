@@ -186,14 +186,6 @@ function initEventListeners() {
     if (modal) modal.classList.remove("show");
   });
 
-  // Social tab switching
-  document.querySelectorAll('[data-tab]').forEach(btn => {
-    btn.addEventListener("click", () => {
-      const tabId = btn.getAttribute("data-tab");
-      showSocialTab(tabId);
-    });
-  });
-  
 }
 
 // Utility Functions
@@ -826,14 +818,7 @@ window.showSection = function(id) {
   document.querySelector(`.nav-bar button[data-target="${id}"]`)?.classList.add('active');
 };
 
-// SOCIAL AREA MODULE — UCJC Conference App
-
-// Tab switching
-function showSocialTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active-tab'));
-  document.getElementById(tabId)?.classList.add('active-tab');
-}
-
+// Social Sections
 
 // Profile form submission
 document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
@@ -993,4 +978,51 @@ window.sendMessage = async function() {
   }
 };
 
+// Menu
 
+// Hamburger toggle
+document.getElementById("hamburger-menu").addEventListener("click", () => {
+  document.getElementById("side-menu").classList.toggle("show");
+});
+
+// Close menu on outside click
+document.addEventListener("click", (e) => {
+  const menu = document.getElementById("side-menu");
+  const burger = document.getElementById("hamburger-menu");
+  if (!menu.contains(e.target) && !burger.contains(e.target)) {
+    menu.classList.remove("show");
+  }
+});
+
+// Dynamically populate menu from sections
+function populateMenuFromSections() {
+  const menu = document.getElementById("menu-items");
+  menu.innerHTML = "";
+
+  const iconMap = {
+    home: "fa-house",
+    schedule: "fa-calendar-days",
+    registration: "fa-pen-to-square",
+    program: "fa-book-open",
+    profile: "fa-id-card",
+    directory: "fa-address-book",
+    chatroom: "fa-comments",
+    settings: "fa-gear"
+  };
+
+  document.querySelectorAll("section").forEach(sec => {
+    const id = sec.id;
+    const label = sec.querySelector("h2")?.textContent || id;
+    const icon = iconMap[id] || "fa-circle";
+
+    const li = document.createElement("li");
+    li.innerHTML = `<i class="fa-solid ${icon}"></i> ${label}`;
+    li.addEventListener("click", () => {
+      showSection(id);
+      document.getElementById("side-menu").classList.remove("show");
+    });
+    menu.appendChild(li);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", populateMenuFromSections);

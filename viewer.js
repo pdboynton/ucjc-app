@@ -2,7 +2,7 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.umd.js';
 
 // Base PDF URL
-const BASE_PDF_URL = '/public/assets/program-book.pdf';
+const BASE_PDF_URL = '/public/assets/program-boook.pdf';
 
 // Cache-busting only on initial load
 const isInitialLoad = performance.navigation.type === performance.navigation.TYPE_NAVIGATE;

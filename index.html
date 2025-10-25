@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,54 +16,68 @@
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
   <!-- Firebase Messaging -->
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-messaging-compat.js"></script>
-  <!-- Eventbrite -->
-  <script type="module" src="https://www.eventbrite.com/static/widgets/eb_widgets.js"></script>
-
+  <!-- Firebase Auth -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+  <!-- Firebase Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+  <!-- Firebase Storage (if used) -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-storage-compat.js"></script>
+  <!-- Eventbrite >
+  <script type="module" src="https://www.eventbrite.com/static/widgets/eb_widgets.js"></script-->
 </head>
 <body>
+  <div class="home-header">
+    <img src="icons/icon-192.png" alt="UCJC Logo" class="ucjc-logo" />
+    <div class="home-title">
+      <h1>United Churches of Jesus Christ <span class="subtitle">(Apostolic)</span></h1>
+      
+      <!-- Android Install Button -->
+      <button id="install-btn" hidden class="slim-btn">Install App</button>
 
-
-      <div class="home-header">
-        <img src="icons/icon-192.png" alt="UCJC Logo" class="ucjc-logo" />
-        <div class="home-title">
-          <h1>United Churches of Jesus Christ <span class="subtitle">(Apostolic)</span></h1>
-          <!-- Android Install Button -->
-          <button id="install-btn" hidden class="slim-btn">Install App</button>
-
-          <!-- iOS Install Banner -->
-          <div id="ios-install-banner" hidden class="install-banner">
-            <p><strong>To unlock full features:</strong> Tap <span style="font-size:1.2em;">&#x1F5D2;</span> then “Add to Home Screen”</p>
-          </div>
-        </div>
+      <!-- iOS Install Banner -->
+      <div id="ios-install-banner" hidden class="install-banner">
+        <p><strong>To unlock full features:</strong> Tap <span style="font-size:1.2em;">&#x1F5D2;</span> then “Add to Home Screen”</p>
       </div>
-    <div id="app">
+    </div>
+    <!-- Hamburger Menu -->
+    <div id="hamburger-menu">
+      <i class="fa-solid fa-bars"></i>
+    </div>
 
-    
+    <!-- Slide-out Menu -->
+    <div id="side-menu" class="hidden">
+      <ul id="menu-items"></ul>
+    </div>
+
+  </div>
+  <div id="app">
+
+
+    <div id="push-modal" class="modal">
+      <div class="modal-content">
+        <h3>Notification Preferences</h3>
+        <p>Select the ministries you'd like to receive updates for:</p>
+        <form id="push-preferences">
+          <label><input type="checkbox" name="category" value="#General"> General Conference</label><br/>
+          <label><input type="checkbox" name="category" value="#WomenOfRoyalty"> Women of Royalty</label><br/>
+          <label><input type="checkbox" name="category" value="#ManCave"> Man Cave</label><br/>
+          <label><input type="checkbox" name="category" value="#Youth"> Youth Ministry</label><br/>
+          <label><input type="checkbox" name="category" value="#YoungAdult"> Young Adults</label><br/>
+          <label><input type="checkbox" name="category" value="#Rehearsal"> Rehearsals</label><br/>
+          <button type="submit" class="slim-btn">Save Preferences</button>
+        </form>
+        <button onclick="closeModal('push-modal')" class="remove-btn">Close</button>
+      </div>
+    </div>
+
     <!-- Sections -->
     <section id="home" class="active">
-
       <!-- Banner -->
       <div class="card"  id="home-banner-cards">
         <!-- Full-day event cards will be injected here -->
       </div>
-
-      <div id="push-modal" class="modal">
-        <div class="modal-content">
-          <h3>Notification Preferences</h3>
-          <p>Select the ministries you'd like to receive updates for:</p>
-          <form id="push-preferences">
-            <label><input type="checkbox" name="category" value="#General"> General Conference</label><br/>
-            <label><input type="checkbox" name="category" value="#WomenOfRoyalty"> Women of Royalty</label><br/>
-            <label><input type="checkbox" name="category" value="#ManCave"> Man Cave</label><br/>
-            <label><input type="checkbox" name="category" value="#Youth"> Youth Ministry</label><br/>
-            <label><input type="checkbox" name="category" value="#YoungAdult"> Young Adults</label><br/>
-            <label><input type="checkbox" name="category" value="#Rehearsal"> Rehearsals</label><br/>
-            <button type="submit" class="slim-btn">Save Preferences</button>
-          </form>
-          <button onclick="closeModal('push-modal')" class="remove-btn">Close</button>
-        </div>
-      </div>
-
+      
+      <!-- Modal for Event Description -->
       <div id="description-modal" class="modal">
         <div class="modal-content">
           <h2 id="modal-title"></h2>
@@ -76,6 +91,8 @@
         <h2><i class="fa-solid fa-user-clock"></i> Personalized Schedule</h2>
         <ul id="reminder-list"></ul>
       </div>
+      
+      <!-- Feedback Form -->
       <div id="feedback-modal" class="modal">
         <div class="modal-content">
           <h3>Session Feedback</h3>
@@ -91,17 +108,33 @@
           <button onclick="closeModal('feedback-modal')" class="remove-btn">Close</button>
         </div>
       </div>
-
+    </section>  
+      
+    <section id="registration">
       <!-- Registration -->
       <div class="card">
           <h2><i class="fa-solid fa-calendar-check"></i> Event Registration</h2>
-          <div id="event-feed"></div>
+          <!--div id="event-feed"></div-->
           <div style=" overflow: hidden">
           <div class='sk-eventbrite-event' data-embed-id='25606440' style="margin-top: -295px; margin-bottom: -80px"></div><script src='https://widgets.sociablekit.com/eventbrite-events/widget.js' defer></script>
           </div>
-      </div>   
+      </div>
+    </section>  
+      
+    <section id="program">
+      <!-- Program Book -->
+      <div class="card">
+        <h2><i class="fa-solid fa-book-open"></i> Conference Program</h2>
+        <div class="card">
+          <canvas id="pdf-canvas"></canvas>
+          <div class="controls">
+            <button id="prev-page">◀ Previous</button>
+            <span id="page-info">Page 1</span>
+            <button id="next-page">Next ▶</button>
+          </div>
+        </div>
+      </div>
     </section>
-
 
     <section id="schedule">
       <h2><i class="fa-solid fa-calendar-days"></i> Conference Schedule</h2>
@@ -124,19 +157,78 @@
       <ul id="event-list"></ul>
     </section>
 
-    <section id="book">
-      <h2><i class="fa-solid fa-book-open"></i> Conference Program</h2>
-      <div class="card">
-        <canvas id="pdf-canvas"></canvas>
-        <div class="controls">
-          <button id="prev-page">◀ Previous</button>
-          <span id="page-info">Page 1</span>
-          <button id="next-page">Next ▶</button>
-        </div>
+<section id="profile">
+  <h2><i class="fa-solid fa-id-card"></i> Attendee Profile</h2>
+    <h3>Create or Update Profile</h3>
+    <form id="profile-form">
+      <input type="text" name="title" placeholder="Title" />
+      <input type="text" name="firstName" placeholder="First Name" />
+      <input type="text" name="lastName" placeholder="Last Name" />
+      <input type="text" name="church" placeholder="Church" />
+      <input type="tel" name="cellphone" placeholder="Cellphone" />
+      <input type="email" name="email" placeholder="Email" />
+      <input type="text" name="social" placeholder="Social Media" />
+      <input type="file" id="photo-upload" name="photo" accept="image/*" />
+      <div class="setting-row">
+        <span>Share Title/Name</span>
+        <label class="switch">
+          <input type="checkbox" name="shareTitle" />
+          <span class="slider"></span>
+        </label>
       </div>
-      
-    </section>
+      <div class="setting-row">
+        <span>Share Church</span>
+        <label class="switch">
+          <input type="checkbox" name="shareChurch" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <span>Share Cellphone</span>
+        <label class="switch">
+          <input type="checkbox" name="shareCellphone" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <span>Share Email</span>
+        <label class="switch">
+          <input type="checkbox" name="shareEmail" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <span>Share Social Media</span>
+        <label class="switch">
+          <input type="checkbox" name="shareSocial" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <input type="text" name="username" placeholder="Username" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Save Profile</button>
+    </form>
+  </section>
 
+<section id="directory">
+  <h2><i class="fa-solid fa-address-book"></i> Attendee Directory</h2>
+  <div id="directory-list"></div>
+</section>
+
+<section id="chatroom">
+  <h2><i class="fa-solid fa-comments"></i> Conference Chatroom</h2>
+    <select id="chatroom-select">
+      <option value="general">General</option>
+      <option value="workshops">Workshops</option>
+      <option value="youth">Youth</option>
+      <option value="admin">Admin Team (password required)</option>
+      <option value="praise">Praise & Worship (password required)</option>
+    </select>
+    <input type="password" id="chatroom-password" placeholder="Enter password if required" />
+    <div id="chatroom-messages"></div>
+    <input type="text" id="chat-input" placeholder="Type your message..." />
+    <button onclick="sendMessage()">Send</button>
+</section>
 
 <section id="settings">
   <h2><i class="fa-solid fa-sliders"></i> Settings</h2>
@@ -192,14 +284,6 @@
 </section>
 
   </div>
-
-  <!-- Navigation Bar -->
-  <nav class="nav-bar">
-    <button data-target="home" onclick="showSection('home')"><i class="fa-solid fa-house"></i><span style="font-size: small">Home</span></button>
-    <button data-target="schedule" onclick="showSection('schedule')"><i class="fa-solid fa-calendar-alt"></i><span style="font-size: small">Schedule</span></button>
-    <button data-target="book" onclick="showSection('book')"><i class="fa-solid fa-book"></i><span style="font-size: small">Program</span></button>
-    <button data-target="settings" onclick="showSection('settings')"><i class="fa-solid fa-gear"></i><span style="font-size: small">Settings</span></button>
-  </nav>
 
   <script type="module" src="app.js"></script>
   <!-- Load UMD build first -->
