@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <meta name="theme-color" content="#0A1628"/>
+  <meta name="theme-color" content="#0A1628" id="meta-theme"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Convocation"/>
@@ -13,53 +13,96 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
   <style>
-    /* ═══════════════════════════════════════
-       DESIGN TOKENS & RESET
-    ══════════════════════════════════════════ */
+    /* ══════════════════════════════════════════════
+       DARK THEME (default)
+    ══════════════════════════════════════════════ */
     :root {
-      --navy-deep:  #080f1e;
-      --navy-mid:   #112240;
-      --navy-card:  #192d4a;
-      --navy-light: #1e3a5f;
-      --gold:       #C9A84C;
-      --gold-light: #E4C46A;
-      --crimson:    #8B2635;
+      --bg-deep:   #080f1e;
+      --bg-mid:    #112240;
+      --bg-card:   #192d4a;
+      --bg-light:  #1e3a5f;
+      --gold:      #C9A84C;
+      --gold-light:#E4C46A;
+      --crimson:   #8B2635;
       --text-primary: #F0E8D8;
       --text-muted:   #8FA3BF;
       --text-dim:     #4a6280;
-      --border:     rgba(201,168,76,0.18);
-      --border-soft: rgba(255,255,255,0.06);
-      --radius:     14px;
-      --radius-sm:  8px;
-      --shadow:     0 8px 32px rgba(0,0,0,0.5);
+      --border:      rgba(201,168,76,0.18);
+      --border-soft:  rgba(255,255,255,0.07);
+      --shadow:      0 8px 32px rgba(0,0,0,0.5);
+      --input-bg:    rgba(255,255,255,0.05);
+      --input-border:rgba(255,255,255,0.12);
+      --input-focus: rgba(255,255,255,0.08);
+      --overlay-bg:  rgba(0,0,0,0.75);
+      --radius:  14px;
+      --radius-sm: 8px;
       --font-display: 'Playfair Display', serif;
       --font-body:    'Lato', sans-serif;
-      --nav-h:      68px;
+      --nav-h: 68px;
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
+
+    /* ══════════════════════════════════════════════
+       LIGHT THEME
+    ══════════════════════════════════════════════ */
+    [data-theme="light"] {
+      --bg-deep:   #F0EAE0;
+      --bg-mid:    #FFFFFF;
+      --bg-card:   #FAF6F0;
+      --bg-light:  #EDE5D8;
+      --gold:      #A8721E;
+      --gold-light:#C9912A;
+      --crimson:   #8B2635;
+      --text-primary: #1C1208;
+      --text-muted:   #6B5840;
+      --text-dim:     #A09080;
+      --border:      rgba(168,114,30,0.22);
+      --border-soft:  rgba(0,0,0,0.08);
+      --shadow:      0 4px 24px rgba(0,0,0,0.10);
+      --input-bg:    rgba(0,0,0,0.04);
+      --input-border:rgba(0,0,0,0.14);
+      --input-focus: rgba(0,0,0,0.06);
+      --overlay-bg:  rgba(0,0,0,0.45);
+    }
+
+    /* ══════════════════════════════════════════════
+       RESET & BASE
+    ══════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { height: 100%; overscroll-behavior: none; }
     body {
       font-family: var(--font-body);
-      background: var(--navy-deep);
+      background: var(--bg-deep);
       color: var(--text-primary);
-      height: 100%;
-      overflow: hidden;
-      position: fixed;
-      width: 100%;
+      height: 100%; overflow: hidden;
+      position: fixed; width: 100%;
       -webkit-font-smoothing: antialiased;
+      transition: background 0.3s ease, color 0.3s ease;
     }
     body::before {
       content: '';
       position: fixed; inset: 0;
       background:
-        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(201,168,76,0.06) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 80% at 80% 100%, rgba(139,38,53,0.06) 0%, transparent 60%);
+        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(201,168,76,0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 100%, rgba(139,38,53,0.04) 0%, transparent 60%);
       pointer-events: none; z-index: 0;
     }
+    [data-theme="light"] body::before { opacity: 0.5; }
 
-    /* ── UTILITIES ─────────────────────────── */
+    /* ══════════════════════════════════════════════
+       ICONS — inline SVG system
+    ══════════════════════════════════════════════ */
+    .icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0; color: currentColor;
+    }
+    .icon svg { display: block; }
+
+    /* ══════════════════════════════════════════════
+       UTILITIES
+    ══════════════════════════════════════════════ */
     .hidden { display: none !important; }
+
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
       padding: 12px 24px; border-radius: var(--radius-sm); border: none;
@@ -67,170 +110,201 @@
       letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer;
       transition: all 0.2s ease;
     }
-    .btn-primary { background: linear-gradient(135deg, var(--gold), #a8862e); color: var(--navy-deep); }
-    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-primary { background: linear-gradient(135deg, var(--gold), #8a5c18); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.12); transform: translateY(-1px); }
     .btn-outline { background: transparent; color: var(--gold); border: 1.5px solid var(--gold); }
-    .btn-outline:hover { background: rgba(201,168,76,0.1); }
-    .btn-ghost { background: rgba(255,255,255,0.05); color: var(--text-primary); }
-    .btn-ghost:hover { background: rgba(255,255,255,0.1); }
-    .btn-sm { padding: 8px 16px; font-size: 0.8rem; }
+    .btn-outline:hover { background: rgba(201,168,76,0.12); }
+    .btn-ghost { background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--border-soft); }
+    .btn-ghost:hover { background: var(--input-focus); }
+    .btn-sm { padding: 8px 14px; font-size: 0.8rem; }
+    .btn-link {
+      background: none; border: none; color: var(--gold); cursor: pointer;
+      font-family: var(--font-body); font-size: 0.88rem; text-decoration: underline;
+      padding: 0; font-weight: 700;
+    }
     .muted-text { color: var(--text-muted); }
-    .small-text { font-size: 0.8rem; }
+    .small-text  { font-size: 0.8rem; }
 
     .field { margin-bottom: 16px; }
     .field label {
-      display: block; font-size: 0.78rem; letter-spacing: 0.08em;
+      display: block; font-size: 0.75rem; letter-spacing: 0.08em;
       text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; font-weight: 700;
     }
     input[type=text], input[type=email], input[type=password],
     input[type=number], textarea, select {
       width: 100%; padding: 12px 14px; border-radius: var(--radius-sm);
-      background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1);
+      background: var(--input-bg); border: 1.5px solid var(--input-border);
       color: var(--text-primary); font-family: var(--font-body); font-size: 0.95rem;
-      transition: border-color 0.2s; outline: none; -webkit-appearance: none;
+      transition: border-color 0.2s, background 0.2s; outline: none; -webkit-appearance: none;
     }
     input:focus, textarea:focus, select:focus {
-      border-color: var(--gold); background: rgba(255,255,255,0.07);
+      border-color: var(--gold); background: var(--input-focus);
     }
-    select option { background: var(--navy-mid); }
+    select option { background: var(--bg-mid); color: var(--text-primary); }
     textarea { resize: vertical; min-height: 80px; }
 
     .badge {
       display: inline-flex; align-items: center; padding: 3px 10px;
       border-radius: 20px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
     }
-    .badge-gold { background: rgba(201,168,76,0.18); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.3); }
-    .badge-blue { background: rgba(30,90,150,0.3); color: #7cb8f0; border: 1px solid rgba(100,170,255,0.2); }
+    .badge-gold { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid var(--border); }
+    .badge-blue { background: rgba(30,90,150,0.15); color: var(--text-muted); border: 1px solid var(--border-soft); }
 
     .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
     .toggle input { opacity: 0; width: 0; height: 0; }
     .toggle-slider {
       position: absolute; inset: 0; cursor: pointer;
-      background: rgba(255,255,255,0.1); border-radius: 24px; transition: 0.3s;
+      background: var(--border-soft); border: 1px solid var(--border-soft);
+      border-radius: 24px; transition: 0.3s;
     }
     .toggle-slider::before {
       content: ''; position: absolute;
       height: 18px; width: 18px; left: 3px; bottom: 3px;
-      background: white; border-radius: 50%; transition: 0.3s;
+      background: var(--text-dim); border-radius: 50%; transition: 0.3s;
     }
-    .toggle input:checked + .toggle-slider { background: var(--gold); }
-    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+    .toggle input:checked + .toggle-slider { background: var(--gold); border-color: var(--gold); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: #fff; }
 
-    /* ── LOADING OVERLAY ───────────────────── */
+    /* ══════════════════════════════════════════════
+       LOADING OVERLAY
+    ══════════════════════════════════════════════ */
     #loading-overlay {
       position: fixed; inset: 0; z-index: 9999;
-      background: var(--navy-deep);
+      background: var(--bg-deep);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 24px;
       transition: opacity 0.4s ease;
     }
     #loading-overlay.fade-out { opacity: 0; pointer-events: none; }
     .loader-logo {
-      width: 90px; height: 90px; object-fit: contain;
-      filter: drop-shadow(0 0 16px rgba(201,168,76,0.5));
+      width: 88px; height: 88px; object-fit: contain;
+      filter: drop-shadow(0 0 14px rgba(201,168,76,0.45));
       animation: glow-pulse 2s ease-in-out infinite;
     }
     .loader-ring {
-      width: 48px; height: 48px;
-      border: 3px solid rgba(201,168,76,0.2);
+      width: 44px; height: 44px;
+      border: 3px solid var(--border-soft);
       border-top-color: var(--gold);
       border-radius: 50%;
       animation: spin 0.9s linear infinite;
     }
     .loader-text {
       font-family: var(--font-display); font-style: italic;
-      font-size: 1.1rem; color: var(--text-muted);
+      font-size: 1.05rem; color: var(--text-muted);
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes glow-pulse {
-      0%,100% { filter: drop-shadow(0 0 10px rgba(201,168,76,0.4)); }
-      50%      { filter: drop-shadow(0 0 28px rgba(201,168,76,0.8)); }
+      0%,100% { filter: drop-shadow(0 0 8px rgba(201,168,76,0.35)); }
+      50%      { filter: drop-shadow(0 0 24px rgba(201,168,76,0.75)); }
     }
-    @keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-    @keyframes slide-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes fade-in  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+    @keyframes slide-up { from { transform:translateY(40px); opacity:0; } to { transform:none; opacity:1; } }
 
-    /* ── AUTH SCREEN ───────────────────────── */
+    /* ══════════════════════════════════════════════
+       AUTH SCREEN
+    ══════════════════════════════════════════════ */
     #auth-screen {
       position: fixed; inset: 0; z-index: 100;
-      background: var(--navy-deep);
+      background: var(--bg-deep);
       display: flex; flex-direction: column; overflow-y: auto;
       animation: fade-in 0.3s ease;
     }
     .auth-hero {
-      background: linear-gradient(135deg, #0A1628 0%, #1a2f4a 50%, #0e1e35 100%);
-      padding: 60px 32px 40px; text-align: center;
+      background: linear-gradient(160deg, var(--bg-card) 0%, var(--bg-mid) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 56px 32px 40px; text-align: center;
       position: relative; overflow: hidden; flex-shrink: 0;
     }
     .auth-hero-logo {
-      width: 90px; height: 90px; object-fit: contain;
-      display: block; margin: 0 auto 16px;
-      filter: drop-shadow(0 0 24px rgba(201,168,76,0.5));
+      width: 88px; height: 88px; object-fit: contain;
+      display: block; margin: 0 auto 18px;
+      filter: drop-shadow(0 0 20px rgba(201,168,76,0.4));
       animation: glow-pulse 3s ease-in-out infinite;
     }
     .auth-hero h1 {
-      font-family: var(--font-display); font-size: 1.9rem;
-      line-height: 1.2; color: var(--text-primary); margin-bottom: 6px;
+      font-family: var(--font-display); font-size: 1.8rem;
+      line-height: 1.25; color: var(--text-primary); margin-bottom: 6px;
     }
     .auth-hero h1 em { color: var(--gold); font-style: italic; }
-    .auth-hero p { color: var(--text-muted); font-size: 0.9rem; }
-    .auth-body { padding: 24px 24px 48px; flex: 1; }
+    .auth-hero p { color: var(--text-muted); font-size: 0.88rem; letter-spacing: 0.04em; }
+
+    .auth-body { padding: 24px 24px 48px; flex: 1; max-width: 480px; margin: 0 auto; width: 100%; }
     .auth-tabs {
-      display: flex; gap: 0; margin-bottom: 24px;
-      background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); padding: 4px;
+      display: flex; margin-bottom: 24px;
+      background: var(--input-bg); border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm); padding: 4px; gap: 4px;
     }
     .auth-tab {
       flex: 1; padding: 10px; border: none; background: transparent;
       color: var(--text-muted); font-family: var(--font-body);
-      font-weight: 700; font-size: 0.85rem; letter-spacing: 0.06em;
-      text-transform: uppercase; border-radius: calc(var(--radius-sm) - 2px);
+      font-weight: 700; font-size: 0.84rem; letter-spacing: 0.06em;
+      text-transform: uppercase; border-radius: calc(var(--radius-sm) - 3px);
       cursor: pointer; transition: all 0.2s;
     }
-    .auth-tab.active { background: var(--gold); color: var(--navy-deep); }
+    .auth-tab.active { background: var(--gold); color: #fff; }
     .auth-form { display: none; }
     .auth-form.active { display: block; animation: fade-in 0.2s ease; }
 
-    /* ── MAIN APP ──────────────────────────── */
+    /* Inline auth error box */
+    .auth-error-box {
+      background: rgba(139,38,53,0.10); border: 1px solid rgba(139,38,53,0.3);
+      border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .auth-error-msg { font-size: 0.88rem; color: var(--crimson); font-weight: 600; }
+    .auth-error-hint { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* ══════════════════════════════════════════════
+       MAIN APP
+    ══════════════════════════════════════════════ */
     #app {
       position: fixed; inset: 0;
       display: flex; flex-direction: column;
       animation: fade-in 0.3s ease;
     }
     .app-header {
-      flex-shrink: 0;
-      background: var(--navy-mid);
+      flex-shrink: 0; background: var(--bg-mid);
       border-bottom: 1px solid var(--border);
       padding: 12px 20px;
       padding-top: calc(12px + env(safe-area-inset-top, 0px));
       display: flex; align-items: center; gap: 12px;
       position: relative; z-index: 10;
     }
-    .app-header-logo { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 0 6px rgba(201,168,76,0.4)); }
+    .app-header-logo {
+      width: 30px; height: 30px; object-fit: contain; flex-shrink: 0;
+      filter: drop-shadow(0 0 5px rgba(201,168,76,0.4));
+    }
     .app-header-title { flex: 1; font-family: var(--font-display); font-size: 1.1rem; color: var(--text-primary); }
     .app-header-title small {
       display: block; font-family: var(--font-body);
-      font-size: 0.72rem; color: var(--text-muted); font-style: normal; letter-spacing: 0.05em;
+      font-size: 0.7rem; color: var(--text-muted); font-style: normal; letter-spacing: 0.05em;
     }
     .header-avatar {
       width: 36px; height: 36px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--gold), #a8862e);
+      background: linear-gradient(135deg, var(--gold), #8a5c18);
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700; color: var(--navy-deep); font-size: 0.85rem;
-      cursor: pointer; flex-shrink: 0; border: 2px solid rgba(201,168,76,0.4);
+      font-weight: 700; color: #fff; font-size: 0.84rem;
+      cursor: pointer; flex-shrink: 0; border: 2px solid var(--border);
     }
 
     #convocation-banner {
       flex-shrink: 0;
-      background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.04));
+      background: linear-gradient(135deg, rgba(201,168,76,0.10), rgba(201,168,76,0.03));
       border-bottom: 1px solid var(--border);
-      padding: 10px 20px;
-      display: flex; align-items: center; gap: 12px;
+      padding: 10px 20px; display: flex; align-items: center; gap: 12px;
     }
     .banner-info { flex: 1; min-width: 0; }
     .banner-title {
       font-family: var(--font-display); font-size: 0.9rem;
-      color: var(--gold-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .banner-meta { font-size: 0.75rem; color: var(--text-muted); }
+    .banner-meta { font-size: 0.74rem; color: var(--text-muted); }
+    .banner-refresh {
+      background: none; border: none; color: var(--text-dim); cursor: pointer;
+      font-size: 1.1rem; padding: 6px; border-radius: 50%; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .banner-refresh:hover { color: var(--gold); background: var(--input-bg); }
 
     .app-content { flex: 1; overflow: hidden; position: relative; }
     .screen {
@@ -243,15 +317,20 @@
 
     .section-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 16px; margin: 20px 0 12px;
+      padding: 0 16px; margin: 18px 0 10px;
     }
-    .section-title { font-family: var(--font-display); font-size: 1.05rem; color: var(--text-primary); }
+    .section-title {
+      font-family: var(--font-display); font-size: 1.05rem; color: var(--text-primary);
+      display: flex; align-items: center; gap: 8px;
+    }
     .section-title::before {
       content: ''; display: inline-block; width: 3px; height: 1em;
-      background: var(--gold); margin-right: 8px; vertical-align: middle; border-radius: 2px;
+      background: var(--gold); border-radius: 2px;
     }
 
-    /* ── SCHEDULE ──────────────────────────── */
+    /* ══════════════════════════════════════════════
+       SCHEDULE / EVENT CARDS
+    ══════════════════════════════════════════════ */
     .date-tab-list {
       display: flex; gap: 8px; padding: 12px 16px;
       overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
@@ -259,114 +338,115 @@
     .date-tab-list::-webkit-scrollbar { display: none; }
     .date-tab {
       flex-shrink: 0; padding: 8px 14px; border-radius: 24px; min-width: 56px;
-      background: rgba(255,255,255,0.05); border: 1px solid var(--border-soft);
+      background: var(--input-bg); border: 1px solid var(--border-soft);
       cursor: pointer; transition: all 0.2s; text-align: center;
     }
-    .date-tab.active {
-      background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.08));
-      border-color: var(--gold);
-    }
-    .date-tab-day { font-size: 0.68rem; letter-spacing: 0.06em; color: var(--text-muted); text-transform: uppercase; }
-    .date-tab-num { font-family: var(--font-display); font-size: 1.3rem; color: var(--text-primary); line-height: 1; }
-    .date-tab.active .date-tab-day, .date-tab.active .date-tab-num { color: var(--gold-light); }
+    .date-tab.active { background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.07)); border-color: var(--gold); }
+    .date-tab-day { font-size: 0.66rem; letter-spacing: 0.06em; color: var(--text-muted); text-transform: uppercase; }
+    .date-tab-num { font-family: var(--font-display); font-size: 1.3rem; color: var(--text-primary); line-height: 1.1; }
+    .date-tab.active .date-tab-day, .date-tab.active .date-tab-num { color: var(--gold); }
 
     .event-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
     .event-card {
-      background: var(--navy-card); border: 1px solid var(--border-soft);
+      background: var(--bg-card); border: 1px solid var(--border-soft);
       border-left: 3px solid var(--gold); border-radius: var(--radius);
-      padding: 14px; display: flex; gap: 14px; align-items: flex-start;
-      cursor: pointer; transition: all 0.2s;
+      padding: 14px; display: flex; gap: 12px; align-items: flex-start;
+      cursor: pointer; transition: all 0.18s;
     }
+    .event-card:hover { background: var(--bg-light); border-color: var(--border); }
     .event-card:active { transform: scale(0.99); }
-    .event-card:hover { background: var(--navy-light); border-color: rgba(201,168,76,0.3); }
-    .event-card.bookmarked { background: rgba(201,168,76,0.04); border-left-color: var(--gold-light); }
+    .event-card.bookmarked { border-left-color: var(--gold); background: rgba(201,168,76,0.04); }
     .event-time-col { flex-shrink: 0; text-align: right; min-width: 52px; padding-top: 2px; }
     .event-start { font-size: 0.82rem; font-weight: 700; color: var(--gold); }
-    .event-end { font-size: 0.72rem; color: var(--text-dim); }
-    .event-duration { font-size: 0.68rem; color: var(--text-dim); margin-top: 4px; }
-    .event-info { flex: 1; min-width: 0; }
+    .event-end   { font-size: 0.72rem; color: var(--text-dim); }
+    .event-duration { font-size: 0.66rem; color: var(--text-dim); margin-top: 4px; }
+    .event-info  { flex: 1; min-width: 0; }
     .event-title { font-family: var(--font-display); font-size: 1rem; color: var(--text-primary); margin-bottom: 4px; line-height: 1.3; }
-    .event-location { font-size: 0.78rem; color: var(--text-muted); }
+    .event-location { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
     .event-desc {
-      font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;
+      font-size: 0.78rem; color: var(--text-muted); margin-top: 5px;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
-    .event-actions { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .event-actions { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; }
     .bookmark-btn {
       background: none; border: none; cursor: pointer;
-      font-size: 1.3rem; color: var(--text-dim); transition: all 0.2s; padding: 4px;
+      color: var(--text-dim); transition: all 0.2s; padding: 5px;
+      display: flex; align-items: center; justify-content: center;
     }
-    .bookmark-btn.active { color: var(--gold); filter: drop-shadow(0 0 6px rgba(201,168,76,0.5)); }
-    .bookmark-saved { font-size: 0.65rem; color: var(--gold); text-align: center; }
+    .bookmark-btn.active { color: var(--gold); }
+    .bookmark-saved { font-size: 0.63rem; color: var(--gold); text-align: center; font-weight: 700; }
 
-    .empty-state { text-align: center; padding: 60px 32px; color: var(--text-muted); }
-    .empty-icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.4; }
-    .empty-title { font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 6px; }
+    .empty-state { text-align: center; padding: 56px 32px; color: var(--text-muted); }
+    .empty-icon { margin-bottom: 14px; opacity: 0.35; color: var(--text-dim); }
+    .empty-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--text-primary); margin-bottom: 6px; }
 
-    /* ── BOTTOM NAV ────────────────────────── */
+    /* ══════════════════════════════════════════════
+       BOTTOM NAV
+    ══════════════════════════════════════════════ */
     .bottom-nav {
-      flex-shrink: 0; background: var(--navy-mid); border-top: 1px solid var(--border);
+      flex-shrink: 0; background: var(--bg-mid); border-top: 1px solid var(--border-soft);
       display: flex; padding-bottom: var(--safe-bottom);
       height: calc(var(--nav-h) + var(--safe-bottom));
       position: relative; z-index: 10;
     }
     .nav-item {
-      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
       border: none; background: transparent; cursor: pointer; color: var(--text-dim);
-      transition: all 0.2s; position: relative;
+      transition: color 0.2s; position: relative;
     }
     .nav-item.active { color: var(--gold); }
     .nav-item.active::before {
       content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-      width: 32px; height: 2px; background: var(--gold); border-radius: 0 0 3px 3px;
+      width: 28px; height: 2.5px; background: var(--gold); border-radius: 0 0 3px 3px;
     }
-    .nav-icon { font-size: 1.35rem; }
-    .nav-label { font-size: 0.62rem; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; }
+    .nav-label { font-size: 0.6rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 700; }
     .nav-badge {
-      position: absolute; top: 8px; right: calc(50% - 14px);
-      background: var(--crimson); color: white; font-size: 0.6rem; font-weight: 700;
+      position: absolute; top: 8px; right: calc(50% - 16px);
+      background: var(--crimson); color: #fff; font-size: 0.58rem; font-weight: 700;
       min-width: 16px; height: 16px; border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
-      padding: 0 4px; border: 2px solid var(--navy-mid);
+      padding: 0 4px; border: 2px solid var(--bg-mid);
     }
 
-    /* ── MODALS ────────────────────────────── */
+    /* ══════════════════════════════════════════════
+       MODALS
+    ══════════════════════════════════════════════ */
     .modal-overlay {
       position: fixed; inset: 0; z-index: 200;
-      background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+      background: var(--overlay-bg); backdrop-filter: blur(5px);
       display: flex; align-items: flex-end;
       animation: fade-in 0.2s ease;
     }
     .modal-sheet {
-      width: 100%; max-height: 92vh; background: var(--navy-mid);
+      width: 100%; max-height: 92vh; background: var(--bg-mid);
       border-radius: var(--radius) var(--radius) 0 0;
       overflow: hidden; display: flex; flex-direction: column;
       animation: slide-up 0.3s cubic-bezier(0.32,0.72,0,1);
+      border-top: 1px solid var(--border-soft);
     }
     .modal-handle {
-      width: 40px; height: 4px; background: rgba(255,255,255,0.15);
+      width: 38px; height: 4px; background: var(--border-soft);
       border-radius: 2px; margin: 12px auto 4px; flex-shrink: 0;
     }
     .modal-header {
-      padding: 16px 20px; display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 20px; display: flex; align-items: flex-start; gap: 12px;
       flex-shrink: 0; border-bottom: 1px solid var(--border-soft);
     }
     .modal-close {
-      background: rgba(255,255,255,0.08); border: none; cursor: pointer;
+      background: var(--input-bg); border: 1px solid var(--border-soft); cursor: pointer;
       color: var(--text-muted); width: 32px; height: 32px; border-radius: 50%;
-      font-size: 1rem; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: background 0.15s;
+      font-size: 0.9rem; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.15s;
     }
-    .modal-close:hover { background: rgba(255,255,255,0.15); }
-    .modal-title { flex: 1; font-family: var(--font-display); font-size: 1.15rem; line-height: 1.3; }
+    .modal-close:hover { background: var(--bg-light); color: var(--text-primary); }
+    .modal-title { flex: 1; font-family: var(--font-display); font-size: 1.15rem; color: var(--text-primary); line-height: 1.3; }
     .modal-body { flex: 1; overflow-y: auto; padding: 20px; }
-    .modal-footer { flex-shrink: 0; padding: 16px 20px; border-top: 1px solid var(--border-soft); }
 
     .detail-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
     .detail-tab {
       flex: 1; padding: 9px 4px; border: none;
-      background: rgba(255,255,255,0.04); border-radius: var(--radius-sm);
-      color: var(--text-muted); font-family: var(--font-body); font-size: 0.78rem;
+      background: var(--input-bg); border-radius: var(--radius-sm);
+      color: var(--text-muted); font-family: var(--font-body); font-size: 0.76rem;
       font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
       cursor: pointer; transition: all 0.2s;
     }
@@ -376,197 +456,213 @@
 
     .info-row {
       display: flex; align-items: flex-start; gap: 12px; padding: 12px 0;
-      border-bottom: 1px solid var(--border-soft);
+      border-bottom: 1px solid var(--border-soft); color: var(--text-muted);
     }
     .info-row:last-child { border-bottom: none; }
-    .info-row-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
-    .info-row-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .info-row-label { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
     .info-row-value { font-size: 0.9rem; color: var(--text-primary); }
-
     .reminder-row {
       display: flex; align-items: center; gap: 12px; padding: 12px 0;
       border-bottom: 1px solid var(--border-soft);
     }
     .reminder-row:last-child { border-bottom: none; }
-    .reminder-label { flex: 1; font-size: 0.9rem; }
-    .reminder-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .reminder-label { flex: 1; font-size: 0.9rem; color: var(--text-primary); }
+    .reminder-sub { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
 
-    /* ── MY SCHEDULE ───────────────────────── */
+    /* ══════════════════════════════════════════════
+       MY SCHEDULE
+    ══════════════════════════════════════════════ */
     .my-schedule-stats {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px;
     }
     .stat-card {
-      background: var(--navy-card); border: 1px solid var(--border-soft);
-      border-radius: var(--radius); padding: 14px 12px; text-align: center;
+      background: var(--bg-card); border: 1px solid var(--border-soft);
+      border-radius: var(--radius); padding: 14px 10px; text-align: center;
     }
-    .stat-num { font-family: var(--font-display); font-size: 1.6rem; color: var(--gold); line-height: 1; }
-    .stat-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; }
+    .stat-num  { font-family: var(--font-display); font-size: 1.6rem; color: var(--gold); line-height: 1; }
+    .stat-label { font-size: 0.68rem; color: var(--text-muted); margin-top: 4px; letter-spacing: 0.04em; }
 
-    /* ── DIRECTORY ─────────────────────────── */
+    /* ══════════════════════════════════════════════
+       DIRECTORY
+    ══════════════════════════════════════════════ */
     .search-bar { padding: 12px 16px; }
     .search-input-wrap { position: relative; }
-    .search-input-wrap input { padding-left: 40px; }
-    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 1rem; pointer-events: none; }
-
+    .search-input-wrap input { padding-left: 42px; }
+    .search-icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--text-dim); pointer-events: none;
+      display: flex; align-items: center;
+    }
     .attendee-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
     .attendee-card {
-      background: var(--navy-card); border: 1px solid var(--border-soft);
+      background: var(--bg-card); border: 1px solid var(--border-soft);
       border-radius: var(--radius); padding: 12px 14px;
-      display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.18s;
     }
-    .attendee-card:hover { background: var(--navy-light); border-color: var(--border); }
+    .attendee-card:hover { background: var(--bg-light); border-color: var(--border); }
     .attendee-avatar {
       width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
-      background: linear-gradient(135deg, var(--gold), #a8862e);
+      background: linear-gradient(135deg, var(--gold), #8a5c18);
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700; color: var(--navy-deep); font-size: 0.95rem;
+      font-weight: 700; color: #fff; font-size: 0.95rem;
     }
     .attendee-info { flex: 1; min-width: 0; }
-    .attendee-name { font-weight: 700; font-size: 0.92rem; }
-    .attendee-church { font-size: 0.78rem; color: var(--text-muted); }
+    .attendee-name { font-weight: 700; font-size: 0.92rem; color: var(--text-primary); }
+    .attendee-church { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
 
-    /* ── CHAT ──────────────────────────────── */
+    /* ══════════════════════════════════════════════
+       CHAT
+    ══════════════════════════════════════════════ */
     .chat-screen-wrap { display: flex; flex-direction: column; position: absolute; inset: 0; }
     .chat-tabs {
       display: flex; padding: 10px 16px; gap: 6px;
       border-bottom: 1px solid var(--border-soft); flex-shrink: 0;
-      overflow-x: auto; scrollbar-width: none;
+      overflow-x: auto; scrollbar-width: none; background: var(--bg-mid);
     }
     .chat-tabs::-webkit-scrollbar { display: none; }
     .chat-tab-btn {
-      flex-shrink: 0; padding: 7px 14px; border-radius: 20px; border: none;
-      background: transparent; color: var(--text-muted); cursor: pointer;
-      font-size: 0.83rem; font-family: var(--font-body); font-weight: 700;
-      transition: all 0.2s; letter-spacing: 0.03em; white-space: nowrap;
+      flex-shrink: 0; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-soft);
+      background: var(--input-bg); color: var(--text-muted); cursor: pointer;
+      font-size: 0.82rem; font-family: var(--font-body); font-weight: 700;
+      transition: all 0.2s; white-space: nowrap;
+      display: flex; align-items: center; gap: 6px;
     }
-    .chat-tab-btn.active { background: rgba(201,168,76,0.15); color: var(--gold); }
-
+    .chat-tab-btn.active { background: rgba(201,168,76,0.15); color: var(--gold); border-color: var(--border); }
     .chat-panel { display: none; flex: 1; flex-direction: column; min-height: 0; overflow: hidden; }
     .chat-panel.active { display: flex; }
     .chat-messages {
       flex: 1; overflow-y: auto; padding: 16px;
-      display: flex; flex-direction: column; gap: 12px;
+      display: flex; flex-direction: column; gap: 12px; background: var(--bg-deep);
     }
     .msg-row { display: flex; gap: 10px; align-items: flex-end; }
     .msg-row.own { flex-direction: row-reverse; }
     .msg-avatar {
       width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
-      background: linear-gradient(135deg, var(--gold), #a8862e);
+      background: linear-gradient(135deg, var(--gold), #8a5c18);
       display: flex; align-items: center; justify-content: center;
-      font-size: 0.65rem; font-weight: 700; color: var(--navy-deep);
+      font-size: 0.62rem; font-weight: 700; color: #fff;
     }
     .msg-bubble-wrap { max-width: 75%; display: flex; flex-direction: column; gap: 3px; }
     .msg-row.own .msg-bubble-wrap { align-items: flex-end; }
-    .msg-sender { font-size: 0.68rem; color: var(--text-dim); padding: 0 6px; }
+    .msg-sender { font-size: 0.66rem; color: var(--text-dim); padding: 0 6px; }
     .msg-bubble {
-      padding: 10px 14px; border-radius: 16px; font-size: 0.88rem; line-height: 1.45;
-      background: var(--navy-card); border: 1px solid var(--border-soft);
-      border-bottom-left-radius: 4px; word-break: break-word;
+      padding: 10px 14px; border-radius: 16px; font-size: 0.87rem; line-height: 1.45;
+      background: var(--bg-card); border: 1px solid var(--border-soft);
+      border-bottom-left-radius: 4px; word-break: break-word; color: var(--text-primary);
     }
     .msg-row.own .msg-bubble {
-      background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.1));
-      border-color: rgba(201,168,76,0.25);
+      background: rgba(201,168,76,0.14); border-color: var(--border);
       border-bottom-right-radius: 4px; border-bottom-left-radius: 16px;
     }
-    .msg-time { font-size: 0.62rem; color: var(--text-dim); padding: 0 6px; }
+    .msg-time { font-size: 0.6rem; color: var(--text-dim); padding: 0 6px; }
     .chat-input-bar {
       flex-shrink: 0; padding: 10px 16px; border-top: 1px solid var(--border-soft);
-      display: flex; gap: 10px; align-items: center; background: var(--navy-mid);
+      display: flex; gap: 10px; align-items: center; background: var(--bg-mid);
     }
     .chat-input-bar input { margin: 0; border-radius: 20px; flex: 1; padding: 10px 16px; }
     .send-btn {
       width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
       background: var(--gold); border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1rem; color: var(--navy-deep); transition: all 0.2s;
+      color: #fff; transition: all 0.2s;
     }
     .send-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
-
-    /* DMs panel */
-    .dm-panel { flex: 1; overflow-y: auto; padding: 16px; display: none; }
+    .dm-panel { flex: 1; overflow-y: auto; padding: 16px; display: none; background: var(--bg-deep); }
     .dm-panel.active { display: block; }
-    .dm-list { display: flex; flex-direction: column; gap: 6px; }
 
-    /* ── PROFILE ───────────────────────────── */
+    /* ══════════════════════════════════════════════
+       PROFILE / SETTINGS
+    ══════════════════════════════════════════════ */
     .profile-hero {
-      background: linear-gradient(135deg, var(--navy-mid), var(--navy-card));
+      background: linear-gradient(160deg, var(--bg-card), var(--bg-light));
       padding: 32px 20px; text-align: center;
       border-bottom: 1px solid var(--border-soft); margin-bottom: 8px;
     }
     .profile-big-avatar {
-      width: 80px; height: 80px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--gold), #a8862e);
+      width: 78px; height: 78px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #8a5c18);
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.8rem; font-weight: 700; color: var(--navy-deep);
-      margin: 0 auto 12px; border: 3px solid rgba(201,168,76,0.4);
-      box-shadow: 0 0 30px rgba(201,168,76,0.2);
+      font-size: 1.8rem; font-weight: 700; color: #fff;
+      margin: 0 auto 12px; border: 3px solid var(--border);
+      box-shadow: 0 0 24px rgba(201,168,76,0.18);
     }
-    .profile-name { font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 4px; }
-    .profile-church { color: var(--text-muted); font-size: 0.88rem; }
+    .profile-name   { font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 4px; color: var(--text-primary); }
+    .profile-church { color: var(--text-muted); font-size: 0.86rem; }
 
-    .settings-section { padding: 0 16px; margin-bottom: 24px; }
+    .settings-section { padding: 0 16px; margin-bottom: 22px; }
     .settings-label {
-      font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--text-dim); font-weight: 700; padding: 12px 4px 8px;
+      font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-dim); font-weight: 700; padding: 12px 2px 8px;
     }
     .settings-card {
-      background: var(--navy-card); border: 1px solid var(--border-soft);
+      background: var(--bg-card); border: 1px solid var(--border-soft);
       border-radius: var(--radius); overflow: hidden;
     }
     .settings-row {
-      display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px; padding: 14px 16px;
       border-bottom: 1px solid var(--border-soft); cursor: pointer; transition: background 0.15s;
     }
     .settings-row:last-child { border-bottom: none; }
-    .settings-row:hover { background: rgba(255,255,255,0.03); }
-    .settings-row-icon { font-size: 1.1rem; width: 24px; text-align: center; color: var(--gold); }
+    .settings-row:hover { background: var(--bg-light); }
+    .settings-row-icon { width: 20px; text-align: center; color: var(--gold); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .settings-row-text { flex: 1; }
-    .settings-row-title { font-size: 0.9rem; }
-    .settings-row-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
-    .settings-row-right { color: var(--text-dim); font-size: 0.8rem; }
+    .settings-row-title { font-size: 0.9rem; color: var(--text-primary); }
+    .settings-row-sub   { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
+    .settings-row-right { color: var(--text-dim); font-size: 1rem; display: flex; align-items: center; }
+    .settings-row.danger .settings-row-icon,
+    .settings-row.danger .settings-row-title { color: var(--crimson); }
 
-    /* ── FEEDBACK ──────────────────────────── */
+    /* ══════════════════════════════════════════════
+       FEEDBACK / NOTES
+    ══════════════════════════════════════════════ */
     .feedback-stars { display: flex; justify-content: center; gap: 8px; margin: 16px 0; }
     .star { font-size: 2rem; cursor: pointer; color: var(--text-dim); transition: color 0.15s; }
     .star.active, .star:hover { color: var(--gold); }
-    .notes-saved { font-size: 0.75rem; color: var(--text-muted); text-align: right; margin-top: 6px; }
+    .notes-saved { font-size: 0.74rem; color: var(--text-muted); text-align: right; margin-top: 6px; }
 
-    /* ── TOAST ─────────────────────────────── */
+    /* ══════════════════════════════════════════════
+       TOAST
+    ══════════════════════════════════════════════ */
     #toast-container {
-      position: fixed; top: calc(env(safe-area-inset-top, 0px) + 80px); right: 16px;
+      position: fixed; top: calc(env(safe-area-inset-top, 0px) + 76px); right: 16px;
       z-index: 10000; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
     }
     .toast {
-      background: var(--navy-card); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 12px 16px;
-      font-size: 0.85rem; color: var(--text-primary);
-      box-shadow: var(--shadow); max-width: 300px;
-      animation: toast-in 0.3s ease; pointer-events: auto;
-      display: flex; align-items: center; gap: 10px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 11px 16px;
+      font-size: 0.84rem; color: var(--text-primary); box-shadow: var(--shadow);
+      max-width: 300px; animation: toast-in 0.3s ease;
+      pointer-events: auto; display: flex; align-items: center; gap: 10px;
     }
-    .toast.success { border-color: rgba(100,200,100,0.35); }
-    .toast.error   { border-color: rgba(200,100,100,0.35); }
-    @keyframes toast-in  { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
-    @keyframes toast-out { to   { opacity: 0; transform: translateX(20px); } }
+    .toast.success { border-color: rgba(80,180,80,0.4); }
+    .toast.error   { border-color: rgba(180,80,80,0.4); }
+    .toast-icon { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; }
+    .toast.success .toast-icon { background: rgba(80,180,80,0.2); color: #5cb85c; }
+    .toast.error   .toast-icon { background: rgba(180,80,80,0.2); color: #d9534f; }
+    .toast.info    .toast-icon { background: rgba(100,150,200,0.2); color: var(--text-muted); }
+    @keyframes toast-in  { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:none; } }
+    @keyframes toast-out { to   { opacity:0; transform:translateX(20px); } }
 
-    /* ── OFFLINE BANNER ────────────────────── */
+    /* ══════════════════════════════════════════════
+       MISC
+    ══════════════════════════════════════════════ */
     .offline-banner {
-      background: var(--crimson); color: white; text-align: center;
+      background: var(--crimson); color: #fff; text-align: center;
       padding: 6px 12px; font-size: 0.8rem; font-weight: 700; display: none;
+      letter-spacing: 0.04em;
     }
     .offline-banner.show { display: block; }
-    .connection-dot { width: 7px; height: 7px; border-radius: 50%; background: #6fcf97; display: inline-block; }
+    .connection-dot { width: 6px; height: 6px; border-radius: 50%; background: #5cb85c; display: inline-block; }
     .connection-dot.offline { background: var(--crimson); }
 
-    /* ── INSTALL PROMPT ────────────────────── */
     #install-prompt {
       position: fixed; bottom: calc(var(--nav-h) + var(--safe-bottom) + 12px); left: 16px; right: 16px;
-      z-index: 50; background: var(--navy-card); border: 1px solid var(--border);
+      z-index: 50; background: var(--bg-card); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 14px;
-      display: none; align-items: center; gap: 12px;
+      display: none; align-items: center; gap: 12px; box-shadow: var(--shadow);
     }
     #install-prompt.show { display: flex; animation: slide-up 0.3s ease; }
-    .install-text { flex: 1; font-size: 0.85rem; }
+    .install-text { flex: 1; font-size: 0.84rem; color: var(--text-primary); }
     .install-text strong { color: var(--gold); }
 
     @media (prefers-reduced-motion: reduce) {
@@ -579,15 +675,17 @@
 <!-- TOAST -->
 <div id="toast-container"></div>
 
-<!-- OFFLINE BANNER -->
-<div class="offline-banner" id="offline-banner">📵 You are offline. Some features may be unavailable.</div>
+<!-- OFFLINE -->
+<div class="offline-banner" id="offline-banner">You are offline — some features may be unavailable</div>
 
 <!-- INSTALL PROMPT -->
 <div id="install-prompt">
-  <span style="font-size:1.4rem">📱</span>
+  <span style="font-size:1.3rem;color:var(--gold)">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="17" r="1"/></svg>
+  </span>
   <div class="install-text"><strong>Install App</strong><br>Add UCJC Convocation to your home screen</div>
   <button class="btn btn-primary btn-sm" onclick="installApp()">Install</button>
-  <button class="btn btn-ghost btn-sm" onclick="dismissInstall()">✕</button>
+  <button class="btn btn-ghost btn-sm" onclick="dismissInstall()" style="padding:8px">✕</button>
 </div>
 
 <!-- LOADING OVERLAY -->
@@ -601,7 +699,7 @@
 <div id="auth-screen" class="hidden">
   <div class="auth-hero">
     <img src="logo.png" alt="UCJC Logo" class="auth-hero-logo" onerror="this.style.display='none'"/>
-    <h1>United Churches of<br/><em>Jesus Christ</em></h1>
+    <h1>United Church of<br/><em>Jesus Christ</em></h1>
     <p>Holy Convocation · Companion App</p>
   </div>
   <div class="auth-body">
@@ -610,15 +708,24 @@
       <button class="auth-tab"        data-tab="register" onclick="switchAuthTab('register')">Create Account</button>
     </div>
 
+    <!-- LOGIN -->
     <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+      <div id="login-error-box" class="auth-error-box hidden">
+        <div class="auth-error-msg" id="login-error-msg"></div>
+        <div class="auth-error-hint" id="login-error-hint"></div>
+        <button type="button" class="btn-link" id="login-error-action" style="display:none"></button>
+      </div>
       <div class="field"><label>Email Address</label>
-        <input type="email" id="login-email" placeholder="you@example.com" required autocomplete="email"/></div>
+        <input type="email" id="login-email" placeholder="you@example.com" required autocomplete="email"
+          oninput="clearLoginError()"/></div>
       <div class="field"><label>Password</label>
-        <input type="password" id="login-password" placeholder="Your password" required autocomplete="current-password"/></div>
+        <input type="password" id="login-password" placeholder="Your password" required autocomplete="current-password"
+          oninput="clearLoginError()"/></div>
       <button type="submit" class="btn btn-primary" style="width:100%;margin-bottom:12px" id="login-btn">Sign In</button>
-      <button type="button" class="btn btn-ghost" style="width:100%;font-size:0.8rem" onclick="handleForgotPassword()">Forgot Password?</button>
+      <button type="button" class="btn btn-ghost" style="width:100%;font-size:0.82rem" onclick="handleForgotPassword()">Forgot Password?</button>
     </form>
 
+    <!-- REGISTER -->
     <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
       <div class="field"><label>Full Name</label>
         <input type="text" id="reg-name" placeholder="Your full name" required/></div>
@@ -635,25 +742,29 @@
   </div>
 </div>
 
-<!-- ═══════════════════ MAIN APP ═══════════════════ -->
+<!-- ══════════════ MAIN APP ══════════════ -->
 <div id="app" class="hidden">
 
   <header class="app-header">
     <img src="logo.png" alt="UCJC" class="app-header-logo" onerror="this.style.display='none'"/>
     <div class="app-header-title">
       Holy Convocation
-      <small><span class="connection-dot" id="conn-dot"></span> <span id="conn-label">Connected</span></small>
+      <small><span class="connection-dot" id="conn-dot"></span>&nbsp;<span id="conn-label">Connected</span></small>
     </div>
     <div class="header-avatar" id="user-avatar" onclick="showScreen('profile')" title="My Profile">?</div>
   </header>
 
   <div id="convocation-banner">
-    <span style="font-size:1.3rem">🏛️</span>
+    <span class="icon" style="color:var(--gold)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </span>
     <div class="banner-info">
       <div class="banner-title" id="banner-title">Loading schedule…</div>
       <div class="banner-meta"  id="banner-meta"></div>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="refreshCalendar()" style="flex-shrink:0">↻</button>
+    <button class="banner-refresh" onclick="refreshCalendar()" title="Refresh schedule">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    </button>
   </div>
 
   <div class="app-content">
@@ -663,11 +774,13 @@
       <div id="date-tabs" class="date-tab-list"></div>
       <div id="events-loading" class="empty-state hidden">
         <div class="loader-ring" style="margin:0 auto 12px"></div>
-        <p>Fetching schedule…</p>
+        <p class="muted-text">Fetching schedule…</p>
       </div>
       <div id="event-list" class="event-list"></div>
       <div id="no-events" class="empty-state hidden">
-        <div class="empty-icon">📅</div>
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
         <div class="empty-title">No sessions scheduled</div>
         <p class="muted-text small-text">Check back soon or select another date</p>
       </div>
@@ -680,12 +793,12 @@
         <div class="stat-card"><div class="stat-num" id="stat-upcoming">0</div><div class="stat-label">Upcoming</div></div>
         <div class="stat-card"><div class="stat-num" id="stat-notes">0</div><div class="stat-label">Notes</div></div>
       </div>
-      <div class="section-header">
-        <span class="section-title">My Bookmarked Sessions</span>
-      </div>
+      <div class="section-header"><span class="section-title">Bookmarked Sessions</span></div>
       <div id="my-event-list" class="event-list"></div>
       <div id="no-bookmarks" class="empty-state hidden">
-        <div class="empty-icon">🔖</div>
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
         <div class="empty-title">No bookmarks yet</div>
         <p class="muted-text small-text">Tap the bookmark icon on any session to save it here</p>
       </div>
@@ -695,7 +808,9 @@
     <div class="screen" id="screen-directory">
       <div class="search-bar">
         <div class="search-input-wrap">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
           <input type="text" id="directory-search" placeholder="Search by name or church…" oninput="filterDirectory(this.value)"/>
         </div>
       </div>
@@ -710,38 +825,47 @@
     <div class="screen" id="screen-chat">
       <div class="chat-screen-wrap">
         <div class="chat-tabs">
-          <button class="chat-tab-btn active" data-panel="global"  onclick="switchChatTab('global')">🌐 Group Chat</button>
-          <button class="chat-tab-btn"        data-panel="dms"     onclick="switchChatTab('dms')">💬 Direct Messages</button>
-          <button class="chat-tab-btn"        data-panel="prayer"  onclick="switchChatTab('prayer')">🙏 Prayer Requests</button>
+          <button class="chat-tab-btn active" data-panel="global" onclick="switchChatTab('global')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Group Chat
+          </button>
+          <button class="chat-tab-btn" data-panel="dms" onclick="switchChatTab('dms')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Direct Messages
+          </button>
+          <button class="chat-tab-btn" data-panel="prayer" onclick="switchChatTab('prayer')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+            Prayer Requests
+          </button>
         </div>
 
-        <!-- Group Chat -->
         <div class="chat-panel active" id="panel-global">
           <div class="chat-messages" id="global-messages"></div>
           <div class="chat-input-bar">
             <input type="text" id="global-msg-input" placeholder="Message the group…"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendGlobalMessage();}"/>
-            <button class="send-btn" onclick="sendGlobalMessage()">➤</button>
+            <button class="send-btn" onclick="sendGlobalMessage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
           </div>
         </div>
 
-        <!-- DMs -->
         <div class="dm-panel" id="panel-dms">
-          <div class="dm-list" id="dm-list"></div>
           <div id="no-dms" class="empty-state">
-            <div class="empty-icon">💬</div>
+            <div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
             <div class="empty-title">No conversations yet</div>
             <p class="muted-text small-text">Start a chat from the Attendees directory</p>
           </div>
         </div>
 
-        <!-- Prayer Requests -->
         <div class="chat-panel" id="panel-prayer">
           <div class="chat-messages" id="prayer-messages"></div>
           <div class="chat-input-bar">
             <input type="text" id="prayer-msg-input" placeholder="Share a prayer request…"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPrayerMessage();}"/>
-            <button class="send-btn" onclick="sendPrayerMessage()">➤</button>
+            <button class="send-btn" onclick="sendPrayerMessage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -755,37 +879,39 @@
         <div class="profile-church" id="profile-church"></div>
         <div style="margin-top:12px"><span class="badge badge-gold">Attendee</span></div>
       </div>
+
       <div class="settings-section">
         <div class="settings-label">Account</div>
         <div class="settings-card">
           <div class="settings-row" onclick="showEditProfileModal()">
-            <span class="settings-row-icon">👤</span>
+            <span class="settings-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
             <div class="settings-row-text">
               <div class="settings-row-title">Edit Profile</div>
               <div class="settings-row-sub">Name, home church</div>
             </div>
-            <span class="settings-row-right">›</span>
+            <span class="settings-row-right"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
           </div>
           <div class="settings-row" onclick="showChangePasswordModal()">
-            <span class="settings-row-icon">🔒</span>
+            <span class="settings-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
             <div class="settings-row-text"><div class="settings-row-title">Change Password</div></div>
-            <span class="settings-row-right">›</span>
+            <span class="settings-row-right"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
           </div>
         </div>
       </div>
+
       <div class="settings-section">
         <div class="settings-label">Notifications &amp; Reminders</div>
         <div class="settings-card">
           <div class="settings-row" onclick="showReminderSettings()">
-            <span class="settings-row-icon">🔔</span>
+            <span class="settings-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
             <div class="settings-row-text">
               <div class="settings-row-title">Default Reminder Time</div>
               <div class="settings-row-sub" id="default-reminder-label">15 minutes before</div>
             </div>
-            <span class="settings-row-right">›</span>
+            <span class="settings-row-right"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
           </div>
-          <div class="settings-row">
-            <span class="settings-row-icon">📳</span>
+          <div class="settings-row" style="cursor:default">
+            <span class="settings-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 10a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l.94-1.81a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.92 15h-.03z"/></svg></span>
             <div class="settings-row-text">
               <div class="settings-row-title">Push Notifications</div>
               <div class="settings-row-sub">Session reminders</div>
@@ -797,28 +923,46 @@
           </div>
         </div>
       </div>
+
+      <div class="settings-section">
+        <div class="settings-label">Appearance</div>
+        <div class="settings-card">
+          <div class="settings-row" style="cursor:default">
+            <span class="settings-row-icon" id="theme-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            </span>
+            <div class="settings-row-text">
+              <div class="settings-row-title" id="theme-label">Light Theme</div>
+              <div class="settings-row-sub">Switch app appearance</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="theme-toggle" onchange="toggleTheme(this.checked)"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <div class="settings-section">
         <div class="settings-label">App</div>
         <div class="settings-card">
           <div class="settings-row" onclick="exportBookmarks()">
-            <span class="settings-row-icon">📤</span>
+            <span class="settings-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
             <div class="settings-row-text">
               <div class="settings-row-title">Export My Schedule</div>
               <div class="settings-row-sub">Download as text file</div>
             </div>
           </div>
           <div class="settings-row" onclick="showAbout()">
-            <span class="settings-row-icon">ℹ️</span>
+            <span class="settings-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
             <div class="settings-row-text">
               <div class="settings-row-title">About This App</div>
               <div class="settings-row-sub">UCJC Convocation v1.0</div>
             </div>
           </div>
-          <div class="settings-row" onclick="handleSignOut()">
-            <span class="settings-row-icon" style="color:var(--crimson)">🚪</span>
-            <div class="settings-row-text">
-              <div class="settings-row-title" style="color:var(--crimson)">Sign Out</div>
-            </div>
+          <div class="settings-row danger" onclick="handleSignOut()">
+            <span class="settings-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+            <div class="settings-row-text"><div class="settings-row-title">Sign Out</div></div>
           </div>
         </div>
       </div>
@@ -827,22 +971,27 @@
   </div><!-- end app-content -->
 
   <nav class="bottom-nav">
-    <button class="nav-item active" id="nav-schedule"    onclick="showScreen('schedule')">
-      <span class="nav-icon">📅</span><span class="nav-label">Schedule</span>
+    <button class="nav-item active" id="nav-schedule" onclick="showScreen('schedule')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span class="nav-label">Schedule</span>
     </button>
     <button class="nav-item" id="nav-my-schedule" onclick="showScreen('my-schedule')">
-      <span class="nav-icon">🔖</span><span class="nav-label">My Plan</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      <span class="nav-label">My Plan</span>
       <span class="nav-badge hidden" id="my-plan-badge">0</span>
     </button>
     <button class="nav-item" id="nav-directory" onclick="showScreen('directory')">
-      <span class="nav-icon">👥</span><span class="nav-label">Directory</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="nav-label">Directory</span>
     </button>
     <button class="nav-item" id="nav-chat" onclick="showScreen('chat')">
-      <span class="nav-icon">💬</span><span class="nav-label">Chat</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="nav-label">Chat</span>
       <span class="nav-badge hidden" id="chat-badge">0</span>
     </button>
     <button class="nav-item" id="nav-profile" onclick="showScreen('profile')">
-      <span class="nav-icon">👤</span><span class="nav-label">Profile</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="nav-label">Profile</span>
     </button>
   </nav>
 </div>
@@ -867,25 +1016,22 @@
         <button class="detail-tab"        data-tab="feedback" onclick="switchDetailTab('feedback')">Feedback</button>
         <button class="detail-tab"        data-tab="reminder" onclick="switchDetailTab('reminder')">Reminder</button>
       </div>
-      <!-- INFO -->
       <div class="detail-panel active" id="panel-info">
-        <div id="modal-event-desc" style="margin-bottom:16px;font-size:0.9rem;line-height:1.6;color:var(--text-muted)"></div>
+        <div id="modal-event-desc" style="margin-bottom:16px;font-size:0.9rem;line-height:1.65;color:var(--text-muted)"></div>
         <div class="info-row">
-          <span class="info-row-icon">📍</span>
+          <span class="icon" style="color:var(--gold)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
           <div><div class="info-row-label">Location</div><div class="info-row-value" id="modal-location">—</div></div>
         </div>
         <div class="info-row">
-          <span class="info-row-icon">⏱️</span>
+          <span class="icon" style="color:var(--gold)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
           <div><div class="info-row-label">Duration</div><div class="info-row-value" id="modal-duration">—</div></div>
         </div>
       </div>
-      <!-- NOTES -->
       <div class="detail-panel" id="panel-notes">
-        <textarea id="notes-textarea" placeholder="Write your personal notes for this session…" style="min-height:160px;font-size:0.9rem"></textarea>
+        <textarea id="notes-textarea" placeholder="Write personal notes for this session…" style="min-height:160px;font-size:0.9rem"></textarea>
         <div class="notes-saved" id="notes-saved-indicator"></div>
-        <button class="btn btn-primary btn-sm" onclick="saveNotes()" style="margin-top:10px">💾 Save Notes</button>
+        <button class="btn btn-primary btn-sm" onclick="saveNotes()" style="margin-top:10px">Save Notes</button>
       </div>
-      <!-- FEEDBACK -->
       <div class="detail-panel" id="panel-feedback">
         <p class="muted-text small-text" style="margin-bottom:8px">Rate this session:</p>
         <div class="feedback-stars" id="feedback-stars">
@@ -895,34 +1041,24 @@
           <span class="star" data-val="4" onclick="setRating(4)">★</span>
           <span class="star" data-val="5" onclick="setRating(5)">★</span>
         </div>
-        <div class="field">
-          <label>Comments (optional)</label>
-          <textarea id="feedback-comment" placeholder="Highlights, suggestions…"></textarea>
-        </div>
+        <div class="field"><label>Comments (optional)</label>
+          <textarea id="feedback-comment" placeholder="Highlights, suggestions…"></textarea></div>
         <button class="btn btn-primary btn-sm" onclick="submitFeedback()">Submit Feedback</button>
-        <div id="feedback-submitted" class="hidden" style="text-align:center;padding:16px;color:var(--gold)">✓ Thank you for your feedback!</div>
+        <div id="feedback-submitted" class="hidden" style="text-align:center;padding:20px;color:var(--gold);font-family:var(--font-display)">✓ Thank you for your feedback!</div>
       </div>
-      <!-- REMINDER -->
       <div class="detail-panel" id="panel-reminder">
         <div class="reminder-row">
-          <span style="font-size:1.2rem">🔖</span>
+          <span class="icon" style="color:var(--gold)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
           <div class="reminder-label">Bookmark this session<div class="reminder-sub">Adds to My Schedule</div></div>
-          <label class="toggle">
-            <input type="checkbox" id="modal-bookmark-toggle" onchange="modalToggleBookmark(this.checked)"/>
-            <span class="toggle-slider"></span>
-          </label>
+          <label class="toggle"><input type="checkbox" id="modal-bookmark-toggle" onchange="modalToggleBookmark(this.checked)"/><span class="toggle-slider"></span></label>
         </div>
         <div class="reminder-row">
-          <span style="font-size:1.2rem">🔔</span>
+          <span class="icon" style="color:var(--gold)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
           <div class="reminder-label">Send me a reminder<div class="reminder-sub">Notify before this session</div></div>
-          <label class="toggle">
-            <input type="checkbox" id="modal-reminder-toggle" onchange="toggleModalReminder(this.checked)"/>
-            <span class="toggle-slider"></span>
-          </label>
+          <label class="toggle"><input type="checkbox" id="modal-reminder-toggle" onchange="toggleModalReminder(this.checked)"/><span class="toggle-slider"></span></label>
         </div>
-        <div id="reminder-options" class="hidden" style="margin-top:12px">
-          <div class="field">
-            <label>How far in advance?</label>
+        <div id="reminder-options" class="hidden" style="margin-top:14px">
+          <div class="field"><label>How far in advance?</label>
             <select id="reminder-select">
               <option value="5">5 minutes before</option>
               <option value="10">10 minutes before</option>
@@ -931,8 +1067,7 @@
               <option value="60">1 hour before</option>
               <option value="120">2 hours before</option>
               <option value="1440">1 day before</option>
-            </select>
-          </div>
+            </select></div>
           <button class="btn btn-primary btn-sm" onclick="saveReminder()">Save Reminder</button>
         </div>
       </div>
@@ -949,7 +1084,7 @@
       <button class="modal-close" onclick="closeModal('edit-profile-modal')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="field"><label>Full Name</label><input type="text" id="edit-name"/></div>
+      <div class="field"><label>Full Name</label><input type="text" id="edit-name" autocomplete="name"/></div>
       <div class="field"><label>Home Church</label><input type="text" id="edit-church"/></div>
       <button class="btn btn-primary" style="width:100%" onclick="saveProfile()">Save Changes</button>
     </div>
@@ -965,9 +1100,8 @@
       <button class="modal-close" onclick="closeModal('reminder-settings-modal')">✕</button>
     </div>
     <div class="modal-body">
-      <p class="muted-text small-text" style="margin-bottom:16px">Default used when you bookmark a session. You can override per session.</p>
-      <div class="field">
-        <label>Remind me how far in advance?</label>
+      <p class="muted-text small-text" style="margin-bottom:16px">Used when you bookmark a session. You can override it per-session.</p>
+      <div class="field"><label>Remind me how far in advance?</label>
         <select id="default-reminder-select">
           <option value="5">5 minutes before</option>
           <option value="10">10 minutes before</option>
@@ -976,8 +1110,7 @@
           <option value="60">1 hour before</option>
           <option value="120">2 hours before</option>
           <option value="1440">1 day before</option>
-        </select>
-      </div>
+        </select></div>
       <button class="btn btn-primary" style="width:100%" onclick="saveDefaultReminder()">Save</button>
     </div>
   </div>
@@ -1007,12 +1140,14 @@
       <div class="modal-title" id="dm-modal-title">Direct Message</div>
       <button class="modal-close" onclick="closeModal('private-chat-modal')">✕</button>
     </div>
-    <div class="modal-body" style="padding:0;display:flex;flex-direction:column;min-height:50vh">
-      <div class="chat-messages" id="dm-messages" style="flex:1;min-height:200px"></div>
-      <div class="chat-input-bar" style="flex-shrink:0">
+    <div style="display:flex;flex-direction:column;min-height:50vh;overflow:hidden">
+      <div class="chat-messages" id="dm-messages" style="flex:1;min-height:200px;background:var(--bg-deep)"></div>
+      <div class="chat-input-bar">
         <input type="text" id="dm-msg-input" placeholder="Send a message…"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDM();}"/>
-        <button class="send-btn" onclick="sendDM()">➤</button>
+        <button class="send-btn" onclick="sendDM()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
       </div>
     </div>
   </div>
@@ -1026,12 +1161,12 @@
       <div class="modal-title">About</div>
       <button class="modal-close" onclick="closeModal('about-modal')">✕</button>
     </div>
-    <div class="modal-body" style="text-align:center;padding:32px 20px">
-      <img src="logo.png" alt="UCJC" style="width:80px;height:80px;object-fit:contain;margin-bottom:12px;filter:drop-shadow(0 0 12px rgba(201,168,76,0.5))" onerror="this.style.display='none'"/>
-      <div style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:6px">UCJC Holy Convocation</div>
-      <div class="muted-text small-text" style="margin-bottom:24px">Version 1.0 · Progressive Web App</div>
-      <div class="muted-text" style="font-size:0.85rem;line-height:1.7">
-        Built for the United Churches of Jesus Christ to provide a seamless, spirit-filled conference experience.
+    <div class="modal-body" style="text-align:center;padding:32px 24px">
+      <img src="logo.png" alt="UCJC" style="width:76px;height:76px;object-fit:contain;margin-bottom:16px;filter:drop-shadow(0 0 10px rgba(201,168,76,0.45))" onerror="this.style.display='none'"/>
+      <div style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:6px;color:var(--text-primary)">UCJC Holy Convocation</div>
+      <div class="muted-text small-text" style="margin-bottom:20px">Version 1.0 · Progressive Web App</div>
+      <div class="muted-text" style="font-size:0.85rem;line-height:1.75">
+        Built for the United Church of Jesus Christ to provide a seamless, spirit-filled conference experience.
         Features include a live schedule from Google Calendar, personalized bookmarks, push reminders,
         attendee directory, group and private chat, session notes, and session feedback.
       </div>
@@ -1039,68 +1174,60 @@
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════
-     FIREBASE — loaded as a plain (non-module) script
-     using the Firebase compat CDN so all SDKs load
-     from a single reliable bundle with no static
-     module-import failures crashing the whole app.
-════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════
+     FIREBASE COMPAT SDK
+════════════════════════════════════════════ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<!-- Messaging loaded last and conditionally — failure won't block the app -->
+
 <script>
-(function() {
+(function () {
   'use strict';
 
-  /* ═══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      CONFIG
-  ════════════════════════════════════════════ */
+  ══════════════════════════════════════════ */
   const FIREBASE_CONFIG = {
-    apiKey:            "AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg",
-    authDomain:        "ucjcconvocation.firebaseapp.com",
-    projectId:         "ucjcconvocation",
-    storageBucket:     "ucjcconvocation.firebasestorage.app",
-    messagingSenderId: "698752970791",
-    appId:             "1:698752970791:web:0ae1b0094858609579de02",
-    measurementId:     "G-0M5WBTR83N"
+    apiKey:            'AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg',
+    authDomain:        'ucjcconvocation.firebaseapp.com',
+    projectId:         'ucjcconvocation',
+    storageBucket:     'ucjcconvocation.firebasestorage.app',
+    messagingSenderId: '698752970791',
+    appId:             '1:698752970791:web:0ae1b0094858609579de02',
+    measurementId:     'G-0M5WBTR83N'
   };
-  const VAPID_KEY          = "BBrSRxtM6M6j_FQoWdGPpjf2QodXhGyevf-5ng_MqXhdHV6OJQVcQful0X1wKWYxUpt3Gc_6IN-sfyDTbHGXGO8";
-  const GCAL_API_KEY       = "AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg";
-  const CALENDAR_ID        = "c_ab7c60e65ae19abaea378c282b6770147ad855d3c58c442c8fa611b7e5be2934@group.calendar.google.com";
+  const VAPID_KEY  = 'BBrSRxtM6M6j_FQoWdGPpjf2QodXhGyevf-5ng_MqXhdHV6OJQVcQful0X1wKWYxUpt3Gc_6IN-sfyDTbHGXGO8';
+  const GCAL_KEY   = 'AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg';
+  const CALENDAR_ID = 'c_ab7c60e65ae19abaea378c282b6770147ad855d3c58c442c8fa611b7e5be2934@group.calendar.google.com';
 
-  /* ═══════════════════════════════════════════
-     FIREBASE INIT (compat SDK — no module risk)
-  ════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════
+     FIREBASE INIT
+  ══════════════════════════════════════════ */
   firebase.initializeApp(FIREBASE_CONFIG);
   const auth = firebase.auth();
   const db   = firebase.firestore();
+  const FSV  = firebase.firestore.FieldValue;
 
-  /* ═══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      APP STATE
-  ════════════════════════════════════════════ */
-  let currentUser         = null;
-  let userProfile         = null;
-  let allEvents           = [];
-  let bookmarks           = {};
-  let notesByEvent        = {};
-  let selectedEventId     = null;
-  let currentRating       = 0;
-  let currentDMUid        = null;
-  let chatInitialized     = false;
-  let deferredInstall     = null;
-  let scheduledReminders  = {};
+  ══════════════════════════════════════════ */
+  let currentUser        = null;
+  let userProfile        = null;
+  let allEvents          = [];
+  let bookmarks          = {};
+  let notesByEvent       = {};
+  let selectedEventId    = null;
+  let currentRating      = 0;
+  let currentDMUid       = null;
+  let chatInitialized    = false;
+  let deferredInstall    = null;
+  let scheduledReminders = {};
+  let unsub = { bookmarks:null, notes:null, globalChat:null, prayerChat:null, dmChat:null, directory:null };
 
-  // Firestore unsubscribe handles
-  let unsub = {
-    bookmarks: null, notes: null,
-    globalChat: null, prayerChat: null,
-    dmChat: null, directory: null
-  };
-
-  /* ═══════════════════════════════════════════
-     UTILITY HELPERS
-  ════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════
+     HELPERS
+  ══════════════════════════════════════════ */
   const $ = id => document.getElementById(id);
 
   function fmt(ts) {
@@ -1115,11 +1242,7 @@
   }
   function fmtDateKey(ts) {
     const d = ts instanceof Date ? ts : new Date(ts);
-    // Use local date to avoid UTC shift issues
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const day = String(d.getDate()).padStart(2,'0');
-    return `${y}-${m}-${day}`;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
   function initials(name) {
     if (!name) return '?';
@@ -1132,9 +1255,7 @@
     return r ? `${h}h ${r}m` : `${h}h`;
   }
   function escHtml(s) {
-    return String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
   function stripHtml(str) {
     if (!str) return '';
@@ -1146,90 +1267,146 @@
   }
   function reminderLabel(m) {
     if (m < 60) return `${m} minutes before`;
-    if (m === 60)   return '1 hour before';
-    if (m === 120)  return '2 hours before';
+    if (m === 60) return '1 hour before';
+    if (m === 120) return '2 hours before';
     if (m === 1440) return '1 day before';
     return `${m} minutes before`;
   }
 
-  /* ── TOAST ─────────────────────────────────── */
+  /* ── TOAST ─────────────────────────────── */
   function toast(msg, type = 'info') {
+    const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'i';
     const el = document.createElement('div');
     el.className = `toast ${type}`;
-    el.innerHTML = `<span>${type==='success'?'✓':type==='error'?'✕':'ℹ'}</span> ${escHtml(msg)}`;
+    el.innerHTML = `<div class="toast-icon">${icon}</div><span>${escHtml(msg)}</span>`;
     $('toast-container').appendChild(el);
     setTimeout(() => {
       el.style.animation = 'toast-out 0.3s ease forwards';
       setTimeout(() => el.remove(), 300);
-    }, 3400);
+    }, 3500);
   }
 
-  /* ── HIDE LOADER ───────────────────────────── */
   function hideLoader() {
-    const overlay = $('loading-overlay');
-    if (!overlay) return;
-    overlay.classList.add('fade-out');
-    setTimeout(() => overlay.classList.add('hidden'), 450);
+    const o = $('loading-overlay');
+    if (!o || o.classList.contains('hidden')) return;
+    o.classList.add('fade-out');
+    setTimeout(() => o.classList.add('hidden'), 450);
   }
 
-  /* ═══════════════════════════════════════════
-     PROFANITY / SLUR FILTER
-  ════════════════════════════════════════════ */
-  const BLOCKED = (function() {
+  /* ══════════════════════════════════════════
+     THEME — light / dark
+  ══════════════════════════════════════════ */
+  function applyTheme(isLight) {
+    const html = document.documentElement;
+    html.setAttribute('data-theme', isLight ? 'light' : 'dark');
+    // Update meta-theme-color for browser chrome
+    const mc = $('meta-theme');
+    if (mc) mc.content = isLight ? '#FFFFFF' : '#0A1628';
+    // Sync toggle UI
+    const tog = $('theme-toggle');
+    if (tog) tog.checked = isLight;
+    const lbl = $('theme-label');
+    if (lbl) lbl.textContent = isLight ? 'Light Theme (On)' : 'Light Theme';
+    // Swap sun <-> moon icon
+    const iconEl = $('theme-icon');
+    if (iconEl) {
+      iconEl.innerHTML = isLight
+        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>` // moon
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`; // sun
+    }
+    localStorage.setItem('ucjc-theme', isLight ? 'light' : 'dark');
+  }
+
+  window.toggleTheme = function (checked) { applyTheme(checked); };
+
+  // Apply saved theme immediately on load
+  (function () {
+    const saved = localStorage.getItem('ucjc-theme');
+    applyTheme(saved === 'light');
+  })();
+
+  /* ══════════════════════════════════════════
+     PROFANITY FILTER
+  ══════════════════════════════════════════ */
+  const BLOCKED = (function () {
     const raw = [
-      'fuck','fck','shit','bitch','ass','a55','asshole','bastard','damn','crap',
+      'fuck','fck','shit','bitch','ass','a55','asshole','bastard','crap',
       'piss','cock','dick','d1ck','pussy','cunt','whore','wh0re','slut',
       'jackass','motherfucker','bullshit',
       'nigger','nigga','n1gga','n1gg3r','chink','ch1nk','spic','sp1c',
       'kike','k1ke','wetback','gook','g00k','raghead','cracker',
       'beaner','towelhead','coon','c00n','zipperhead','redskin',
       'greaseball','honky','h0nky','kraut','polack','p0lack',
-      'hymie','injun','porchmonkey','sambo','s4mbo','squaw','whitey','wh1tey',
+      'hymie','injun','porchmonkey','sambo','s4mbo','squaw','whitey',
       'faggot','f4ggot','dyke','tranny','tr4nny'
     ];
-    return raw.map(w => w.replace(/\s+/g, ''));
+    return raw.map(w => w.replace(/\s+/g,''));
   })();
-
   function normText(s) {
     return s.toLowerCase()
       .replace(/0/g,'o').replace(/1/g,'i').replace(/3/g,'e')
       .replace(/4/g,'a').replace(/5/g,'s').replace(/8/g,'b')
-      .replace(/[@]/g,'a').replace(/\$/g,'s')
-      .replace(/[^a-z]/g,'');
+      .replace(/[@]/g,'a').replace(/\$/g,'s').replace(/[^a-z]/g,'');
   }
   function hasProfanity(text) {
-    const n = normText(text);
-    const ns = normText(text.replace(/\s+/g,''));
+    const n = normText(text), ns = normText(text.replace(/\s+/g,''));
     return BLOCKED.some(w => { const nw = normText(w); return nw && (n.includes(nw) || ns.includes(nw)); });
   }
 
-  /* ═══════════════════════════════════════════
-     SCREEN NAVIGATION
-  ════════════════════════════════════════════ */
-  window.showScreen = function(name) {
+  /* ══════════════════════════════════════════
+     SCREEN NAV
+  ══════════════════════════════════════════ */
+  window.showScreen = function (name) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const screen = $('screen-' + name);
-    const nav    = $('nav-' + name);
-    if (screen) screen.classList.add('active');
-    if (nav)    nav.classList.add('active');
+    const s = $('screen-' + name), n = $('nav-' + name);
+    if (s) s.classList.add('active');
+    if (n) n.classList.add('active');
     if (name === 'my-schedule') refreshMySchedule();
     if (name === 'directory')   loadDirectory();
     if (name === 'chat')        initChat();
-    if (name === 'profile')     refreshProfileUI();
+    if (name === 'profile')     updateAvatarUI();
   };
 
-  /* ═══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      AUTH
-  ════════════════════════════════════════════ */
-  window.switchAuthTab = function(tab) {
+  ══════════════════════════════════════════ */
+  window.switchAuthTab = function (tab) {
     document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
     document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
     $(tab + '-form').classList.add('active');
+    clearLoginError();
   };
 
-  window.handleLogin = async function(e) {
+  /* Show an inline error below the login form with an optional action button */
+  function showLoginError(msg, hint, actionLabel, actionFn) {
+    const box  = $('login-error-box');
+    const mEl  = $('login-error-msg');
+    const hEl  = $('login-error-hint');
+    const aBtn = $('login-error-action');
+    mEl.textContent = msg;
+    hEl.textContent = hint || '';
+    if (actionLabel && actionFn) {
+      aBtn.textContent = actionLabel;
+      aBtn.onclick = actionFn;
+      aBtn.style.display = 'block';
+    } else {
+      aBtn.style.display = 'none';
+    }
+    box.classList.remove('hidden');
+    // Shake animation
+    box.style.animation = 'none';
+    box.offsetHeight; // reflow
+    box.style.animation = 'fade-in 0.25s ease';
+  }
+
+  window.clearLoginError = function () {
+    $('login-error-box').classList.add('hidden');
+  };
+
+  window.handleLogin = async function (e) {
     e.preventDefault();
+    clearLoginError();
     const email = $('login-email').value.trim();
     const pw    = $('login-password').value;
     const btn   = $('login-btn');
@@ -1237,12 +1414,33 @@
     try {
       await auth.signInWithEmailAndPassword(email, pw);
     } catch (err) {
-      toast(friendlyAuthErr(err.code), 'error');
       btn.textContent = 'Sign In'; btn.disabled = false;
+      const code = err.code || '';
+      // No account or wrong credentials — offer to register
+      if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+        showLoginError(
+          'No account found with that email address.',
+          'Double-check your email or create a new account.',
+          'Create an account →',
+          () => switchAuthTab('register')
+        );
+      } else if (code === 'auth/wrong-password') {
+        showLoginError(
+          'Incorrect password.',
+          'Try again or reset your password below.',
+          null, null
+        );
+      } else if (code === 'auth/invalid-email') {
+        showLoginError('Please enter a valid email address.', '', null, null);
+      } else if (code === 'auth/too-many-requests') {
+        showLoginError('Too many failed attempts. Please wait a moment and try again.', '', null, null);
+      } else {
+        showLoginError('Could not sign in. Check your connection and try again.', '', null, null);
+      }
     }
   };
 
-  window.handleRegister = async function(e) {
+  window.handleRegister = async function (e) {
     e.preventDefault();
     const name    = $('reg-name').value.trim();
     const church  = $('reg-church').value.trim();
@@ -1256,7 +1454,7 @@
       const cred = await auth.createUserWithEmailAndPassword(email, pw);
       await db.collection('users').doc(cred.user.uid).set({
         displayName: name, homeChurch: church, email,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdAt: FSV.serverTimestamp(),
         defaultReminderMinutes: 15, pushEnabled: false
       });
     } catch (err) {
@@ -1265,7 +1463,7 @@
     }
   };
 
-  window.handleForgotPassword = async function() {
+  window.handleForgotPassword = async function () {
     const email = $('login-email').value.trim();
     if (!email) { toast('Enter your email address first.', 'error'); return; }
     try {
@@ -1274,28 +1472,25 @@
     } catch (e) { toast('Could not send reset email.', 'error'); }
   };
 
-  window.handleSignOut = async function() {
+  window.handleSignOut = async function () {
     if (!confirm('Are you sure you want to sign out?')) return;
     cleanupListeners();
     await auth.signOut();
   };
 
   function friendlyAuthErr(code) {
-    const map = {
-      'auth/invalid-credential':   'Incorrect email or password.',
-      'auth/user-not-found':        'No account found with that email.',
-      'auth/wrong-password':        'Incorrect password.',
-      'auth/email-already-in-use':  'That email is already registered.',
+    const m = {
+      'auth/email-already-in-use':  'That email address is already registered.',
       'auth/weak-password':         'Password must be at least 6 characters.',
       'auth/invalid-email':         'Please enter a valid email address.',
       'auth/too-many-requests':     'Too many attempts. Please try again later.',
       'auth/network-request-failed':'Network error. Check your connection.'
     };
-    return map[code] || 'Something went wrong. Please try again.';
+    return m[code] || 'Something went wrong. Please try again.';
   }
 
-  /* ── AUTH STATE ────────────────────────────── */
-  auth.onAuthStateChanged(async function(user) {
+  /* ── AUTH STATE ─────────────────────────── */
+  auth.onAuthStateChanged(async function (user) {
     try {
       if (user) {
         currentUser = user;
@@ -1304,18 +1499,18 @@
         $('app').classList.remove('hidden');
         hideLoader();
         updateAvatarUI();
+        applyTheme(localStorage.getItem('ucjc-theme') === 'light'); // re-sync toggle inside app
         subscribeBookmarks();
-        loadCalendar();        // non-blocking — calendar loads in background
+        loadCalendar();
       } else {
-        currentUser = null;
-        userProfile = null;
+        currentUser = null; userProfile = null;
         cleanupListeners();
         $('app').classList.add('hidden');
         $('auth-screen').classList.remove('hidden');
         hideLoader();
       }
     } catch (err) {
-      console.error('Auth state handler error:', err);
+      console.error('Auth state error:', err);
       hideLoader();
       $('auth-screen').classList.remove('hidden');
       toast('An error occurred. Please refresh.', 'error');
@@ -1325,11 +1520,8 @@
   async function loadUserProfile() {
     try {
       const snap = await db.collection('users').doc(currentUser.uid).get();
-      userProfile = snap.exists ? snap.data() : {
-        displayName: currentUser.email, homeChurch: '', defaultReminderMinutes: 15
-      };
+      userProfile = snap.exists ? snap.data() : { displayName: currentUser.email, homeChurch: '', defaultReminderMinutes: 15 };
     } catch (e) {
-      console.warn('Could not load profile:', e);
       userProfile = { displayName: currentUser.email, homeChurch: '', defaultReminderMinutes: 15 };
     }
   }
@@ -1349,80 +1541,61 @@
     $('profile-name').textContent   = name;
     $('profile-church').textContent = userProfile.homeChurch || '';
     const mins = userProfile.defaultReminderMinutes || 15;
-    $('default-reminder-label').textContent  = reminderLabel(mins);
-    $('default-reminder-select').value       = mins;
+    $('default-reminder-label').textContent = reminderLabel(mins);
+    $('default-reminder-select').value      = mins;
     if ($('push-toggle')) $('push-toggle').checked = !!userProfile.pushEnabled;
+    // Sync theme toggle
+    applyTheme(localStorage.getItem('ucjc-theme') === 'light');
   }
 
-  /* ═══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      GOOGLE CALENDAR
-  ════════════════════════════════════════════ */
+  ══════════════════════════════════════════ */
   async function loadCalendar() {
     $('events-loading').classList.remove('hidden');
     try {
-      const now      = new Date();
-      const yearAgo  = new Date(now); yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-      const twoYrs   = new Date(now); twoYrs.setFullYear(twoYrs.getFullYear() + 2);
+      const now     = new Date();
+      const yearAgo = new Date(now); yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+      const twoYrs  = new Date(now); twoYrs.setFullYear(twoYrs.getFullYear() + 2);
       const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events`
-        + `?key=${GCAL_API_KEY}&timeMin=${yearAgo.toISOString()}&timeMax=${twoYrs.toISOString()}`
+        + `?key=${GCAL_KEY}&timeMin=${yearAgo.toISOString()}&timeMax=${twoYrs.toISOString()}`
         + `&singleEvents=true&orderBy=startTime&maxResults=250`;
-
       const resp = await fetch(url);
-      if (!resp.ok) {
-        const errBody = await resp.json().catch(() => ({}));
-        throw new Error(`Calendar API ${resp.status}: ${errBody.error?.message || resp.statusText}`);
-      }
+      if (!resp.ok) { const j = await resp.json().catch(()=>({})); throw new Error(j.error?.message || resp.status); }
       const data = await resp.json();
-      const items = data.items || [];
-
-      const allDay  = items.filter(e => e.start?.date && !e.start?.dateTime);
-      const timed   = items.filter(e => e.start?.dateTime);
-
-      if (allDay.length > 0) {
-        const conv   = allDay[0];
-        const sDate  = new Date(conv.start.date + 'T12:00:00');
-        const eDate  = new Date(conv.end.date   + 'T12:00:00');
-        eDate.setDate(eDate.getDate() - 1);
-        $('banner-title').textContent = stripHtml(conv.summary || 'Holy Convocation');
-        $('banner-meta').textContent  = `${fmtDate(sDate)} – ${fmtDate(eDate)}`
-          + (conv.location ? `  ·  📍 ${stripHtml(conv.location)}` : '');
-      } else {
-        $('banner-title').textContent = 'UCJC Holy Convocation';
-        $('banner-meta').textContent  = 'Schedule loading…';
+      const items  = data.items || [];
+      const allDay = items.filter(e => e.start?.date && !e.start?.dateTime);
+      const timed  = items.filter(e => e.start?.dateTime);
+      if (allDay.length) {
+        const c = allDay[0];
+        const sd = new Date(c.start.date + 'T12:00:00');
+        const ed = new Date(c.end.date   + 'T12:00:00'); ed.setDate(ed.getDate() - 1);
+        $('banner-title').textContent = stripHtml(c.summary || 'Holy Convocation');
+        $('banner-meta').textContent  = `${fmtDate(sd)} – ${fmtDate(ed)}` + (c.location ? `  ·  ${stripHtml(c.location)}` : '');
       }
-
       allEvents = timed.map(e => ({
-        id:      e.id,
-        title:   stripHtml(e.summary   || 'Untitled Session'),
-        start:   new Date(e.start.dateTime),
-        end:     new Date(e.end.dateTime),
-        location:stripHtml(e.location  || ''),
-        desc:    stripHtml(e.description|| ''),
-        colorId: e.colorId || ''
+        id:       e.id,
+        title:    stripHtml(e.summary    || 'Untitled Session'),
+        start:    new Date(e.start.dateTime),
+        end:      new Date(e.end.dateTime),
+        location: stripHtml(e.location   || ''),
+        desc:     stripHtml(e.description|| ''),
+        colorId:  e.colorId || ''
       }));
-
-      if (allEvents.length === 0) {
-        $('banner-meta').textContent += ' — no sessions found in calendar';
-        loadDemoEvents(); // fall back to demo so app is still usable
-      } else {
-        buildDateTabs();
-      }
+      if (!allEvents.length) loadDemoEvents(); else buildDateTabs();
     } catch (err) {
-      console.error('Calendar load error:', err);
-      toast('Could not load calendar (' + err.message + '). Showing demo data.', 'error');
+      console.error('Calendar error:', err);
+      toast('Could not load calendar. Showing demo data.', 'error');
       loadDemoEvents();
-    } finally {
-      $('events-loading').classList.add('hidden');
-    }
+    } finally { $('events-loading').classList.add('hidden'); }
   }
   window.refreshCalendar = loadCalendar;
 
-  /* ── DEMO EVENTS ───────────────────────────── */
   function loadDemoEvents() {
     const b = new Date(); b.setHours(0,0,0,0);
     const t = (d,h,m=0) => { const x = new Date(b.getTime()+d*86400000); x.setHours(h,m); return x; };
     $('banner-title').textContent = 'UCJC Holy Convocation (Demo)';
-    $('banner-meta').textContent  = `${fmtDate(b)} – ${fmtDate(t(4,0))}  ·  📍 Connect your Google Calendar for live data`;
+    $('banner-meta').textContent  = `${fmtDate(b)} – ${fmtDate(t(4,0))}  ·  Connect your Google Calendar for live data`;
     allEvents = [
       { id:'d1',  title:'Opening Worship Service',         start:t(0,9),    end:t(0,11),   location:'Main Sanctuary',   desc:'The convocation opens with praise, worship, and a powerful message from our presiding bishop.', colorId:'11' },
       { id:'d2',  title:'Holy Communion',                  start:t(0,11,30),end:t(0,12,30),location:'Main Sanctuary',   desc:'We gather at the table of the Lord.',                                                          colorId:'6'  },
@@ -1434,31 +1607,31 @@
       { id:'d8',  title:'Evening Revival Service',         start:t(1,19),   end:t(1,21,30),location:'Main Sanctuary',   desc:'An anointed evening of revival, testimony, and breakthrough.',                                 colorId:'11' },
       { id:'d9',  title:'Morning Devotion & Prayer',       start:t(2,7),    end:t(2,8),    location:'Chapel',           desc:'',                                                                                             colorId:'10' },
       { id:'d10', title:'Ordination Service',              start:t(2,10),   end:t(2,12,30),location:'Main Sanctuary',   desc:'Ordination of ministers and consecration of elders.',                                          colorId:'6'  },
-      { id:'d11', title:"Women's Ministry Hour",           start:t(2,14),   end:t(2,16),   location:'Fellowship Hall',  desc:'Celebrating and equipping the women of the UCJC.',                                             colorId:'9'  },
+      { id:'d11', title:"Women's Ministry Hour",           start:t(2,14),   end:t(2,16),   location:'Fellowship Hall',  desc:'Celebrating and equipping the women of UCJC.',                                                 colorId:'9'  },
       { id:'d12', title:"Men's Ministry Gathering",        start:t(2,14),   end:t(2,16),   location:'Room 201',         desc:'Brotherhood, accountability, and purpose.',                                                    colorId:'2'  },
       { id:'d13', title:'Night of Worship',                start:t(2,19),   end:t(2,21),   location:'Main Sanctuary',   desc:'Extended worship and intercession.',                                                           colorId:'11' },
-      { id:'d14', title:'Business Session',                start:t(3,9),    end:t(3,11),   location:'Main Sanctuary',   desc:'Annual business meeting of the United Churches of Jesus Christ.',                              colorId:'2'  },
+      { id:'d14', title:'Business Session',                start:t(3,9),    end:t(3,11),   location:'Main Sanctuary',   desc:'Annual business meeting of the United Church of Jesus Christ.',                                colorId:'2'  },
       { id:'d15', title:'Closing Banquet',                 start:t(3,18),   end:t(3,20,30),location:'Grand Ballroom',   desc:'An elegant closing celebration. Semi-formal attire.',                                          colorId:'6'  },
       { id:'d16', title:'Closing Worship & Commissioning', start:t(4,10),   end:t(4,12),   location:'Main Sanctuary',   desc:'Our final gathering: commissioning, blessing, and farewell until next year.',                  colorId:'11' },
     ];
     buildDateTabs();
   }
 
-  /* ── DATE TABS ─────────────────────────────── */
+  /* ── DATE TABS ──────────────────────────── */
   let activeDateKey = null;
+  const COLOR_MAP = { '11':'#8B2635','6':'#C9A84C','2':'#2a6496','9':'#2e7d4f','10':'#5c3e8f','1':'#1a6b9a','3':'#7b3b3b' };
+
   function buildDateTabs() {
     const keys = [...new Set(allEvents.map(e => fmtDateKey(e.start)))].sort();
     if (!keys.length) { $('no-events').classList.remove('hidden'); return; }
     activeDateKey = keys[0];
-    const ct = $('date-tabs');
-    ct.innerHTML = '';
+    const ct = $('date-tabs'); ct.innerHTML = '';
     keys.forEach(key => {
-      const d   = new Date(key + 'T12:00:00');
+      const d = new Date(key + 'T12:00:00');
       const tab = document.createElement('div');
-      tab.className   = 'date-tab' + (key === activeDateKey ? ' active' : '');
+      tab.className = 'date-tab' + (key === activeDateKey ? ' active' : '');
       tab.dataset.key = key;
-      tab.innerHTML   = `<div class="date-tab-day">${d.toLocaleDateString([],{weekday:'short'})}</div>
-                         <div class="date-tab-num">${d.getDate()}</div>`;
+      tab.innerHTML = `<div class="date-tab-day">${d.toLocaleDateString([],{weekday:'short'})}</div><div class="date-tab-num">${d.getDate()}</div>`;
       tab.onclick = () => {
         activeDateKey = key;
         document.querySelectorAll('.date-tab').forEach(t => t.classList.toggle('active', t.dataset.key === key));
@@ -1468,8 +1641,6 @@
     });
     renderEvents();
   }
-
-  const COLOR_MAP = { '11':'#8B2635','6':'#C9A84C','2':'#2a6496','9':'#2e7d4f','10':'#5c3e8f','1':'#1a6b9a','3':'#7b3b3b' };
 
   function renderEvents() {
     const list = $('event-list'), none = $('no-events');
@@ -1483,8 +1654,8 @@
     const bm    = bookmarks[ev.id];
     const color = COLOR_MAP[ev.colorId] || 'var(--gold)';
     const dur   = minsDiff(ev.start, ev.end);
-    return `<div class="event-card${bm?' bookmarked':''}" onclick="openSessionModal('${escHtml(ev.id)}')"
-                 style="border-left-color:${color}">
+    const bmSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="${bm?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+    return `<div class="event-card${bm?' bookmarked':''}" onclick="openSessionModal('${escHtml(ev.id)}')" style="border-left-color:${color}">
       <div class="event-time-col">
         <div class="event-start">${fmt(ev.start)}</div>
         <div class="event-end">${fmt(ev.end)}</div>
@@ -1492,36 +1663,32 @@
       </div>
       <div class="event-info">
         <div class="event-title">${escHtml(ev.title)}</div>
-        ${ev.location ? `<div class="event-location">📍 ${escHtml(ev.location)}</div>` : ''}
-        ${ev.desc     ? `<div class="event-desc">${escHtml(ev.desc)}</div>` : ''}
+        ${ev.location ? `<div class="event-location"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${escHtml(ev.location)}</div>` : ''}
+        ${ev.desc ? `<div class="event-desc">${escHtml(ev.desc)}</div>` : ''}
       </div>
       <div class="event-actions">
-        <button class="bookmark-btn${bm?' active':''}"
-          onclick="event.stopPropagation();quickBookmark('${escHtml(ev.id)}')"
-          title="${bm?'Remove bookmark':'Bookmark this session'}">🔖</button>
+        <button class="bookmark-btn${bm?' active':''}" onclick="event.stopPropagation();quickBookmark('${escHtml(ev.id)}')" title="${bm?'Remove bookmark':'Bookmark'}">${bmSvg}</button>
         ${bm ? '<span class="bookmark-saved">Saved</span>' : ''}
       </div>
     </div>`;
   }
 
-  /* ═══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      BOOKMARKS
-  ════════════════════════════════════════════ */
+  ══════════════════════════════════════════ */
   function subscribeBookmarks() {
     if (!currentUser) return;
     unsub.bookmarks = db.collection('users').doc(currentUser.uid).collection('bookmarks')
       .onSnapshot(snap => {
         bookmarks = {};
         snap.docs.forEach(d => { bookmarks[d.id] = d.data(); });
-        renderEvents();
-        updateMyPlanBadge();
-      }, err => console.warn('Bookmarks snapshot error:', err));
-
+        renderEvents(); updateMyPlanBadge();
+      }, err => console.warn('Bookmarks error:', err));
     unsub.notes = db.collection('users').doc(currentUser.uid).collection('notes')
       .onSnapshot(snap => {
         notesByEvent = {};
         snap.docs.forEach(d => { notesByEvent[d.id] = d.data().content || ''; });
-      }, err => console.warn('Notes snapshot error:', err));
+      }, err => console.warn('Notes error:', err));
   }
 
   function updateMyPlanBadge() {
@@ -1531,170 +1698,128 @@
     badge.classList.toggle('hidden', count === 0);
   }
 
-  window.quickBookmark = async function(eventId) {
+  window.quickBookmark = async function (eventId) {
     if (!currentUser) return;
     const ev  = allEvents.find(e => e.id === eventId);
     if (!ev) return;
     const ref = db.collection('users').doc(currentUser.uid).collection('bookmarks').doc(eventId);
     try {
-      if (bookmarks[eventId]) {
-        await ref.delete();
-        toast('Bookmark removed', 'info');
-      } else {
-        await ref.set({
-          eventId, title: ev.title, start: ev.start.toISOString(),
-          end: ev.end.toISOString(), location: ev.location,
-          reminderMinutes: userProfile?.defaultReminderMinutes || 15,
-          reminderEnabled: false,
-          bookmarkedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        toast('Session bookmarked! 🔖', 'success');
+      if (bookmarks[eventId]) { await ref.delete(); toast('Bookmark removed', 'info'); }
+      else {
+        await ref.set({ eventId, title:ev.title, start:ev.start.toISOString(), end:ev.end.toISOString(), location:ev.location, reminderMinutes:userProfile?.defaultReminderMinutes||15, reminderEnabled:false, bookmarkedAt:FSV.serverTimestamp() });
+        toast('Session bookmarked!', 'success');
       }
-    } catch (e) { toast('Could not update bookmark.', 'error'); console.error(e); }
+    } catch (e) { toast('Could not update bookmark.', 'error'); }
   };
 
-  /* ═══════════════════════════════════════════
-     SESSION DETAIL MODAL
-  ════════════════════════════════════════════ */
-  window.openSessionModal = function(eventId) {
+  /* ══════════════════════════════════════════
+     SESSION MODAL
+  ══════════════════════════════════════════ */
+  window.openSessionModal = function (eventId) {
     selectedEventId = eventId;
-    const ev = allEvents.find(e => e.id === eventId);
-    if (!ev) return;
-    const bm = bookmarks[eventId];
-    currentRating = 0;
-
+    const ev = allEvents.find(e => e.id === eventId); if (!ev) return;
+    const bm = bookmarks[eventId]; currentRating = 0;
     $('modal-event-title').textContent = ev.title;
-    $('modal-event-meta').innerHTML =
-      `<span class="badge badge-gold">${fmt(ev.start)} – ${fmt(ev.end)}</span>`
-      + (ev.location ? `<span class="badge badge-blue">📍 ${escHtml(ev.location)}</span>` : '');
-    $('modal-event-desc').textContent = ev.desc || 'No additional description provided.';
-    $('modal-location').textContent   = ev.location || '—';
-    $('modal-duration').textContent   = hrsMin(minsDiff(ev.start, ev.end));
-
-    $('notes-textarea').value            = notesByEvent[eventId] || '';
+    $('modal-event-meta').innerHTML = `<span class="badge badge-gold">${fmt(ev.start)} – ${fmt(ev.end)}</span>${ev.location?`<span class="badge badge-blue">${escHtml(ev.location)}</span>`:''}`;
+    $('modal-event-desc').textContent  = ev.desc || 'No additional description provided.';
+    $('modal-location').textContent    = ev.location || '—';
+    $('modal-duration').textContent    = hrsMin(minsDiff(ev.start, ev.end));
+    $('notes-textarea').value          = notesByEvent[eventId] || '';
     $('notes-saved-indicator').textContent = '';
     $('feedback-submitted').classList.add('hidden');
     document.querySelectorAll('#feedback-stars .star').forEach(s => s.classList.remove('active'));
-    $('feedback-comment').value = '';
-
-    $('modal-bookmark-toggle').checked  = !!bm;
-    $('modal-reminder-toggle').checked  = !!(bm?.reminderEnabled);
-    $('reminder-select').value          = bm?.reminderMinutes || userProfile?.defaultReminderMinutes || 15;
+    $('feedback-comment').value        = '';
+    $('modal-bookmark-toggle').checked = !!bm;
+    $('modal-reminder-toggle').checked = !!(bm?.reminderEnabled);
+    $('reminder-select').value         = bm?.reminderMinutes || userProfile?.defaultReminderMinutes || 15;
     $('reminder-options').classList.toggle('hidden', !(bm?.reminderEnabled));
-
     switchDetailTab('info');
     $('session-modal').classList.remove('hidden');
   };
-
-  window.closeModal = function(id) { $(id).classList.add('hidden'); };
-  window.closeModalOnOverlay = function(e, id) { if (e.target.id === id) closeModal(id); };
-
-  window.switchDetailTab = function(tab) {
+  window.closeModal         = id => $(id).classList.add('hidden');
+  window.closeModalOnOverlay = (e, id) => { if (e.target.id === id) closeModal(id); };
+  window.switchDetailTab    = function (tab) {
     document.querySelectorAll('.detail-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
     document.querySelectorAll('#session-modal .detail-panel').forEach(p => p.classList.remove('active'));
     $('panel-' + tab).classList.add('active');
   };
-
-  window.modalToggleBookmark = function(checked) { quickBookmark(selectedEventId); };
-  window.toggleModalReminder = function(checked) { $('reminder-options').classList.toggle('hidden', !checked); };
-
-  window.saveReminder = async function() {
+  window.modalToggleBookmark = () => quickBookmark(selectedEventId);
+  window.toggleModalReminder = checked => $('reminder-options').classList.toggle('hidden', !checked);
+  window.saveReminder = async function () {
     if (!currentUser || !selectedEventId) return;
-    const mins    = parseInt($('reminder-select').value);
-    const enabled = $('modal-reminder-toggle').checked;
+    const mins = parseInt($('reminder-select').value), enabled = $('modal-reminder-toggle').checked;
     if (!bookmarks[selectedEventId]) await quickBookmark(selectedEventId);
     try {
-      await db.collection('users').doc(currentUser.uid).collection('bookmarks').doc(selectedEventId)
-        .update({ reminderMinutes: mins, reminderEnabled: enabled });
-      if (enabled) {
-        scheduleReminder(allEvents.find(e => e.id === selectedEventId), mins);
-        toast(`Reminder set: ${reminderLabel(mins)} ✓`, 'success');
-      } else {
-        toast('Reminder disabled', 'info');
-      }
+      await db.collection('users').doc(currentUser.uid).collection('bookmarks').doc(selectedEventId).update({ reminderMinutes:mins, reminderEnabled:enabled });
+      if (enabled) { scheduleReminder(allEvents.find(e=>e.id===selectedEventId), mins); toast(`Reminder set: ${reminderLabel(mins)} ✓`, 'success'); }
+      else toast('Reminder disabled', 'info');
     } catch (e) { toast('Could not save reminder.', 'error'); }
   };
 
-  /* ── LOCAL REMINDERS ───────────────────────── */
   function scheduleReminder(ev, mins) {
     if (!ev) return;
     const ms = ev.start.getTime() - mins * 60000 - Date.now();
     if (ms <= 0) return;
     if (scheduledReminders[ev.id]) clearTimeout(scheduledReminders[ev.id]);
     scheduledReminders[ev.id] = setTimeout(() => {
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-          type: 'SCHEDULE_REMINDER',
-          title: '⏰ UCJC Reminder',
-          body: `${ev.title} starts in ${mins} minute${mins===1?'':'s'}`,
-          delay: 0, tag: 'reminder-' + ev.id
-        });
-      } else if (Notification.permission === 'granted') {
-        new Notification('⏰ UCJC Reminder', { body: `${ev.title} starts soon!` });
-      }
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller)
+        navigator.serviceWorker.controller.postMessage({ type:'SCHEDULE_REMINDER', title:'⏰ UCJC Reminder', body:`${ev.title} starts in ${mins} minute${mins===1?'':'s'}`, delay:0, tag:'reminder-'+ev.id });
+      else if (Notification.permission === 'granted')
+        new Notification('⏰ UCJC Reminder', { body:`${ev.title} starts soon!` });
     }, ms);
   }
 
-  /* ── NOTES ─────────────────────────────────── */
-  window.saveNotes = async function() {
+  /* ── NOTES ──────────────────────────────── */
+  window.saveNotes = async function () {
     if (!currentUser || !selectedEventId) return;
     const content = $('notes-textarea').value;
     try {
       await db.collection('users').doc(currentUser.uid).collection('notes').doc(selectedEventId)
-        .set({ content, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        .set({ content, updatedAt:FSV.serverTimestamp() });
       notesByEvent[selectedEventId] = content;
       $('notes-saved-indicator').textContent = 'Saved ✓';
       toast('Notes saved!', 'success');
     } catch (e) { toast('Could not save notes.', 'error'); }
   };
 
-  /* ── FEEDBACK ──────────────────────────────── */
-  window.setRating = function(val) {
+  /* ── FEEDBACK ───────────────────────────── */
+  window.setRating = function (val) {
     currentRating = val;
-    document.querySelectorAll('#feedback-stars .star').forEach(s =>
-      s.classList.toggle('active', parseInt(s.dataset.val) <= val));
+    document.querySelectorAll('#feedback-stars .star').forEach(s => s.classList.toggle('active', parseInt(s.dataset.val) <= val));
   };
-  window.submitFeedback = async function() {
+  window.submitFeedback = async function () {
     if (!currentUser || !selectedEventId) return;
-    if (currentRating === 0) { toast('Please select a rating first.', 'error'); return; }
+    if (!currentRating) { toast('Please select a rating first.', 'error'); return; }
     try {
       await db.collection('feedback').doc(selectedEventId).collection('responses').doc(currentUser.uid)
-        .set({
-          rating: currentRating,
-          comment: $('feedback-comment').value.trim(),
-          displayName: userProfile?.displayName || 'Anonymous',
-          submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        .set({ rating:currentRating, comment:$('feedback-comment').value.trim(), displayName:userProfile?.displayName||'Anonymous', submittedAt:FSV.serverTimestamp() });
       $('feedback-submitted').classList.remove('hidden');
       toast('Thank you for your feedback!', 'success');
     } catch (e) { toast('Could not submit feedback.', 'error'); }
   };
 
-  /* ═══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      MY SCHEDULE
-  ════════════════════════════════════════════ */
-  window.refreshMySchedule = function() {
+  ══════════════════════════════════════════ */
+  window.refreshMySchedule = function () {
     const bmKeys = Object.keys(bookmarks);
     $('stat-bookmarks').textContent = bmKeys.length;
     $('stat-upcoming').textContent  = bmKeys.filter(k => new Date(bookmarks[k].start) > new Date()).length;
     $('stat-notes').textContent     = Object.keys(notesByEvent).length;
     const none = $('no-bookmarks'), list = $('my-event-list');
-    if (!bmKeys.length) { list.innerHTML = ''; none.classList.remove('hidden'); return; }
+    if (!bmKeys.length) { list.innerHTML=''; none.classList.remove('hidden'); return; }
     none.classList.add('hidden');
-    list.innerHTML = bmKeys
-      .map(k => allEvents.find(e => e.id === k)).filter(Boolean)
-      .sort((a,b) => a.start - b.start)
-      .map(ev => eventCardHTML(ev)).join('');
+    list.innerHTML = bmKeys.map(k=>allEvents.find(e=>e.id===k)).filter(Boolean).sort((a,b)=>a.start-b.start).map(ev=>eventCardHTML(ev)).join('');
   };
 
-  /* ═══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      DIRECTORY
-  ════════════════════════════════════════════ */
+  ══════════════════════════════════════════ */
   let allAttendees = [];
   function loadDirectory() {
     if (unsub.directory) return;
     unsub.directory = db.collection('users').onSnapshot(snap => {
-      allAttendees = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      allAttendees = snap.docs.map(d => ({ id:d.id, ...d.data() }));
       $('attendee-count').textContent = allAttendees.length + ' registered';
       renderDirectory(allAttendees);
     }, err => { console.error('Directory error:', err); toast('Could not load directory.', 'error'); });
@@ -1702,98 +1827,79 @@
 
   function renderDirectory(list) {
     const ct = $('attendee-list');
-    if (!list.length) {
-      ct.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No attendees yet</div></div>';
-      return;
-    }
+    if (!list.length) { ct.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="empty-title">No attendees yet</div></div>'; return; }
     ct.innerHTML = list.map(u => `
       <div class="attendee-card" onclick="startDM('${u.id}','${escHtml(u.displayName||'Attendee')}')">
         <div class="attendee-avatar">${initials(u.displayName)}</div>
         <div class="attendee-info">
-          <div class="attendee-name">${escHtml(u.displayName || '—')}</div>
-          <div class="attendee-church">⛪ ${escHtml(u.homeChurch || 'No church listed')}</div>
+          <div class="attendee-name">${escHtml(u.displayName||'—')}</div>
+          <div class="attendee-church">${escHtml(u.homeChurch||'No church listed')}</div>
         </div>
-        <span style="color:var(--text-dim);font-size:1.1rem">💬</span>
+        <span style="color:var(--text-dim)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
       </div>`).join('');
   }
 
-  window.filterDirectory = function(q) {
+  window.filterDirectory = function (q) {
     renderDirectory(allAttendees.filter(u =>
       (u.displayName||'').toLowerCase().includes(q.toLowerCase()) ||
       (u.homeChurch||'').toLowerCase().includes(q.toLowerCase())));
   };
 
-  /* ═══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      CHAT
-  ════════════════════════════════════════════ */
+  ══════════════════════════════════════════ */
   function initChat() {
-    if (chatInitialized) return;
-    chatInitialized = true;
-    subscribeChannelChat('global', 'global-messages');
-    subscribeChannelChat('prayer', 'prayer-messages');
+    if (chatInitialized) return; chatInitialized = true;
+    subscribeChannel('global', 'global-messages');
+    subscribeChannel('prayer', 'prayer-messages');
   }
-
-  function subscribeChannelChat(channel, msgElId) {
-    const key = channel === 'global' ? 'globalChat' : 'prayerChat';
-    unsub[key] = db.collection('chat').doc(channel).collection('messages')
-      .orderBy('createdAt', 'asc')
+  function subscribeChannel(ch, elId) {
+    const key = ch === 'global' ? 'globalChat' : 'prayerChat';
+    unsub[key] = db.collection('chat').doc(ch).collection('messages').orderBy('createdAt','asc')
       .onSnapshot(snap => {
-        const el = $(msgElId);
-        if (!el) return;
+        const el = $(elId); if (!el) return;
         el.innerHTML = snap.docs.map(d => renderMsg(d.data())).join('');
         el.scrollTop = el.scrollHeight;
-      }, err => console.warn(channel + ' chat error:', err));
+      }, err => console.warn(ch + ' chat error:', err));
   }
 
   function renderMsg(data) {
     const isOwn = data.uid === currentUser?.uid;
     const time  = data.createdAt?.toDate ? fmt(data.createdAt.toDate()) : '';
     return `<div class="msg-row${isOwn?' own':''}">
-      ${!isOwn ? `<div class="msg-avatar">${initials(data.displayName)}</div>` : ''}
+      ${!isOwn?`<div class="msg-avatar">${initials(data.displayName)}</div>`:''}
       <div class="msg-bubble-wrap">
-        ${!isOwn ? `<div class="msg-sender">${escHtml(data.displayName||'Anonymous')}</div>` : ''}
+        ${!isOwn?`<div class="msg-sender">${escHtml(data.displayName||'Anonymous')}</div>`:''}
         <div class="msg-bubble">${escHtml(data.text||'')}</div>
         <div class="msg-time">${time}</div>
       </div>
     </div>`;
   }
 
-  async function sendChatMessage(inputId, channel) {
-    const inp  = $(inputId);
-    const text = inp.value.trim();
+  async function sendMsg(inputId, channel) {
+    const inp = $(inputId), text = inp.value.trim();
     if (!text || !currentUser) return;
-    if (hasProfanity(text)) {
-      toast('Your message contains prohibited language and was not sent.', 'error');
-      return;
-    }
+    if (hasProfanity(text)) { toast('Your message contains prohibited language and was not sent.', 'error'); return; }
     inp.value = '';
     try {
-      await db.collection('chat').doc(channel).collection('messages').add({
-        uid: currentUser.uid,
-        displayName: userProfile?.displayName || 'Anonymous',
-        homeChurch: userProfile?.homeChurch || '',
-        text,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      await db.collection('chat').doc(channel).collection('messages').add({ uid:currentUser.uid, displayName:userProfile?.displayName||'Anonymous', homeChurch:userProfile?.homeChurch||'', text, createdAt:FSV.serverTimestamp() });
     } catch (e) { toast('Could not send message.', 'error'); inp.value = text; }
   }
 
-  window.sendGlobalMessage  = () => sendChatMessage('global-msg-input', 'global');
-  window.sendPrayerMessage  = () => sendChatMessage('prayer-msg-input', 'prayer');
+  window.sendGlobalMessage = () => sendMsg('global-msg-input', 'global');
+  window.sendPrayerMessage = () => sendMsg('prayer-msg-input', 'prayer');
 
-  window.switchChatTab = function(panel) {
+  window.switchChatTab = function (panel) {
     document.querySelectorAll('.chat-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.panel === panel));
     document.querySelectorAll('.chat-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.dm-panel').forEach(p  => p.classList.remove('active'));
-    const target = $('panel-' + panel);
-    if (target) target.classList.add('active');
-    // Scroll to bottom when switching to a chat panel
-    if (panel === 'global') { const m=$('global-messages'); setTimeout(()=>m&&(m.scrollTop=m.scrollHeight),50); }
-    if (panel === 'prayer') { const m=$('prayer-messages'); setTimeout(()=>m&&(m.scrollTop=m.scrollHeight),50); }
+    const target = $('panel-' + panel); if (target) target.classList.add('active');
+    if (panel === 'global') { const m=$('global-messages'); setTimeout(()=>m&&(m.scrollTop=m.scrollHeight),60); }
+    if (panel === 'prayer') { const m=$('prayer-messages'); setTimeout(()=>m&&(m.scrollTop=m.scrollHeight),60); }
   };
 
-  /* ── DIRECT MESSAGES ───────────────────────── */
-  window.startDM = function(uid, name) {
+  /* ── DMs ─────────────────────────────────── */
+  window.startDM = function (uid, name) {
     if (uid === currentUser?.uid) { toast("That's you!", 'info'); return; }
     currentDMUid = uid;
     $('dm-modal-title').textContent = 'Chat with ' + name;
@@ -1801,78 +1907,77 @@
     $('private-chat-modal').classList.remove('hidden');
     if (unsub.dmChat) { unsub.dmChat(); unsub.dmChat = null; }
     const convId = [currentUser.uid, uid].sort().join('_');
-    unsub.dmChat = db.collection('chat').doc('dms').collection(convId).doc('thread')
-      .collection('messages')
+    unsub.dmChat = db.collection('chat').doc('dms').collection(convId).doc('thread').collection('messages')
       .orderBy('createdAt','asc')
-      .onSnapshot(snap => {
-        const el = $('dm-messages');
-        el.innerHTML = snap.docs.map(d => renderMsg(d.data())).join('');
-        el.scrollTop = el.scrollHeight;
-      }, err => console.warn('DM error:', err));
+      .onSnapshot(snap => { const el=$('dm-messages'); el.innerHTML=snap.docs.map(d=>renderMsg(d.data())).join(''); el.scrollTop=el.scrollHeight; }, err=>console.warn('DM error:',err));
   };
 
-  window.sendDM = async function() {
+  window.sendDM = async function () {
     if (!currentDMUid || !currentUser) return;
-    const inp  = $('dm-msg-input');
-    const text = inp.value.trim();
-    if (!text) return;
+    const inp=$('dm-msg-input'), text=inp.value.trim(); if (!text) return;
     if (hasProfanity(text)) { toast('Your message contains prohibited language and was not sent.', 'error'); return; }
     inp.value = '';
     const convId = [currentUser.uid, currentDMUid].sort().join('_');
     try {
-      await db.collection('chat').doc('dms').collection(convId).doc('thread').collection('messages').add({
-        uid: currentUser.uid,
-        displayName: userProfile?.displayName || 'Anonymous',
-        text,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      await db.collection('chat').doc('dms').collection(convId).doc('thread').collection('messages').add({ uid:currentUser.uid, displayName:userProfile?.displayName||'Anonymous', text, createdAt:FSV.serverTimestamp() });
     } catch (e) { toast('Could not send message.', 'error'); inp.value = text; }
   };
 
-  /* ═══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      PROFILE / SETTINGS
-  ════════════════════════════════════════════ */
-  window.refreshProfileUI = updateAvatarUI;
-
-  window.showEditProfileModal = function() {
+  ══════════════════════════════════════════ */
+  window.showEditProfileModal = function () {
     $('edit-name').value   = userProfile?.displayName || '';
     $('edit-church').value = userProfile?.homeChurch  || '';
     $('edit-profile-modal').classList.remove('hidden');
   };
-  window.saveProfile = async function() {
+
+  /* saveProfile — uses set+merge so it works even if the doc doesn't exist yet */
+  window.saveProfile = async function () {
     if (!currentUser) return;
     const name   = $('edit-name').value.trim();
     const church = $('edit-church').value.trim();
     if (!name) { toast('Name cannot be empty.', 'error'); return; }
+    const btn = document.querySelector('#edit-profile-modal .btn-primary');
+    if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
     try {
-      await db.collection('users').doc(currentUser.uid).update({ displayName: name, homeChurch: church });
-      userProfile.displayName = name; userProfile.homeChurch = church;
+      // Use set with merge:true so it works for new AND existing docs
+      await db.collection('users').doc(currentUser.uid).set(
+        { displayName: name, homeChurch: church },
+        { merge: true }
+      );
+      // Update local cache
+      if (!userProfile) userProfile = {};
+      userProfile.displayName = name;
+      userProfile.homeChurch  = church;
       updateAvatarUI();
       closeModal('edit-profile-modal');
-      toast('Profile updated!', 'success');
-    } catch (e) { toast('Could not save profile.', 'error'); }
+      toast('Profile saved!', 'success');
+    } catch (e) {
+      console.error('saveProfile error:', e);
+      toast('Could not save profile. Please try again.', 'error');
+    } finally {
+      if (btn) { btn.textContent = 'Save Changes'; btn.disabled = false; }
+    }
   };
 
   window.showChangePasswordModal = () => $('change-pw-modal').classList.remove('hidden');
-  window.changePassword = async function() {
-    const np = $('new-pw').value, cp = $('confirm-pw').value;
+  window.changePassword = async function () {
+    const np=$('new-pw').value, cp=$('confirm-pw').value;
     if (np !== cp)    { toast('Passwords do not match.', 'error'); return; }
     if (np.length < 6){ toast('Password must be at least 6 characters.', 'error'); return; }
-    try {
-      await auth.currentUser.updatePassword(np);
-      closeModal('change-pw-modal');
-      toast('Password updated!', 'success');
-    } catch (e) { toast('Please sign out and sign back in before changing your password.', 'error'); }
+    try { await auth.currentUser.updatePassword(np); closeModal('change-pw-modal'); toast('Password updated!', 'success'); }
+    catch (e) { toast('Please sign out and sign back in before changing your password.', 'error'); }
   };
 
-  window.showReminderSettings = function() {
+  window.showReminderSettings = function () {
     $('default-reminder-select').value = userProfile?.defaultReminderMinutes || 15;
     $('reminder-settings-modal').classList.remove('hidden');
   };
-  window.saveDefaultReminder = async function() {
+  window.saveDefaultReminder = async function () {
     const mins = parseInt($('default-reminder-select').value);
     try {
-      await db.collection('users').doc(currentUser.uid).update({ defaultReminderMinutes: mins });
+      await db.collection('users').doc(currentUser.uid).set({ defaultReminderMinutes:mins }, { merge:true });
       userProfile.defaultReminderMinutes = mins;
       $('default-reminder-label').textContent = reminderLabel(mins);
       closeModal('reminder-settings-modal');
@@ -1880,62 +1985,50 @@
     } catch (e) { toast('Could not save setting.', 'error'); }
   };
 
-  window.togglePushNotifications = async function(enabled) {
+  window.togglePushNotifications = async function (enabled) {
     if (enabled) {
       const perm = await Notification.requestPermission().catch(() => 'denied');
-      if (perm !== 'granted') {
-        $('push-toggle').checked = false;
-        toast('Notification permission denied.', 'error'); return;
-      }
+      if (perm !== 'granted') { $('push-toggle').checked=false; toast('Notification permission denied.','error'); return; }
       toast('Notifications enabled!', 'success');
-      try { await db.collection('users').doc(currentUser.uid).update({ pushEnabled: true }); } catch(e){}
+      try { await db.collection('users').doc(currentUser.uid).set({ pushEnabled:true },{ merge:true }); } catch(e){}
     } else {
-      try { await db.collection('users').doc(currentUser.uid).update({ pushEnabled: false }); } catch(e){}
+      try { await db.collection('users').doc(currentUser.uid).set({ pushEnabled:false },{ merge:true }); } catch(e){}
       toast('Notifications disabled.', 'info');
     }
   };
 
-  window.exportBookmarks = function() {
-    const evts = Object.keys(bookmarks)
-      .map(k => allEvents.find(e => e.id === k)).filter(Boolean).sort((a,b)=>a.start-b.start);
+  window.exportBookmarks = function () {
+    const evts = Object.keys(bookmarks).map(k=>allEvents.find(e=>e.id===k)).filter(Boolean).sort((a,b)=>a.start-b.start);
     if (!evts.length) { toast('No bookmarks to export.', 'info'); return; }
-    const lines = [
-      'UCJC HOLY CONVOCATION — MY PERSONAL SCHEDULE',
-      '='.repeat(50), '',
-      ...evts.map(ev => `${fmtDate(ev.start)}  ${fmt(ev.start)} – ${fmt(ev.end)}\n${ev.title}\n${ev.location||'No location listed'}\n`)
-    ];
-    const a = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(new Blob([lines.join('\n')], {type:'text/plain'})),
-      download: 'my-convocation-schedule.txt'
-    });
+    const lines = ['UCJC HOLY CONVOCATION — MY PERSONAL SCHEDULE','='.repeat(50),'',
+      ...evts.map(ev=>`${fmtDate(ev.start)}  ${fmt(ev.start)} – ${fmt(ev.end)}\n${ev.title}\n${ev.location||'No location listed'}\n`)];
+    const a = Object.assign(document.createElement('a'), { href:URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/plain'})), download:'my-convocation-schedule.txt' });
     a.click(); URL.revokeObjectURL(a.href);
   };
 
   window.showAbout = () => $('about-modal').classList.remove('hidden');
 
-  /* ═══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      CONNECTIVITY
-  ════════════════════════════════════════════ */
-  function updateConnectivity() {
+  ══════════════════════════════════════════ */
+  function updateConn() {
     const online = navigator.onLine;
-    const dot = $('conn-dot'), label = $('conn-label');
-    if (dot)   dot.className   = 'connection-dot' + (online ? '' : ' offline');
-    if (label) label.textContent = online ? 'Connected' : 'Offline';
-    const banner = $('offline-banner');
-    if (banner) banner.classList.toggle('show', !online);
+    const dot=$('conn-dot'), lbl=$('conn-label'), ban=$('offline-banner');
+    if (dot) dot.className = 'connection-dot' + (online ? '' : ' offline');
+    if (lbl) lbl.textContent = online ? 'Connected' : 'Offline';
+    if (ban) ban.classList.toggle('show', !online);
   }
-  window.addEventListener('online',  updateConnectivity);
-  window.addEventListener('offline', updateConnectivity);
-  updateConnectivity();
+  window.addEventListener('online', updateConn);
+  window.addEventListener('offline', updateConn);
+  updateConn();
 
-  /* ═══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      PWA INSTALL
-  ════════════════════════════════════════════ */
+  ══════════════════════════════════════════ */
   window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); deferredInstall = e;
-    $('install-prompt').classList.add('show');
+    e.preventDefault(); deferredInstall = e; $('install-prompt').classList.add('show');
   });
-  window.installApp = async function() {
+  window.installApp = async function () {
     if (!deferredInstall) return;
     deferredInstall.prompt();
     const { outcome } = await deferredInstall.userChoice;
@@ -1944,20 +2037,16 @@
   };
   window.dismissInstall = () => $('install-prompt').classList.remove('show');
 
-  /* ═══════════════════════════════════════════
-     SERVICE WORKER — relative path so hosting
-     subdirectory doesn't break registration
-  ════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════
+     SERVICE WORKER
+  ══════════════════════════════════════════ */
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(err =>
-      console.warn('SW registration failed:', err));
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW failed:', err));
   }
 
-  /* ═══════════════════════════════════════════
-     SAFETY TIMEOUT — if auth takes >3 s,
-     show the login screen so the user isn't
-     stuck staring at the loading spinner
-  ════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════
+     SAFETY TIMEOUT
+  ══════════════════════════════════════════ */
   setTimeout(() => {
     const overlay = $('loading-overlay');
     if (overlay && !overlay.classList.contains('hidden')) {
