@@ -1,9 +1,0 @@
-{
-  "name": "ucjc-convocation-app",
-  "version": "1.0.0",
-  "description": "UCJC Convocation App",
-  "main": "index.js",
-  "dependencies": {
-    "node-fetch": "^2.6.7"
-  }
-}
