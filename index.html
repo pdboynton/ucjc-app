@@ -1,293 +1,1972 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- For PWA -->
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#003366" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0A1628"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Convocation"/>
+  <title>UCJC Holy Convocation</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ═══════════════════════════════════════
+       DESIGN TOKENS & RESET
+    ══════════════════════════════════════════ */
+    :root {
+      --navy-deep:  #080f1e;
+      --navy-mid:   #112240;
+      --navy-card:  #192d4a;
+      --navy-light: #1e3a5f;
+      --gold:       #C9A84C;
+      --gold-light: #E4C46A;
+      --crimson:    #8B2635;
+      --text-primary: #F0E8D8;
+      --text-muted:   #8FA3BF;
+      --text-dim:     #4a6280;
+      --border:     rgba(201,168,76,0.18);
+      --border-soft: rgba(255,255,255,0.06);
+      --radius:     14px;
+      --radius-sm:  8px;
+      --shadow:     0 8px 32px rgba(0,0,0,0.5);
+      --font-display: 'Playfair Display', serif;
+      --font-body:    'Lato', sans-serif;
+      --nav-h:      68px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; overscroll-behavior: none; }
+    body {
+      font-family: var(--font-body);
+      background: var(--navy-deep);
+      color: var(--text-primary);
+      height: 100%;
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(201,168,76,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 100%, rgba(139,38,53,0.06) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
+    }
 
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UCJC Convocation App</title>
-  <link rel="stylesheet" href="styles.css" />
-  <!-- Font Awesome 6 CDN -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <!-- Firebase App (the core Firebase SDK) -->
-  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
-  <!-- Firebase Messaging -->
-  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-messaging-compat.js"></script>
-  <!-- Firebase Auth -->
-  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
-  <!-- Firebase Firestore -->
-  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
-  <!-- Firebase Storage (if used) -->
-  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-storage-compat.js"></script>
-  <!-- Eventbrite >
-  <script type="module" src="https://www.eventbrite.com/static/widgets/eb_widgets.js"></script-->
+    /* ── UTILITIES ─────────────────────────── */
+    .hidden { display: none !important; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 24px; border-radius: var(--radius-sm); border: none;
+      font-family: var(--font-body); font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--gold), #a8862e); color: var(--navy-deep); }
+    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-outline { background: transparent; color: var(--gold); border: 1.5px solid var(--gold); }
+    .btn-outline:hover { background: rgba(201,168,76,0.1); }
+    .btn-ghost { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+    .btn-sm { padding: 8px 16px; font-size: 0.8rem; }
+    .muted-text { color: var(--text-muted); }
+    .small-text { font-size: 0.8rem; }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block; font-size: 0.78rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; font-weight: 700;
+    }
+    input[type=text], input[type=email], input[type=password],
+    input[type=number], textarea, select {
+      width: 100%; padding: 12px 14px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1);
+      color: var(--text-primary); font-family: var(--font-body); font-size: 0.95rem;
+      transition: border-color 0.2s; outline: none; -webkit-appearance: none;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--gold); background: rgba(255,255,255,0.07);
+    }
+    select option { background: var(--navy-mid); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .badge {
+      display: inline-flex; align-items: center; padding: 3px 10px;
+      border-radius: 20px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
+    }
+    .badge-gold { background: rgba(201,168,76,0.18); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.3); }
+    .badge-blue { background: rgba(30,90,150,0.3); color: #7cb8f0; border: 1px solid rgba(100,170,255,0.2); }
+
+    .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0; cursor: pointer;
+      background: rgba(255,255,255,0.1); border-radius: 24px; transition: 0.3s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background: white; border-radius: 50%; transition: 0.3s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--gold); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* ── LOADING OVERLAY ───────────────────── */
+    #loading-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--navy-deep);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 24px;
+      transition: opacity 0.4s ease;
+    }
+    #loading-overlay.fade-out { opacity: 0; pointer-events: none; }
+    .loader-logo {
+      width: 90px; height: 90px; object-fit: contain;
+      filter: drop-shadow(0 0 16px rgba(201,168,76,0.5));
+      animation: glow-pulse 2s ease-in-out infinite;
+    }
+    .loader-ring {
+      width: 48px; height: 48px;
+      border: 3px solid rgba(201,168,76,0.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    .loader-text {
+      font-family: var(--font-display); font-style: italic;
+      font-size: 1.1rem; color: var(--text-muted);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes glow-pulse {
+      0%,100% { filter: drop-shadow(0 0 10px rgba(201,168,76,0.4)); }
+      50%      { filter: drop-shadow(0 0 28px rgba(201,168,76,0.8)); }
+    }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes slide-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    /* ── AUTH SCREEN ───────────────────────── */
+    #auth-screen {
+      position: fixed; inset: 0; z-index: 100;
+      background: var(--navy-deep);
+      display: flex; flex-direction: column; overflow-y: auto;
+      animation: fade-in 0.3s ease;
+    }
+    .auth-hero {
+      background: linear-gradient(135deg, #0A1628 0%, #1a2f4a 50%, #0e1e35 100%);
+      padding: 60px 32px 40px; text-align: center;
+      position: relative; overflow: hidden; flex-shrink: 0;
+    }
+    .auth-hero-logo {
+      width: 90px; height: 90px; object-fit: contain;
+      display: block; margin: 0 auto 16px;
+      filter: drop-shadow(0 0 24px rgba(201,168,76,0.5));
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+    .auth-hero h1 {
+      font-family: var(--font-display); font-size: 1.9rem;
+      line-height: 1.2; color: var(--text-primary); margin-bottom: 6px;
+    }
+    .auth-hero h1 em { color: var(--gold); font-style: italic; }
+    .auth-hero p { color: var(--text-muted); font-size: 0.9rem; }
+    .auth-body { padding: 24px 24px 48px; flex: 1; }
+    .auth-tabs {
+      display: flex; gap: 0; margin-bottom: 24px;
+      background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); padding: 4px;
+    }
+    .auth-tab {
+      flex: 1; padding: 10px; border: none; background: transparent;
+      color: var(--text-muted); font-family: var(--font-body);
+      font-weight: 700; font-size: 0.85rem; letter-spacing: 0.06em;
+      text-transform: uppercase; border-radius: calc(var(--radius-sm) - 2px);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .auth-tab.active { background: var(--gold); color: var(--navy-deep); }
+    .auth-form { display: none; }
+    .auth-form.active { display: block; animation: fade-in 0.2s ease; }
+
+    /* ── MAIN APP ──────────────────────────── */
+    #app {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      animation: fade-in 0.3s ease;
+    }
+    .app-header {
+      flex-shrink: 0;
+      background: var(--navy-mid);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      padding-top: calc(12px + env(safe-area-inset-top, 0px));
+      display: flex; align-items: center; gap: 12px;
+      position: relative; z-index: 10;
+    }
+    .app-header-logo { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 0 6px rgba(201,168,76,0.4)); }
+    .app-header-title { flex: 1; font-family: var(--font-display); font-size: 1.1rem; color: var(--text-primary); }
+    .app-header-title small {
+      display: block; font-family: var(--font-body);
+      font-size: 0.72rem; color: var(--text-muted); font-style: normal; letter-spacing: 0.05em;
+    }
+    .header-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #a8862e);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: var(--navy-deep); font-size: 0.85rem;
+      cursor: pointer; flex-shrink: 0; border: 2px solid rgba(201,168,76,0.4);
+    }
+
+    #convocation-banner {
+      flex-shrink: 0;
+      background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.04));
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .banner-info { flex: 1; min-width: 0; }
+    .banner-title {
+      font-family: var(--font-display); font-size: 0.9rem;
+      color: var(--gold-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .banner-meta { font-size: 0.75rem; color: var(--text-muted); }
+
+    .app-content { flex: 1; overflow: hidden; position: relative; }
+    .screen {
+      position: absolute; inset: 0;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px);
+      display: none;
+    }
+    .screen.active { display: block; }
+
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; margin: 20px 0 12px;
+    }
+    .section-title { font-family: var(--font-display); font-size: 1.05rem; color: var(--text-primary); }
+    .section-title::before {
+      content: ''; display: inline-block; width: 3px; height: 1em;
+      background: var(--gold); margin-right: 8px; vertical-align: middle; border-radius: 2px;
+    }
+
+    /* ── SCHEDULE ──────────────────────────── */
+    .date-tab-list {
+      display: flex; gap: 8px; padding: 12px 16px;
+      overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
+    }
+    .date-tab-list::-webkit-scrollbar { display: none; }
+    .date-tab {
+      flex-shrink: 0; padding: 8px 14px; border-radius: 24px; min-width: 56px;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border-soft);
+      cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .date-tab.active {
+      background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.08));
+      border-color: var(--gold);
+    }
+    .date-tab-day { font-size: 0.68rem; letter-spacing: 0.06em; color: var(--text-muted); text-transform: uppercase; }
+    .date-tab-num { font-family: var(--font-display); font-size: 1.3rem; color: var(--text-primary); line-height: 1; }
+    .date-tab.active .date-tab-day, .date-tab.active .date-tab-num { color: var(--gold-light); }
+
+    .event-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+    .event-card {
+      background: var(--navy-card); border: 1px solid var(--border-soft);
+      border-left: 3px solid var(--gold); border-radius: var(--radius);
+      padding: 14px; display: flex; gap: 14px; align-items: flex-start;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .event-card:active { transform: scale(0.99); }
+    .event-card:hover { background: var(--navy-light); border-color: rgba(201,168,76,0.3); }
+    .event-card.bookmarked { background: rgba(201,168,76,0.04); border-left-color: var(--gold-light); }
+    .event-time-col { flex-shrink: 0; text-align: right; min-width: 52px; padding-top: 2px; }
+    .event-start { font-size: 0.82rem; font-weight: 700; color: var(--gold); }
+    .event-end { font-size: 0.72rem; color: var(--text-dim); }
+    .event-duration { font-size: 0.68rem; color: var(--text-dim); margin-top: 4px; }
+    .event-info { flex: 1; min-width: 0; }
+    .event-title { font-family: var(--font-display); font-size: 1rem; color: var(--text-primary); margin-bottom: 4px; line-height: 1.3; }
+    .event-location { font-size: 0.78rem; color: var(--text-muted); }
+    .event-desc {
+      font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .event-actions { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .bookmark-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 1.3rem; color: var(--text-dim); transition: all 0.2s; padding: 4px;
+    }
+    .bookmark-btn.active { color: var(--gold); filter: drop-shadow(0 0 6px rgba(201,168,76,0.5)); }
+    .bookmark-saved { font-size: 0.65rem; color: var(--gold); text-align: center; }
+
+    .empty-state { text-align: center; padding: 60px 32px; color: var(--text-muted); }
+    .empty-icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.4; }
+    .empty-title { font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 6px; }
+
+    /* ── BOTTOM NAV ────────────────────────── */
+    .bottom-nav {
+      flex-shrink: 0; background: var(--navy-mid); border-top: 1px solid var(--border);
+      display: flex; padding-bottom: var(--safe-bottom);
+      height: calc(var(--nav-h) + var(--safe-bottom));
+      position: relative; z-index: 10;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      border: none; background: transparent; cursor: pointer; color: var(--text-dim);
+      transition: all 0.2s; position: relative;
+    }
+    .nav-item.active { color: var(--gold); }
+    .nav-item.active::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 32px; height: 2px; background: var(--gold); border-radius: 0 0 3px 3px;
+    }
+    .nav-icon { font-size: 1.35rem; }
+    .nav-label { font-size: 0.62rem; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; }
+    .nav-badge {
+      position: absolute; top: 8px; right: calc(50% - 14px);
+      background: var(--crimson); color: white; font-size: 0.6rem; font-weight: 700;
+      min-width: 16px; height: 16px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 4px; border: 2px solid var(--navy-mid);
+    }
+
+    /* ── MODALS ────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+      display: flex; align-items: flex-end;
+      animation: fade-in 0.2s ease;
+    }
+    .modal-sheet {
+      width: 100%; max-height: 92vh; background: var(--navy-mid);
+      border-radius: var(--radius) var(--radius) 0 0;
+      overflow: hidden; display: flex; flex-direction: column;
+      animation: slide-up 0.3s cubic-bezier(0.32,0.72,0,1);
+    }
+    .modal-handle {
+      width: 40px; height: 4px; background: rgba(255,255,255,0.15);
+      border-radius: 2px; margin: 12px auto 4px; flex-shrink: 0;
+    }
+    .modal-header {
+      padding: 16px 20px; display: flex; align-items: flex-start; gap: 12px;
+      flex-shrink: 0; border-bottom: 1px solid var(--border-soft);
+    }
+    .modal-close {
+      background: rgba(255,255,255,0.08); border: none; cursor: pointer;
+      color: var(--text-muted); width: 32px; height: 32px; border-radius: 50%;
+      font-size: 1rem; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background 0.15s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.15); }
+    .modal-title { flex: 1; font-family: var(--font-display); font-size: 1.15rem; line-height: 1.3; }
+    .modal-body { flex: 1; overflow-y: auto; padding: 20px; }
+    .modal-footer { flex-shrink: 0; padding: 16px 20px; border-top: 1px solid var(--border-soft); }
+
+    .detail-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+    .detail-tab {
+      flex: 1; padding: 9px 4px; border: none;
+      background: rgba(255,255,255,0.04); border-radius: var(--radius-sm);
+      color: var(--text-muted); font-family: var(--font-body); font-size: 0.78rem;
+      font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .detail-tab.active { background: rgba(201,168,76,0.15); color: var(--gold); }
+    .detail-panel { display: none; }
+    .detail-panel.active { display: block; animation: fade-in 0.15s ease; }
+
+    .info-row {
+      display: flex; align-items: flex-start; gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+    .info-row-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .info-row-value { font-size: 0.9rem; color: var(--text-primary); }
+
+    .reminder-row {
+      display: flex; align-items: center; gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .reminder-row:last-child { border-bottom: none; }
+    .reminder-label { flex: 1; font-size: 0.9rem; }
+    .reminder-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── MY SCHEDULE ───────────────────────── */
+    .my-schedule-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px;
+    }
+    .stat-card {
+      background: var(--navy-card); border: 1px solid var(--border-soft);
+      border-radius: var(--radius); padding: 14px 12px; text-align: center;
+    }
+    .stat-num { font-family: var(--font-display); font-size: 1.6rem; color: var(--gold); line-height: 1; }
+    .stat-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── DIRECTORY ─────────────────────────── */
+    .search-bar { padding: 12px 16px; }
+    .search-input-wrap { position: relative; }
+    .search-input-wrap input { padding-left: 40px; }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 1rem; pointer-events: none; }
+
+    .attendee-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+    .attendee-card {
+      background: var(--navy-card); border: 1px solid var(--border-soft);
+      border-radius: var(--radius); padding: 12px 14px;
+      display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .attendee-card:hover { background: var(--navy-light); border-color: var(--border); }
+    .attendee-avatar {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--gold), #a8862e);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: var(--navy-deep); font-size: 0.95rem;
+    }
+    .attendee-info { flex: 1; min-width: 0; }
+    .attendee-name { font-weight: 700; font-size: 0.92rem; }
+    .attendee-church { font-size: 0.78rem; color: var(--text-muted); }
+
+    /* ── CHAT ──────────────────────────────── */
+    .chat-screen-wrap { display: flex; flex-direction: column; position: absolute; inset: 0; }
+    .chat-tabs {
+      display: flex; padding: 10px 16px; gap: 6px;
+      border-bottom: 1px solid var(--border-soft); flex-shrink: 0;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .chat-tabs::-webkit-scrollbar { display: none; }
+    .chat-tab-btn {
+      flex-shrink: 0; padding: 7px 14px; border-radius: 20px; border: none;
+      background: transparent; color: var(--text-muted); cursor: pointer;
+      font-size: 0.83rem; font-family: var(--font-body); font-weight: 700;
+      transition: all 0.2s; letter-spacing: 0.03em; white-space: nowrap;
+    }
+    .chat-tab-btn.active { background: rgba(201,168,76,0.15); color: var(--gold); }
+
+    .chat-panel { display: none; flex: 1; flex-direction: column; min-height: 0; overflow: hidden; }
+    .chat-panel.active { display: flex; }
+    .chat-messages {
+      flex: 1; overflow-y: auto; padding: 16px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .msg-row { display: flex; gap: 10px; align-items: flex-end; }
+    .msg-row.own { flex-direction: row-reverse; }
+    .msg-avatar {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--gold), #a8862e);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; color: var(--navy-deep);
+    }
+    .msg-bubble-wrap { max-width: 75%; display: flex; flex-direction: column; gap: 3px; }
+    .msg-row.own .msg-bubble-wrap { align-items: flex-end; }
+    .msg-sender { font-size: 0.68rem; color: var(--text-dim); padding: 0 6px; }
+    .msg-bubble {
+      padding: 10px 14px; border-radius: 16px; font-size: 0.88rem; line-height: 1.45;
+      background: var(--navy-card); border: 1px solid var(--border-soft);
+      border-bottom-left-radius: 4px; word-break: break-word;
+    }
+    .msg-row.own .msg-bubble {
+      background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.1));
+      border-color: rgba(201,168,76,0.25);
+      border-bottom-right-radius: 4px; border-bottom-left-radius: 16px;
+    }
+    .msg-time { font-size: 0.62rem; color: var(--text-dim); padding: 0 6px; }
+    .chat-input-bar {
+      flex-shrink: 0; padding: 10px 16px; border-top: 1px solid var(--border-soft);
+      display: flex; gap: 10px; align-items: center; background: var(--navy-mid);
+    }
+    .chat-input-bar input { margin: 0; border-radius: 20px; flex: 1; padding: 10px 16px; }
+    .send-btn {
+      width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+      background: var(--gold); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; color: var(--navy-deep); transition: all 0.2s;
+    }
+    .send-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
+
+    /* DMs panel */
+    .dm-panel { flex: 1; overflow-y: auto; padding: 16px; display: none; }
+    .dm-panel.active { display: block; }
+    .dm-list { display: flex; flex-direction: column; gap: 6px; }
+
+    /* ── PROFILE ───────────────────────────── */
+    .profile-hero {
+      background: linear-gradient(135deg, var(--navy-mid), var(--navy-card));
+      padding: 32px 20px; text-align: center;
+      border-bottom: 1px solid var(--border-soft); margin-bottom: 8px;
+    }
+    .profile-big-avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #a8862e);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: 700; color: var(--navy-deep);
+      margin: 0 auto 12px; border: 3px solid rgba(201,168,76,0.4);
+      box-shadow: 0 0 30px rgba(201,168,76,0.2);
+    }
+    .profile-name { font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 4px; }
+    .profile-church { color: var(--text-muted); font-size: 0.88rem; }
+
+    .settings-section { padding: 0 16px; margin-bottom: 24px; }
+    .settings-label {
+      font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-dim); font-weight: 700; padding: 12px 4px 8px;
+    }
+    .settings-card {
+      background: var(--navy-card); border: 1px solid var(--border-soft);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .settings-row {
+      display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+      border-bottom: 1px solid var(--border-soft); cursor: pointer; transition: background 0.15s;
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row:hover { background: rgba(255,255,255,0.03); }
+    .settings-row-icon { font-size: 1.1rem; width: 24px; text-align: center; color: var(--gold); }
+    .settings-row-text { flex: 1; }
+    .settings-row-title { font-size: 0.9rem; }
+    .settings-row-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .settings-row-right { color: var(--text-dim); font-size: 0.8rem; }
+
+    /* ── FEEDBACK ──────────────────────────── */
+    .feedback-stars { display: flex; justify-content: center; gap: 8px; margin: 16px 0; }
+    .star { font-size: 2rem; cursor: pointer; color: var(--text-dim); transition: color 0.15s; }
+    .star.active, .star:hover { color: var(--gold); }
+    .notes-saved { font-size: 0.75rem; color: var(--text-muted); text-align: right; margin-top: 6px; }
+
+    /* ── TOAST ─────────────────────────────── */
+    #toast-container {
+      position: fixed; top: calc(env(safe-area-inset-top, 0px) + 80px); right: 16px;
+      z-index: 10000; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+    }
+    .toast {
+      background: var(--navy-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 16px;
+      font-size: 0.85rem; color: var(--text-primary);
+      box-shadow: var(--shadow); max-width: 300px;
+      animation: toast-in 0.3s ease; pointer-events: auto;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .toast.success { border-color: rgba(100,200,100,0.35); }
+    .toast.error   { border-color: rgba(200,100,100,0.35); }
+    @keyframes toast-in  { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+    @keyframes toast-out { to   { opacity: 0; transform: translateX(20px); } }
+
+    /* ── OFFLINE BANNER ────────────────────── */
+    .offline-banner {
+      background: var(--crimson); color: white; text-align: center;
+      padding: 6px 12px; font-size: 0.8rem; font-weight: 700; display: none;
+    }
+    .offline-banner.show { display: block; }
+    .connection-dot { width: 7px; height: 7px; border-radius: 50%; background: #6fcf97; display: inline-block; }
+    .connection-dot.offline { background: var(--crimson); }
+
+    /* ── INSTALL PROMPT ────────────────────── */
+    #install-prompt {
+      position: fixed; bottom: calc(var(--nav-h) + var(--safe-bottom) + 12px); left: 16px; right: 16px;
+      z-index: 50; background: var(--navy-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px;
+      display: none; align-items: center; gap: 12px;
+    }
+    #install-prompt.show { display: flex; animation: slide-up 0.3s ease; }
+    .install-text { flex: 1; font-size: 0.85rem; }
+    .install-text strong { color: var(--gold); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
 </head>
 <body>
-  <div class="home-header">
-    <img src="icons/icon-192.png" alt="UCJC Logo" class="ucjc-logo" />
-    <div class="home-title">
-      <h1>United Churches of Jesus Christ <span class="subtitle">(Apostolic)</span></h1>
-      
-      <!-- Android Install Button -->
-      <button id="install-btn" hidden class="slim-btn">Install App</button>
 
-      <!-- iOS Install Banner -->
-      <div id="ios-install-banner" hidden class="install-banner">
-        <p><strong>To unlock full features:</strong> Tap <span style="font-size:1.2em;">&#x1F5D2;</span> then “Add to Home Screen”</p>
-      </div>
-    </div>
-    <!-- Hamburger Menu -->
-    <div id="hamburger-menu">
-      <i class="fa-solid fa-bars"></i>
-    </div>
+<!-- TOAST -->
+<div id="toast-container"></div>
 
-    <!-- Slide-out Menu -->
-    <div id="side-menu" class="hidden">
-      <ul id="menu-items"></ul>
-    </div>
+<!-- OFFLINE BANNER -->
+<div class="offline-banner" id="offline-banner">📵 You are offline. Some features may be unavailable.</div>
 
+<!-- INSTALL PROMPT -->
+<div id="install-prompt">
+  <span style="font-size:1.4rem">📱</span>
+  <div class="install-text"><strong>Install App</strong><br>Add UCJC Convocation to your home screen</div>
+  <button class="btn btn-primary btn-sm" onclick="installApp()">Install</button>
+  <button class="btn btn-ghost btn-sm" onclick="dismissInstall()">✕</button>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <img src="logo.png" alt="UCJC" class="loader-logo" onerror="this.style.display='none'"/>
+  <div class="loader-ring"></div>
+  <p class="loader-text">Loading Holy Convocation…</p>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen" class="hidden">
+  <div class="auth-hero">
+    <img src="logo.png" alt="UCJC Logo" class="auth-hero-logo" onerror="this.style.display='none'"/>
+    <h1>United Churches of<br/><em>Jesus Christ</em></h1>
+    <p>Holy Convocation · Companion App</p>
   </div>
-  <div id="app">
-
-
-    <div id="push-modal" class="modal">
-      <div class="modal-content">
-        <h3>Notification Preferences</h3>
-        <p>Select the ministries you'd like to receive updates for:</p>
-        <form id="push-preferences">
-          <label><input type="checkbox" name="category" value="#General"> General Conference</label><br/>
-          <label><input type="checkbox" name="category" value="#WomenOfRoyalty"> Women of Royalty</label><br/>
-          <label><input type="checkbox" name="category" value="#ManCave"> Man Cave</label><br/>
-          <label><input type="checkbox" name="category" value="#Youth"> Youth Ministry</label><br/>
-          <label><input type="checkbox" name="category" value="#YoungAdult"> Young Adults</label><br/>
-          <label><input type="checkbox" name="category" value="#Rehearsal"> Rehearsals</label><br/>
-          <button type="submit" class="slim-btn">Save Preferences</button>
-        </form>
-        <button onclick="closeModal('push-modal')" class="remove-btn">Close</button>
-      </div>
+  <div class="auth-body">
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login"    onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab"        data-tab="register" onclick="switchAuthTab('register')">Create Account</button>
     </div>
 
-    <!-- Sections -->
-    <section id="home" class="active">
-      <!-- Banner -->
-      <div class="card"  id="home-banner-cards">
-        <!-- Full-day event cards will be injected here -->
-      </div>
-      
-      <!-- Modal for Event Description -->
-      <div id="description-modal" class="modal">
-        <div class="modal-content">
-          <h2 id="modal-title"></h2>
-          <p id="modal-description"></p>
-          <button id="description-close-btn" class="slim-btn">Close</button>
-        </div>
-      </div>
-
-      <!-- My Reminders Card -->
-      <div class="card" id="reminder-card">
-        <h2><i class="fa-solid fa-user-clock"></i> Personalized Schedule</h2>
-        <ul id="reminder-list"></ul>
-      </div>
-      
-      <!-- Feedback Form -->
-      <div id="feedback-modal" class="modal">
-        <div class="modal-content">
-          <h3>Session Feedback</h3>
-          <form name="feedback" id="feedback-form" action="https://formspree.io/f/xyznbkdd" method="POST">
-            <input type="hidden" name="eventId" id="feedback-event-id" />
-            <input type="hidden" name="eventTitle" id="feedback-event-title" />
-            <input type="hidden" name="eventTime" id="feedback-event-time" />
-            <input type="hidden" name="eventTags" id="feedback-event-tags" />
-            <label>How was the session?</label><br/>
-            <textarea name="comments" rows="4" required></textarea><br/>
-            <button type="submit" class="slim-btn">Submit Feedback</button>
-          </form>
-          <button onclick="closeModal('feedback-modal')" class="remove-btn">Close</button>
-        </div>
-      </div>
-    </section>  
-      
-    <section id="registration">
-      <!-- Registration -->
-      <div class="card">
-          <h2><i class="fa-solid fa-calendar-check"></i> Event Registration</h2>
-          <!--div id="event-feed"></div-->
-          <div style=" overflow: hidden">
-          <div class='sk-eventbrite-event' data-embed-id='25606440' style="margin-top: -295px; margin-bottom: -80px"></div><script src='https://widgets.sociablekit.com/eventbrite-events/widget.js' defer></script>
-          </div>
-      </div>
-    </section>  
-      
-    <section id="program">
-      <!-- Program Book -->
-      <div class="card">
-        <h2><i class="fa-solid fa-book-open"></i> Conference Program</h2>
-        <div class="card">
-          <canvas id="pdf-canvas"></canvas>
-          <div class="controls">
-            <button id="prev-page">◀ Previous</button>
-            <span id="page-info">Page 1</span>
-            <button id="next-page">Next ▶</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="schedule">
-      <h2><i class="fa-solid fa-calendar-days"></i> Conference Schedule</h2>
-        <div id="schedule-header">
-            <div id="category-dropdown">
-              <label for="category-select"><i class="fa-solid fa-filter" style="margin: 10px;"></i>Category:</label>
-              <select id="category-select">
-                <option value="All">All Ministries</option>
-                <option value="#General">General Conference</option>
-                <option value="#WomenOfRoyalty">Women of Royalty</option>
-                <option value="#ManCave">Man Cave</option>
-                <option value="#Youth">Youth Ministry</option>
-                <option value="#YoungAdult">Young Adults</option>
-                <option value="#Rehearsal">Rehearsals</option>
-              </select>
-              <button id="refresh-schedule" class="slim-btn" style="margin-left: auto"><i class="fa-solid fa-arrows-rotate"></i></button>
-            </div>
-        </div>
-
-      <ul id="event-list"></ul>
-    </section>
-
-<section id="profile">
-  <h2><i class="fa-solid fa-id-card"></i> Attendee Profile</h2>
-    <h3>Create or Update Profile</h3>
-    <form id="profile-form">
-      <input type="text" name="title" placeholder="Title" />
-      <input type="text" name="firstName" placeholder="First Name" />
-      <input type="text" name="lastName" placeholder="Last Name" />
-      <input type="text" name="church" placeholder="Church" />
-      <input type="tel" name="cellphone" placeholder="Cellphone" />
-      <input type="email" name="email" placeholder="Email" />
-      <input type="text" name="social" placeholder="Social Media" />
-      <input type="file" id="photo-upload" name="photo" accept="image/*" />
-      <div class="setting-row">
-        <span>Share Title/Name</span>
-        <label class="switch">
-          <input type="checkbox" name="shareTitle" />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="setting-row">
-        <span>Share Church</span>
-        <label class="switch">
-          <input type="checkbox" name="shareChurch" />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="setting-row">
-        <span>Share Cellphone</span>
-        <label class="switch">
-          <input type="checkbox" name="shareCellphone" />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="setting-row">
-        <span>Share Email</span>
-        <label class="switch">
-          <input type="checkbox" name="shareEmail" />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="setting-row">
-        <span>Share Social Media</span>
-        <label class="switch">
-          <input type="checkbox" name="shareSocial" />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <input type="text" name="username" placeholder="Username" required />
-      <input type="password" name="password" placeholder="Password" required />
-      <button type="submit">Save Profile</button>
+    <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+      <div class="field"><label>Email Address</label>
+        <input type="email" id="login-email" placeholder="you@example.com" required autocomplete="email"/></div>
+      <div class="field"><label>Password</label>
+        <input type="password" id="login-password" placeholder="Your password" required autocomplete="current-password"/></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-bottom:12px" id="login-btn">Sign In</button>
+      <button type="button" class="btn btn-ghost" style="width:100%;font-size:0.8rem" onclick="handleForgotPassword()">Forgot Password?</button>
     </form>
-  </section>
 
-<section id="directory">
-  <h2><i class="fa-solid fa-address-book"></i> Attendee Directory</h2>
-  <div id="directory-list"></div>
-</section>
+    <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
+      <div class="field"><label>Full Name</label>
+        <input type="text" id="reg-name" placeholder="Your full name" required/></div>
+      <div class="field"><label>Home Church</label>
+        <input type="text" id="reg-church" placeholder="e.g. Greater Antioch Church" required/></div>
+      <div class="field"><label>Email Address</label>
+        <input type="email" id="reg-email" placeholder="you@example.com" required autocomplete="email"/></div>
+      <div class="field"><label>Password</label>
+        <input type="password" id="reg-password" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password"/></div>
+      <div class="field"><label>Confirm Password</label>
+        <input type="password" id="reg-confirm" placeholder="Repeat your password" required autocomplete="new-password"/></div>
+      <button type="submit" class="btn btn-primary" style="width:100%" id="register-btn">Create Account</button>
+    </form>
+  </div>
+</div>
 
-<section id="chatroom">
-  <h2><i class="fa-solid fa-comments"></i> Conference Chatroom</h2>
-    <select id="chatroom-select">
-      <option value="general">General</option>
-      <option value="workshops">Workshops</option>
-      <option value="youth">Youth</option>
-      <option value="admin">Admin Team (password required)</option>
-      <option value="praise">Praise & Worship (password required)</option>
-    </select>
-    <input type="password" id="chatroom-password" placeholder="Enter password if required" />
-    <div id="chatroom-messages"></div>
-    <input type="text" id="chat-input" placeholder="Type your message..." />
-    <button onclick="sendMessage()">Send</button>
-</section>
+<!-- ═══════════════════ MAIN APP ═══════════════════ -->
+<div id="app" class="hidden">
 
-<section id="settings">
-  <h2><i class="fa-solid fa-sliders"></i> Settings</h2>
-  <div class="card">
-    <h3>Reminders:</h3>
-    <div class="setting-row">
-      <i class="fa-solid fa-bell"></i>
-      <span>Event Reminders</span>
-      <label class="switch">
-        <input type="checkbox" id="toggle-reminders" checked>
-        <span class="slider"></span>
-      </label>
+  <header class="app-header">
+    <img src="logo.png" alt="UCJC" class="app-header-logo" onerror="this.style.display='none'"/>
+    <div class="app-header-title">
+      Holy Convocation
+      <small><span class="connection-dot" id="conn-dot"></span> <span id="conn-label">Connected</span></small>
     </div>
-    <div class="setting-row">
-      <i class="fa-solid fa-clock"></i>
-      <span id="reminder-label">5 minutes before</span>
-      <div class="slider-wrapper">
-          <input type="range" id="reminder-slider" min="0" max="4" step="0" />
+    <div class="header-avatar" id="user-avatar" onclick="showScreen('profile')" title="My Profile">?</div>
+  </header>
+
+  <div id="convocation-banner">
+    <span style="font-size:1.3rem">🏛️</span>
+    <div class="banner-info">
+      <div class="banner-title" id="banner-title">Loading schedule…</div>
+      <div class="banner-meta"  id="banner-meta"></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="refreshCalendar()" style="flex-shrink:0">↻</button>
+  </div>
+
+  <div class="app-content">
+
+    <!-- SCHEDULE -->
+    <div class="screen active" id="screen-schedule">
+      <div id="date-tabs" class="date-tab-list"></div>
+      <div id="events-loading" class="empty-state hidden">
+        <div class="loader-ring" style="margin:0 auto 12px"></div>
+        <p>Fetching schedule…</p>
+      </div>
+      <div id="event-list" class="event-list"></div>
+      <div id="no-events" class="empty-state hidden">
+        <div class="empty-icon">📅</div>
+        <div class="empty-title">No sessions scheduled</div>
+        <p class="muted-text small-text">Check back soon or select another date</p>
+      </div>
+    </div>
+
+    <!-- MY SCHEDULE -->
+    <div class="screen" id="screen-my-schedule">
+      <div class="my-schedule-stats">
+        <div class="stat-card"><div class="stat-num" id="stat-bookmarks">0</div><div class="stat-label">Bookmarks</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-upcoming">0</div><div class="stat-label">Upcoming</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-notes">0</div><div class="stat-label">Notes</div></div>
+      </div>
+      <div class="section-header">
+        <span class="section-title">My Bookmarked Sessions</span>
+      </div>
+      <div id="my-event-list" class="event-list"></div>
+      <div id="no-bookmarks" class="empty-state hidden">
+        <div class="empty-icon">🔖</div>
+        <div class="empty-title">No bookmarks yet</div>
+        <p class="muted-text small-text">Tap the bookmark icon on any session to save it here</p>
+      </div>
+    </div>
+
+    <!-- DIRECTORY -->
+    <div class="screen" id="screen-directory">
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="directory-search" placeholder="Search by name or church…" oninput="filterDirectory(this.value)"/>
+        </div>
+      </div>
+      <div class="section-header">
+        <span class="section-title">Attendees</span>
+        <span class="muted-text small-text" id="attendee-count"></span>
+      </div>
+      <div id="attendee-list" class="attendee-list"></div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="screen" id="screen-chat">
+      <div class="chat-screen-wrap">
+        <div class="chat-tabs">
+          <button class="chat-tab-btn active" data-panel="global"  onclick="switchChatTab('global')">🌐 Group Chat</button>
+          <button class="chat-tab-btn"        data-panel="dms"     onclick="switchChatTab('dms')">💬 Direct Messages</button>
+          <button class="chat-tab-btn"        data-panel="prayer"  onclick="switchChatTab('prayer')">🙏 Prayer Requests</button>
+        </div>
+
+        <!-- Group Chat -->
+        <div class="chat-panel active" id="panel-global">
+          <div class="chat-messages" id="global-messages"></div>
+          <div class="chat-input-bar">
+            <input type="text" id="global-msg-input" placeholder="Message the group…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendGlobalMessage();}"/>
+            <button class="send-btn" onclick="sendGlobalMessage()">➤</button>
+          </div>
+        </div>
+
+        <!-- DMs -->
+        <div class="dm-panel" id="panel-dms">
+          <div class="dm-list" id="dm-list"></div>
+          <div id="no-dms" class="empty-state">
+            <div class="empty-icon">💬</div>
+            <div class="empty-title">No conversations yet</div>
+            <p class="muted-text small-text">Start a chat from the Attendees directory</p>
+          </div>
+        </div>
+
+        <!-- Prayer Requests -->
+        <div class="chat-panel" id="panel-prayer">
+          <div class="chat-messages" id="prayer-messages"></div>
+          <div class="chat-input-bar">
+            <input type="text" id="prayer-msg-input" placeholder="Share a prayer request…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPrayerMessage();}"/>
+            <button class="send-btn" onclick="sendPrayerMessage()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="screen-profile">
+      <div class="profile-hero">
+        <div class="profile-big-avatar" id="profile-avatar">?</div>
+        <div class="profile-name"   id="profile-name">Loading…</div>
+        <div class="profile-church" id="profile-church"></div>
+        <div style="margin-top:12px"><span class="badge badge-gold">Attendee</span></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">Account</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="showEditProfileModal()">
+            <span class="settings-row-icon">👤</span>
+            <div class="settings-row-text">
+              <div class="settings-row-title">Edit Profile</div>
+              <div class="settings-row-sub">Name, home church</div>
+            </div>
+            <span class="settings-row-right">›</span>
+          </div>
+          <div class="settings-row" onclick="showChangePasswordModal()">
+            <span class="settings-row-icon">🔒</span>
+            <div class="settings-row-text"><div class="settings-row-title">Change Password</div></div>
+            <span class="settings-row-right">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">Notifications &amp; Reminders</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="showReminderSettings()">
+            <span class="settings-row-icon">🔔</span>
+            <div class="settings-row-text">
+              <div class="settings-row-title">Default Reminder Time</div>
+              <div class="settings-row-sub" id="default-reminder-label">15 minutes before</div>
+            </div>
+            <span class="settings-row-right">›</span>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-icon">📳</span>
+            <div class="settings-row-text">
+              <div class="settings-row-title">Push Notifications</div>
+              <div class="settings-row-sub">Session reminders</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="push-toggle" onchange="togglePushNotifications(this.checked)"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">App</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="exportBookmarks()">
+            <span class="settings-row-icon">📤</span>
+            <div class="settings-row-text">
+              <div class="settings-row-title">Export My Schedule</div>
+              <div class="settings-row-sub">Download as text file</div>
+            </div>
+          </div>
+          <div class="settings-row" onclick="showAbout()">
+            <span class="settings-row-icon">ℹ️</span>
+            <div class="settings-row-text">
+              <div class="settings-row-title">About This App</div>
+              <div class="settings-row-sub">UCJC Convocation v1.0</div>
+            </div>
+          </div>
+          <div class="settings-row" onclick="handleSignOut()">
+            <span class="settings-row-icon" style="color:var(--crimson)">🚪</span>
+            <div class="settings-row-text">
+              <div class="settings-row-title" style="color:var(--crimson)">Sign Out</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end app-content -->
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-schedule"    onclick="showScreen('schedule')">
+      <span class="nav-icon">📅</span><span class="nav-label">Schedule</span>
+    </button>
+    <button class="nav-item" id="nav-my-schedule" onclick="showScreen('my-schedule')">
+      <span class="nav-icon">🔖</span><span class="nav-label">My Plan</span>
+      <span class="nav-badge hidden" id="my-plan-badge">0</span>
+    </button>
+    <button class="nav-item" id="nav-directory" onclick="showScreen('directory')">
+      <span class="nav-icon">👥</span><span class="nav-label">Directory</span>
+    </button>
+    <button class="nav-item" id="nav-chat" onclick="showScreen('chat')">
+      <span class="nav-icon">💬</span><span class="nav-label">Chat</span>
+      <span class="nav-badge hidden" id="chat-badge">0</span>
+    </button>
+    <button class="nav-item" id="nav-profile" onclick="showScreen('profile')">
+      <span class="nav-icon">👤</span><span class="nav-label">Profile</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ════════ MODALS ════════ -->
+
+<!-- SESSION DETAIL -->
+<div class="modal-overlay hidden" id="session-modal" onclick="closeModalOnOverlay(event,'session-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div style="flex:1">
+        <div class="modal-title" id="modal-event-title">Session</div>
+        <div id="modal-event-meta" style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('session-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-tabs">
+        <button class="detail-tab active" data-tab="info"     onclick="switchDetailTab('info')">Info</button>
+        <button class="detail-tab"        data-tab="notes"    onclick="switchDetailTab('notes')">Notes</button>
+        <button class="detail-tab"        data-tab="feedback" onclick="switchDetailTab('feedback')">Feedback</button>
+        <button class="detail-tab"        data-tab="reminder" onclick="switchDetailTab('reminder')">Reminder</button>
+      </div>
+      <!-- INFO -->
+      <div class="detail-panel active" id="panel-info">
+        <div id="modal-event-desc" style="margin-bottom:16px;font-size:0.9rem;line-height:1.6;color:var(--text-muted)"></div>
+        <div class="info-row">
+          <span class="info-row-icon">📍</span>
+          <div><div class="info-row-label">Location</div><div class="info-row-value" id="modal-location">—</div></div>
+        </div>
+        <div class="info-row">
+          <span class="info-row-icon">⏱️</span>
+          <div><div class="info-row-label">Duration</div><div class="info-row-value" id="modal-duration">—</div></div>
+        </div>
+      </div>
+      <!-- NOTES -->
+      <div class="detail-panel" id="panel-notes">
+        <textarea id="notes-textarea" placeholder="Write your personal notes for this session…" style="min-height:160px;font-size:0.9rem"></textarea>
+        <div class="notes-saved" id="notes-saved-indicator"></div>
+        <button class="btn btn-primary btn-sm" onclick="saveNotes()" style="margin-top:10px">💾 Save Notes</button>
+      </div>
+      <!-- FEEDBACK -->
+      <div class="detail-panel" id="panel-feedback">
+        <p class="muted-text small-text" style="margin-bottom:8px">Rate this session:</p>
+        <div class="feedback-stars" id="feedback-stars">
+          <span class="star" data-val="1" onclick="setRating(1)">★</span>
+          <span class="star" data-val="2" onclick="setRating(2)">★</span>
+          <span class="star" data-val="3" onclick="setRating(3)">★</span>
+          <span class="star" data-val="4" onclick="setRating(4)">★</span>
+          <span class="star" data-val="5" onclick="setRating(5)">★</span>
+        </div>
+        <div class="field">
+          <label>Comments (optional)</label>
+          <textarea id="feedback-comment" placeholder="Highlights, suggestions…"></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="submitFeedback()">Submit Feedback</button>
+        <div id="feedback-submitted" class="hidden" style="text-align:center;padding:16px;color:var(--gold)">✓ Thank you for your feedback!</div>
+      </div>
+      <!-- REMINDER -->
+      <div class="detail-panel" id="panel-reminder">
+        <div class="reminder-row">
+          <span style="font-size:1.2rem">🔖</span>
+          <div class="reminder-label">Bookmark this session<div class="reminder-sub">Adds to My Schedule</div></div>
+          <label class="toggle">
+            <input type="checkbox" id="modal-bookmark-toggle" onchange="modalToggleBookmark(this.checked)"/>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="reminder-row">
+          <span style="font-size:1.2rem">🔔</span>
+          <div class="reminder-label">Send me a reminder<div class="reminder-sub">Notify before this session</div></div>
+          <label class="toggle">
+            <input type="checkbox" id="modal-reminder-toggle" onchange="toggleModalReminder(this.checked)"/>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div id="reminder-options" class="hidden" style="margin-top:12px">
+          <div class="field">
+            <label>How far in advance?</label>
+            <select id="reminder-select">
+              <option value="5">5 minutes before</option>
+              <option value="10">10 minutes before</option>
+              <option value="15" selected>15 minutes before</option>
+              <option value="30">30 minutes before</option>
+              <option value="60">1 hour before</option>
+              <option value="120">2 hours before</option>
+              <option value="1440">1 day before</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveReminder()">Save Reminder</button>
+        </div>
       </div>
     </div>
   </div>
-  
-  <div class="card">
-    <h3>Notifications:</h3>  
-    <div class="setting-row">
-      <i class="fa-solid fa-mobile-screen-button"></i>
-      <span>Push Notifications</span>
-      <label class="switch">
-        <input type="checkbox" id="toggle-push" checked>
-        <span class="slider"></span>
-      </label>
+</div>
+
+<!-- EDIT PROFILE -->
+<div class="modal-overlay hidden" id="edit-profile-modal" onclick="closeModalOnOverlay(event,'edit-profile-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">Edit Profile</div>
+      <button class="modal-close" onclick="closeModal('edit-profile-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Full Name</label><input type="text" id="edit-name"/></div>
+      <div class="field"><label>Home Church</label><input type="text" id="edit-church"/></div>
+      <button class="btn btn-primary" style="width:100%" onclick="saveProfile()">Save Changes</button>
     </div>
   </div>
+</div>
 
-  <div class="card">
-    <h3>Appearance:</h3>
-    <div class="setting-row">
-      <i class="fa-solid fa-moon"></i>
-      <span>Dark Mode</span>
-      <label class="switch">
-        <input type="checkbox" id="toggle-dark">
-        <span class="slider"></span>
-      </label>
+<!-- REMINDER SETTINGS -->
+<div class="modal-overlay hidden" id="reminder-settings-modal" onclick="closeModalOnOverlay(event,'reminder-settings-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">Default Reminder Time</div>
+      <button class="modal-close" onclick="closeModal('reminder-settings-modal')">✕</button>
     </div>
-    <div class="setting-row">
-      <i class="fa-solid fa-text-height"></i>
-      <span id="text-size-label">Text Size: Small</span>
-      <div class="slider-wrapper">
-        <input type="range" id="text-size-slider" min="0" max="2" step="1" value="0" />
+    <div class="modal-body">
+      <p class="muted-text small-text" style="margin-bottom:16px">Default used when you bookmark a session. You can override per session.</p>
+      <div class="field">
+        <label>Remind me how far in advance?</label>
+        <select id="default-reminder-select">
+          <option value="5">5 minutes before</option>
+          <option value="10">10 minutes before</option>
+          <option value="15" selected>15 minutes before</option>
+          <option value="30">30 minutes before</option>
+          <option value="60">1 hour before</option>
+          <option value="120">2 hours before</option>
+          <option value="1440">1 day before</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="saveDefaultReminder()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD -->
+<div class="modal-overlay hidden" id="change-pw-modal" onclick="closeModalOnOverlay(event,'change-pw-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">Change Password</div>
+      <button class="modal-close" onclick="closeModal('change-pw-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>New Password</label><input type="password" id="new-pw" placeholder="At least 6 characters" minlength="6" autocomplete="new-password"/></div>
+      <div class="field"><label>Confirm New Password</label><input type="password" id="confirm-pw" autocomplete="new-password"/></div>
+      <button class="btn btn-primary" style="width:100%" onclick="changePassword()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- DM MODAL -->
+<div class="modal-overlay hidden" id="private-chat-modal" onclick="closeModalOnOverlay(event,'private-chat-modal')">
+  <div class="modal-sheet" style="max-height:92vh">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="dm-modal-title">Direct Message</div>
+      <button class="modal-close" onclick="closeModal('private-chat-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;display:flex;flex-direction:column;min-height:50vh">
+      <div class="chat-messages" id="dm-messages" style="flex:1;min-height:200px"></div>
+      <div class="chat-input-bar" style="flex-shrink:0">
+        <input type="text" id="dm-msg-input" placeholder="Send a message…"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDM();}"/>
+        <button class="send-btn" onclick="sendDM()">➤</button>
       </div>
     </div>
   </div>
-</section>
+</div>
 
+<!-- ABOUT -->
+<div class="modal-overlay hidden" id="about-modal" onclick="closeModalOnOverlay(event,'about-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">About</div>
+      <button class="modal-close" onclick="closeModal('about-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:32px 20px">
+      <img src="logo.png" alt="UCJC" style="width:80px;height:80px;object-fit:contain;margin-bottom:12px;filter:drop-shadow(0 0 12px rgba(201,168,76,0.5))" onerror="this.style.display='none'"/>
+      <div style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:6px">UCJC Holy Convocation</div>
+      <div class="muted-text small-text" style="margin-bottom:24px">Version 1.0 · Progressive Web App</div>
+      <div class="muted-text" style="font-size:0.85rem;line-height:1.7">
+        Built for the United Churches of Jesus Christ to provide a seamless, spirit-filled conference experience.
+        Features include a live schedule from Google Calendar, personalized bookmarks, push reminders,
+        attendee directory, group and private chat, session notes, and session feedback.
+      </div>
+    </div>
   </div>
+</div>
 
-  <script type="module" src="app.js"></script>
-  <!-- Load UMD build first -->
-  <script type="module" src="pdf.umd.js"></script>
-  <script type="module" src="viewer.js"></script>
+<!-- ════════════════════════════════════════════════
+     FIREBASE — loaded as a plain (non-module) script
+     using the Firebase compat CDN so all SDKs load
+     from a single reliable bundle with no static
+     module-import failures crashing the whole app.
+════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- Messaging loaded last and conditionally — failure won't block the app -->
+<script>
+(function() {
+  'use strict';
+
+  /* ═══════════════════════════════════════════
+     CONFIG
+  ════════════════════════════════════════════ */
+  const FIREBASE_CONFIG = {
+    apiKey:            "AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg",
+    authDomain:        "ucjcconvocation.firebaseapp.com",
+    projectId:         "ucjcconvocation",
+    storageBucket:     "ucjcconvocation.firebasestorage.app",
+    messagingSenderId: "698752970791",
+    appId:             "1:698752970791:web:0ae1b0094858609579de02",
+    measurementId:     "G-0M5WBTR83N"
+  };
+  const VAPID_KEY          = "BBrSRxtM6M6j_FQoWdGPpjf2QodXhGyevf-5ng_MqXhdHV6OJQVcQful0X1wKWYxUpt3Gc_6IN-sfyDTbHGXGO8";
+  const GCAL_API_KEY       = "AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg";
+  const CALENDAR_ID        = "c_ab7c60e65ae19abaea378c282b6770147ad855d3c58c442c8fa611b7e5be2934@group.calendar.google.com";
+
+  /* ═══════════════════════════════════════════
+     FIREBASE INIT (compat SDK — no module risk)
+  ════════════════════════════════════════════ */
+  firebase.initializeApp(FIREBASE_CONFIG);
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+
+  /* ═══════════════════════════════════════════
+     APP STATE
+  ════════════════════════════════════════════ */
+  let currentUser         = null;
+  let userProfile         = null;
+  let allEvents           = [];
+  let bookmarks           = {};
+  let notesByEvent        = {};
+  let selectedEventId     = null;
+  let currentRating       = 0;
+  let currentDMUid        = null;
+  let chatInitialized     = false;
+  let deferredInstall     = null;
+  let scheduledReminders  = {};
+
+  // Firestore unsubscribe handles
+  let unsub = {
+    bookmarks: null, notes: null,
+    globalChat: null, prayerChat: null,
+    dmChat: null, directory: null
+  };
+
+  /* ═══════════════════════════════════════════
+     UTILITY HELPERS
+  ════════════════════════════════════════════ */
+  const $ = id => document.getElementById(id);
+
+  function fmt(ts) {
+    if (!ts) return '—';
+    const d = ts instanceof Date ? ts : new Date(ts);
+    return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+  function fmtDate(ts) {
+    if (!ts) return '';
+    const d = ts instanceof Date ? ts : new Date(ts);
+    return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+  function fmtDateKey(ts) {
+    const d = ts instanceof Date ? ts : new Date(ts);
+    // Use local date to avoid UTC shift issues
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function initials(name) {
+    if (!name) return '?';
+    return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+  }
+  function minsDiff(s, e) { return Math.round((new Date(e) - new Date(s)) / 60000); }
+  function hrsMin(m) {
+    if (m < 60) return `${m}m`;
+    const h = Math.floor(m/60), r = m%60;
+    return r ? `${h}h ${r}m` : `${h}h`;
+  }
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function stripHtml(str) {
+    if (!str) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = str;
+    tmp.querySelectorAll('br').forEach(el => el.replaceWith(' '));
+    tmp.querySelectorAll('p,div,li,tr').forEach(el => el.insertAdjacentText('afterend',' '));
+    return (tmp.textContent || tmp.innerText || '').replace(/\s+/g,' ').trim();
+  }
+  function reminderLabel(m) {
+    if (m < 60) return `${m} minutes before`;
+    if (m === 60)   return '1 hour before';
+    if (m === 120)  return '2 hours before';
+    if (m === 1440) return '1 day before';
+    return `${m} minutes before`;
+  }
+
+  /* ── TOAST ─────────────────────────────────── */
+  function toast(msg, type = 'info') {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span>${type==='success'?'✓':type==='error'?'✕':'ℹ'}</span> ${escHtml(msg)}`;
+    $('toast-container').appendChild(el);
+    setTimeout(() => {
+      el.style.animation = 'toast-out 0.3s ease forwards';
+      setTimeout(() => el.remove(), 300);
+    }, 3400);
+  }
+
+  /* ── HIDE LOADER ───────────────────────────── */
+  function hideLoader() {
+    const overlay = $('loading-overlay');
+    if (!overlay) return;
+    overlay.classList.add('fade-out');
+    setTimeout(() => overlay.classList.add('hidden'), 450);
+  }
+
+  /* ═══════════════════════════════════════════
+     PROFANITY / SLUR FILTER
+  ════════════════════════════════════════════ */
+  const BLOCKED = (function() {
+    const raw = [
+      'fuck','fck','shit','bitch','ass','a55','asshole','bastard','damn','crap',
+      'piss','cock','dick','d1ck','pussy','cunt','whore','wh0re','slut',
+      'jackass','motherfucker','bullshit',
+      'nigger','nigga','n1gga','n1gg3r','chink','ch1nk','spic','sp1c',
+      'kike','k1ke','wetback','gook','g00k','raghead','cracker',
+      'beaner','towelhead','coon','c00n','zipperhead','redskin',
+      'greaseball','honky','h0nky','kraut','polack','p0lack',
+      'hymie','injun','porchmonkey','sambo','s4mbo','squaw','whitey','wh1tey',
+      'faggot','f4ggot','dyke','tranny','tr4nny'
+    ];
+    return raw.map(w => w.replace(/\s+/g, ''));
+  })();
+
+  function normText(s) {
+    return s.toLowerCase()
+      .replace(/0/g,'o').replace(/1/g,'i').replace(/3/g,'e')
+      .replace(/4/g,'a').replace(/5/g,'s').replace(/8/g,'b')
+      .replace(/[@]/g,'a').replace(/\$/g,'s')
+      .replace(/[^a-z]/g,'');
+  }
+  function hasProfanity(text) {
+    const n = normText(text);
+    const ns = normText(text.replace(/\s+/g,''));
+    return BLOCKED.some(w => { const nw = normText(w); return nw && (n.includes(nw) || ns.includes(nw)); });
+  }
+
+  /* ═══════════════════════════════════════════
+     SCREEN NAVIGATION
+  ════════════════════════════════════════════ */
+  window.showScreen = function(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const screen = $('screen-' + name);
+    const nav    = $('nav-' + name);
+    if (screen) screen.classList.add('active');
+    if (nav)    nav.classList.add('active');
+    if (name === 'my-schedule') refreshMySchedule();
+    if (name === 'directory')   loadDirectory();
+    if (name === 'chat')        initChat();
+    if (name === 'profile')     refreshProfileUI();
+  };
+
+  /* ═══════════════════════════════════════════
+     AUTH
+  ════════════════════════════════════════════ */
+  window.switchAuthTab = function(tab) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+    $(tab + '-form').classList.add('active');
+  };
+
+  window.handleLogin = async function(e) {
+    e.preventDefault();
+    const email = $('login-email').value.trim();
+    const pw    = $('login-password').value;
+    const btn   = $('login-btn');
+    btn.textContent = 'Signing in…'; btn.disabled = true;
+    try {
+      await auth.signInWithEmailAndPassword(email, pw);
+    } catch (err) {
+      toast(friendlyAuthErr(err.code), 'error');
+      btn.textContent = 'Sign In'; btn.disabled = false;
+    }
+  };
+
+  window.handleRegister = async function(e) {
+    e.preventDefault();
+    const name    = $('reg-name').value.trim();
+    const church  = $('reg-church').value.trim();
+    const email   = $('reg-email').value.trim();
+    const pw      = $('reg-password').value;
+    const confirm = $('reg-confirm').value;
+    if (pw !== confirm) { toast('Passwords do not match.', 'error'); return; }
+    const btn = $('register-btn');
+    btn.textContent = 'Creating account…'; btn.disabled = true;
+    try {
+      const cred = await auth.createUserWithEmailAndPassword(email, pw);
+      await db.collection('users').doc(cred.user.uid).set({
+        displayName: name, homeChurch: church, email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        defaultReminderMinutes: 15, pushEnabled: false
+      });
+    } catch (err) {
+      toast(friendlyAuthErr(err.code), 'error');
+      btn.textContent = 'Create Account'; btn.disabled = false;
+    }
+  };
+
+  window.handleForgotPassword = async function() {
+    const email = $('login-email').value.trim();
+    if (!email) { toast('Enter your email address first.', 'error'); return; }
+    try {
+      await auth.sendPasswordResetEmail(email);
+      toast('Password reset email sent! Check your inbox.', 'success');
+    } catch (e) { toast('Could not send reset email.', 'error'); }
+  };
+
+  window.handleSignOut = async function() {
+    if (!confirm('Are you sure you want to sign out?')) return;
+    cleanupListeners();
+    await auth.signOut();
+  };
+
+  function friendlyAuthErr(code) {
+    const map = {
+      'auth/invalid-credential':   'Incorrect email or password.',
+      'auth/user-not-found':        'No account found with that email.',
+      'auth/wrong-password':        'Incorrect password.',
+      'auth/email-already-in-use':  'That email is already registered.',
+      'auth/weak-password':         'Password must be at least 6 characters.',
+      'auth/invalid-email':         'Please enter a valid email address.',
+      'auth/too-many-requests':     'Too many attempts. Please try again later.',
+      'auth/network-request-failed':'Network error. Check your connection.'
+    };
+    return map[code] || 'Something went wrong. Please try again.';
+  }
+
+  /* ── AUTH STATE ────────────────────────────── */
+  auth.onAuthStateChanged(async function(user) {
+    try {
+      if (user) {
+        currentUser = user;
+        await loadUserProfile();
+        $('auth-screen').classList.add('hidden');
+        $('app').classList.remove('hidden');
+        hideLoader();
+        updateAvatarUI();
+        subscribeBookmarks();
+        loadCalendar();        // non-blocking — calendar loads in background
+      } else {
+        currentUser = null;
+        userProfile = null;
+        cleanupListeners();
+        $('app').classList.add('hidden');
+        $('auth-screen').classList.remove('hidden');
+        hideLoader();
+      }
+    } catch (err) {
+      console.error('Auth state handler error:', err);
+      hideLoader();
+      $('auth-screen').classList.remove('hidden');
+      toast('An error occurred. Please refresh.', 'error');
+    }
+  });
+
+  async function loadUserProfile() {
+    try {
+      const snap = await db.collection('users').doc(currentUser.uid).get();
+      userProfile = snap.exists ? snap.data() : {
+        displayName: currentUser.email, homeChurch: '', defaultReminderMinutes: 15
+      };
+    } catch (e) {
+      console.warn('Could not load profile:', e);
+      userProfile = { displayName: currentUser.email, homeChurch: '', defaultReminderMinutes: 15 };
+    }
+  }
+
+  function cleanupListeners() {
+    Object.keys(unsub).forEach(k => { if (unsub[k]) { unsub[k](); unsub[k] = null; } });
+    chatInitialized = false;
+    allEvents = []; bookmarks = {}; notesByEvent = {};
+  }
+
+  function updateAvatarUI() {
+    if (!userProfile) return;
+    const name = userProfile.displayName || '?';
+    const ini  = initials(name);
+    $('user-avatar').textContent    = ini;
+    $('profile-avatar').textContent = ini;
+    $('profile-name').textContent   = name;
+    $('profile-church').textContent = userProfile.homeChurch || '';
+    const mins = userProfile.defaultReminderMinutes || 15;
+    $('default-reminder-label').textContent  = reminderLabel(mins);
+    $('default-reminder-select').value       = mins;
+    if ($('push-toggle')) $('push-toggle').checked = !!userProfile.pushEnabled;
+  }
+
+  /* ═══════════════════════════════════════════
+     GOOGLE CALENDAR
+  ════════════════════════════════════════════ */
+  async function loadCalendar() {
+    $('events-loading').classList.remove('hidden');
+    try {
+      const now      = new Date();
+      const yearAgo  = new Date(now); yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+      const twoYrs   = new Date(now); twoYrs.setFullYear(twoYrs.getFullYear() + 2);
+      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events`
+        + `?key=${GCAL_API_KEY}&timeMin=${yearAgo.toISOString()}&timeMax=${twoYrs.toISOString()}`
+        + `&singleEvents=true&orderBy=startTime&maxResults=250`;
+
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        const errBody = await resp.json().catch(() => ({}));
+        throw new Error(`Calendar API ${resp.status}: ${errBody.error?.message || resp.statusText}`);
+      }
+      const data = await resp.json();
+      const items = data.items || [];
+
+      const allDay  = items.filter(e => e.start?.date && !e.start?.dateTime);
+      const timed   = items.filter(e => e.start?.dateTime);
+
+      if (allDay.length > 0) {
+        const conv   = allDay[0];
+        const sDate  = new Date(conv.start.date + 'T12:00:00');
+        const eDate  = new Date(conv.end.date   + 'T12:00:00');
+        eDate.setDate(eDate.getDate() - 1);
+        $('banner-title').textContent = stripHtml(conv.summary || 'Holy Convocation');
+        $('banner-meta').textContent  = `${fmtDate(sDate)} – ${fmtDate(eDate)}`
+          + (conv.location ? `  ·  📍 ${stripHtml(conv.location)}` : '');
+      } else {
+        $('banner-title').textContent = 'UCJC Holy Convocation';
+        $('banner-meta').textContent  = 'Schedule loading…';
+      }
+
+      allEvents = timed.map(e => ({
+        id:      e.id,
+        title:   stripHtml(e.summary   || 'Untitled Session'),
+        start:   new Date(e.start.dateTime),
+        end:     new Date(e.end.dateTime),
+        location:stripHtml(e.location  || ''),
+        desc:    stripHtml(e.description|| ''),
+        colorId: e.colorId || ''
+      }));
+
+      if (allEvents.length === 0) {
+        $('banner-meta').textContent += ' — no sessions found in calendar';
+        loadDemoEvents(); // fall back to demo so app is still usable
+      } else {
+        buildDateTabs();
+      }
+    } catch (err) {
+      console.error('Calendar load error:', err);
+      toast('Could not load calendar (' + err.message + '). Showing demo data.', 'error');
+      loadDemoEvents();
+    } finally {
+      $('events-loading').classList.add('hidden');
+    }
+  }
+  window.refreshCalendar = loadCalendar;
+
+  /* ── DEMO EVENTS ───────────────────────────── */
+  function loadDemoEvents() {
+    const b = new Date(); b.setHours(0,0,0,0);
+    const t = (d,h,m=0) => { const x = new Date(b.getTime()+d*86400000); x.setHours(h,m); return x; };
+    $('banner-title').textContent = 'UCJC Holy Convocation (Demo)';
+    $('banner-meta').textContent  = `${fmtDate(b)} – ${fmtDate(t(4,0))}  ·  📍 Connect your Google Calendar for live data`;
+    allEvents = [
+      { id:'d1',  title:'Opening Worship Service',         start:t(0,9),    end:t(0,11),   location:'Main Sanctuary',   desc:'The convocation opens with praise, worship, and a powerful message from our presiding bishop.', colorId:'11' },
+      { id:'d2',  title:'Holy Communion',                  start:t(0,11,30),end:t(0,12,30),location:'Main Sanctuary',   desc:'We gather at the table of the Lord.',                                                          colorId:'6'  },
+      { id:'d3',  title:'Afternoon Bible Study',           start:t(0,14),   end:t(0,16),   location:'Fellowship Hall',  desc:'Deep dive into the Word. Bring your Bible.',                                                   colorId:'2'  },
+      { id:'d4',  title:'Youth & Young Adults Service',    start:t(0,19),   end:t(0,21),   location:'Youth Auditorium', desc:'A spirit-filled night for the next generation.',                                               colorId:'9'  },
+      { id:'d5',  title:'Morning Devotion & Prayer',       start:t(1,7),    end:t(1,8),    location:'Chapel',           desc:'Start the day in prayer and meditation.',                                                      colorId:'10' },
+      { id:'d6',  title:'Workshop: Faith & Finance',       start:t(1,9),    end:t(1,11),   location:'Room 201',         desc:'Practical guidance on stewardship from a Kingdom perspective.',                                colorId:'2'  },
+      { id:'d7',  title:'Workshop: Marriage & Family',     start:t(1,9),    end:t(1,11),   location:'Room 205',         desc:'Strengthening households through biblical principles.',                                         colorId:'9'  },
+      { id:'d8',  title:'Evening Revival Service',         start:t(1,19),   end:t(1,21,30),location:'Main Sanctuary',   desc:'An anointed evening of revival, testimony, and breakthrough.',                                 colorId:'11' },
+      { id:'d9',  title:'Morning Devotion & Prayer',       start:t(2,7),    end:t(2,8),    location:'Chapel',           desc:'',                                                                                             colorId:'10' },
+      { id:'d10', title:'Ordination Service',              start:t(2,10),   end:t(2,12,30),location:'Main Sanctuary',   desc:'Ordination of ministers and consecration of elders.',                                          colorId:'6'  },
+      { id:'d11', title:"Women's Ministry Hour",           start:t(2,14),   end:t(2,16),   location:'Fellowship Hall',  desc:'Celebrating and equipping the women of the UCJC.',                                             colorId:'9'  },
+      { id:'d12', title:"Men's Ministry Gathering",        start:t(2,14),   end:t(2,16),   location:'Room 201',         desc:'Brotherhood, accountability, and purpose.',                                                    colorId:'2'  },
+      { id:'d13', title:'Night of Worship',                start:t(2,19),   end:t(2,21),   location:'Main Sanctuary',   desc:'Extended worship and intercession.',                                                           colorId:'11' },
+      { id:'d14', title:'Business Session',                start:t(3,9),    end:t(3,11),   location:'Main Sanctuary',   desc:'Annual business meeting of the United Churches of Jesus Christ.',                              colorId:'2'  },
+      { id:'d15', title:'Closing Banquet',                 start:t(3,18),   end:t(3,20,30),location:'Grand Ballroom',   desc:'An elegant closing celebration. Semi-formal attire.',                                          colorId:'6'  },
+      { id:'d16', title:'Closing Worship & Commissioning', start:t(4,10),   end:t(4,12),   location:'Main Sanctuary',   desc:'Our final gathering: commissioning, blessing, and farewell until next year.',                  colorId:'11' },
+    ];
+    buildDateTabs();
+  }
+
+  /* ── DATE TABS ─────────────────────────────── */
+  let activeDateKey = null;
+  function buildDateTabs() {
+    const keys = [...new Set(allEvents.map(e => fmtDateKey(e.start)))].sort();
+    if (!keys.length) { $('no-events').classList.remove('hidden'); return; }
+    activeDateKey = keys[0];
+    const ct = $('date-tabs');
+    ct.innerHTML = '';
+    keys.forEach(key => {
+      const d   = new Date(key + 'T12:00:00');
+      const tab = document.createElement('div');
+      tab.className   = 'date-tab' + (key === activeDateKey ? ' active' : '');
+      tab.dataset.key = key;
+      tab.innerHTML   = `<div class="date-tab-day">${d.toLocaleDateString([],{weekday:'short'})}</div>
+                         <div class="date-tab-num">${d.getDate()}</div>`;
+      tab.onclick = () => {
+        activeDateKey = key;
+        document.querySelectorAll('.date-tab').forEach(t => t.classList.toggle('active', t.dataset.key === key));
+        renderEvents();
+      };
+      ct.appendChild(tab);
+    });
+    renderEvents();
+  }
+
+  const COLOR_MAP = { '11':'#8B2635','6':'#C9A84C','2':'#2a6496','9':'#2e7d4f','10':'#5c3e8f','1':'#1a6b9a','3':'#7b3b3b' };
+
+  function renderEvents() {
+    const list = $('event-list'), none = $('no-events');
+    const filtered = allEvents.filter(e => fmtDateKey(e.start) === activeDateKey).sort((a,b)=>a.start-b.start);
+    if (!filtered.length) { list.innerHTML = ''; none.classList.remove('hidden'); return; }
+    none.classList.add('hidden');
+    list.innerHTML = filtered.map(ev => eventCardHTML(ev)).join('');
+  }
+
+  function eventCardHTML(ev) {
+    const bm    = bookmarks[ev.id];
+    const color = COLOR_MAP[ev.colorId] || 'var(--gold)';
+    const dur   = minsDiff(ev.start, ev.end);
+    return `<div class="event-card${bm?' bookmarked':''}" onclick="openSessionModal('${escHtml(ev.id)}')"
+                 style="border-left-color:${color}">
+      <div class="event-time-col">
+        <div class="event-start">${fmt(ev.start)}</div>
+        <div class="event-end">${fmt(ev.end)}</div>
+        <div class="event-duration">${hrsMin(dur)}</div>
+      </div>
+      <div class="event-info">
+        <div class="event-title">${escHtml(ev.title)}</div>
+        ${ev.location ? `<div class="event-location">📍 ${escHtml(ev.location)}</div>` : ''}
+        ${ev.desc     ? `<div class="event-desc">${escHtml(ev.desc)}</div>` : ''}
+      </div>
+      <div class="event-actions">
+        <button class="bookmark-btn${bm?' active':''}"
+          onclick="event.stopPropagation();quickBookmark('${escHtml(ev.id)}')"
+          title="${bm?'Remove bookmark':'Bookmark this session'}">🔖</button>
+        ${bm ? '<span class="bookmark-saved">Saved</span>' : ''}
+      </div>
+    </div>`;
+  }
+
+  /* ═══════════════════════════════════════════
+     BOOKMARKS
+  ════════════════════════════════════════════ */
+  function subscribeBookmarks() {
+    if (!currentUser) return;
+    unsub.bookmarks = db.collection('users').doc(currentUser.uid).collection('bookmarks')
+      .onSnapshot(snap => {
+        bookmarks = {};
+        snap.docs.forEach(d => { bookmarks[d.id] = d.data(); });
+        renderEvents();
+        updateMyPlanBadge();
+      }, err => console.warn('Bookmarks snapshot error:', err));
+
+    unsub.notes = db.collection('users').doc(currentUser.uid).collection('notes')
+      .onSnapshot(snap => {
+        notesByEvent = {};
+        snap.docs.forEach(d => { notesByEvent[d.id] = d.data().content || ''; });
+      }, err => console.warn('Notes snapshot error:', err));
+  }
+
+  function updateMyPlanBadge() {
+    const count = Object.keys(bookmarks).length;
+    const badge = $('my-plan-badge');
+    badge.textContent = count;
+    badge.classList.toggle('hidden', count === 0);
+  }
+
+  window.quickBookmark = async function(eventId) {
+    if (!currentUser) return;
+    const ev  = allEvents.find(e => e.id === eventId);
+    if (!ev) return;
+    const ref = db.collection('users').doc(currentUser.uid).collection('bookmarks').doc(eventId);
+    try {
+      if (bookmarks[eventId]) {
+        await ref.delete();
+        toast('Bookmark removed', 'info');
+      } else {
+        await ref.set({
+          eventId, title: ev.title, start: ev.start.toISOString(),
+          end: ev.end.toISOString(), location: ev.location,
+          reminderMinutes: userProfile?.defaultReminderMinutes || 15,
+          reminderEnabled: false,
+          bookmarkedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        toast('Session bookmarked! 🔖', 'success');
+      }
+    } catch (e) { toast('Could not update bookmark.', 'error'); console.error(e); }
+  };
+
+  /* ═══════════════════════════════════════════
+     SESSION DETAIL MODAL
+  ════════════════════════════════════════════ */
+  window.openSessionModal = function(eventId) {
+    selectedEventId = eventId;
+    const ev = allEvents.find(e => e.id === eventId);
+    if (!ev) return;
+    const bm = bookmarks[eventId];
+    currentRating = 0;
+
+    $('modal-event-title').textContent = ev.title;
+    $('modal-event-meta').innerHTML =
+      `<span class="badge badge-gold">${fmt(ev.start)} – ${fmt(ev.end)}</span>`
+      + (ev.location ? `<span class="badge badge-blue">📍 ${escHtml(ev.location)}</span>` : '');
+    $('modal-event-desc').textContent = ev.desc || 'No additional description provided.';
+    $('modal-location').textContent   = ev.location || '—';
+    $('modal-duration').textContent   = hrsMin(minsDiff(ev.start, ev.end));
+
+    $('notes-textarea').value            = notesByEvent[eventId] || '';
+    $('notes-saved-indicator').textContent = '';
+    $('feedback-submitted').classList.add('hidden');
+    document.querySelectorAll('#feedback-stars .star').forEach(s => s.classList.remove('active'));
+    $('feedback-comment').value = '';
+
+    $('modal-bookmark-toggle').checked  = !!bm;
+    $('modal-reminder-toggle').checked  = !!(bm?.reminderEnabled);
+    $('reminder-select').value          = bm?.reminderMinutes || userProfile?.defaultReminderMinutes || 15;
+    $('reminder-options').classList.toggle('hidden', !(bm?.reminderEnabled));
+
+    switchDetailTab('info');
+    $('session-modal').classList.remove('hidden');
+  };
+
+  window.closeModal = function(id) { $(id).classList.add('hidden'); };
+  window.closeModalOnOverlay = function(e, id) { if (e.target.id === id) closeModal(id); };
+
+  window.switchDetailTab = function(tab) {
+    document.querySelectorAll('.detail-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('#session-modal .detail-panel').forEach(p => p.classList.remove('active'));
+    $('panel-' + tab).classList.add('active');
+  };
+
+  window.modalToggleBookmark = function(checked) { quickBookmark(selectedEventId); };
+  window.toggleModalReminder = function(checked) { $('reminder-options').classList.toggle('hidden', !checked); };
+
+  window.saveReminder = async function() {
+    if (!currentUser || !selectedEventId) return;
+    const mins    = parseInt($('reminder-select').value);
+    const enabled = $('modal-reminder-toggle').checked;
+    if (!bookmarks[selectedEventId]) await quickBookmark(selectedEventId);
+    try {
+      await db.collection('users').doc(currentUser.uid).collection('bookmarks').doc(selectedEventId)
+        .update({ reminderMinutes: mins, reminderEnabled: enabled });
+      if (enabled) {
+        scheduleReminder(allEvents.find(e => e.id === selectedEventId), mins);
+        toast(`Reminder set: ${reminderLabel(mins)} ✓`, 'success');
+      } else {
+        toast('Reminder disabled', 'info');
+      }
+    } catch (e) { toast('Could not save reminder.', 'error'); }
+  };
+
+  /* ── LOCAL REMINDERS ───────────────────────── */
+  function scheduleReminder(ev, mins) {
+    if (!ev) return;
+    const ms = ev.start.getTime() - mins * 60000 - Date.now();
+    if (ms <= 0) return;
+    if (scheduledReminders[ev.id]) clearTimeout(scheduledReminders[ev.id]);
+    scheduledReminders[ev.id] = setTimeout(() => {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SCHEDULE_REMINDER',
+          title: '⏰ UCJC Reminder',
+          body: `${ev.title} starts in ${mins} minute${mins===1?'':'s'}`,
+          delay: 0, tag: 'reminder-' + ev.id
+        });
+      } else if (Notification.permission === 'granted') {
+        new Notification('⏰ UCJC Reminder', { body: `${ev.title} starts soon!` });
+      }
+    }, ms);
+  }
+
+  /* ── NOTES ─────────────────────────────────── */
+  window.saveNotes = async function() {
+    if (!currentUser || !selectedEventId) return;
+    const content = $('notes-textarea').value;
+    try {
+      await db.collection('users').doc(currentUser.uid).collection('notes').doc(selectedEventId)
+        .set({ content, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      notesByEvent[selectedEventId] = content;
+      $('notes-saved-indicator').textContent = 'Saved ✓';
+      toast('Notes saved!', 'success');
+    } catch (e) { toast('Could not save notes.', 'error'); }
+  };
+
+  /* ── FEEDBACK ──────────────────────────────── */
+  window.setRating = function(val) {
+    currentRating = val;
+    document.querySelectorAll('#feedback-stars .star').forEach(s =>
+      s.classList.toggle('active', parseInt(s.dataset.val) <= val));
+  };
+  window.submitFeedback = async function() {
+    if (!currentUser || !selectedEventId) return;
+    if (currentRating === 0) { toast('Please select a rating first.', 'error'); return; }
+    try {
+      await db.collection('feedback').doc(selectedEventId).collection('responses').doc(currentUser.uid)
+        .set({
+          rating: currentRating,
+          comment: $('feedback-comment').value.trim(),
+          displayName: userProfile?.displayName || 'Anonymous',
+          submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      $('feedback-submitted').classList.remove('hidden');
+      toast('Thank you for your feedback!', 'success');
+    } catch (e) { toast('Could not submit feedback.', 'error'); }
+  };
+
+  /* ═══════════════════════════════════════════
+     MY SCHEDULE
+  ════════════════════════════════════════════ */
+  window.refreshMySchedule = function() {
+    const bmKeys = Object.keys(bookmarks);
+    $('stat-bookmarks').textContent = bmKeys.length;
+    $('stat-upcoming').textContent  = bmKeys.filter(k => new Date(bookmarks[k].start) > new Date()).length;
+    $('stat-notes').textContent     = Object.keys(notesByEvent).length;
+    const none = $('no-bookmarks'), list = $('my-event-list');
+    if (!bmKeys.length) { list.innerHTML = ''; none.classList.remove('hidden'); return; }
+    none.classList.add('hidden');
+    list.innerHTML = bmKeys
+      .map(k => allEvents.find(e => e.id === k)).filter(Boolean)
+      .sort((a,b) => a.start - b.start)
+      .map(ev => eventCardHTML(ev)).join('');
+  };
+
+  /* ═══════════════════════════════════════════
+     DIRECTORY
+  ════════════════════════════════════════════ */
+  let allAttendees = [];
+  function loadDirectory() {
+    if (unsub.directory) return;
+    unsub.directory = db.collection('users').onSnapshot(snap => {
+      allAttendees = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      $('attendee-count').textContent = allAttendees.length + ' registered';
+      renderDirectory(allAttendees);
+    }, err => { console.error('Directory error:', err); toast('Could not load directory.', 'error'); });
+  }
+
+  function renderDirectory(list) {
+    const ct = $('attendee-list');
+    if (!list.length) {
+      ct.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No attendees yet</div></div>';
+      return;
+    }
+    ct.innerHTML = list.map(u => `
+      <div class="attendee-card" onclick="startDM('${u.id}','${escHtml(u.displayName||'Attendee')}')">
+        <div class="attendee-avatar">${initials(u.displayName)}</div>
+        <div class="attendee-info">
+          <div class="attendee-name">${escHtml(u.displayName || '—')}</div>
+          <div class="attendee-church">⛪ ${escHtml(u.homeChurch || 'No church listed')}</div>
+        </div>
+        <span style="color:var(--text-dim);font-size:1.1rem">💬</span>
+      </div>`).join('');
+  }
+
+  window.filterDirectory = function(q) {
+    renderDirectory(allAttendees.filter(u =>
+      (u.displayName||'').toLowerCase().includes(q.toLowerCase()) ||
+      (u.homeChurch||'').toLowerCase().includes(q.toLowerCase())));
+  };
+
+  /* ═══════════════════════════════════════════
+     CHAT
+  ════════════════════════════════════════════ */
+  function initChat() {
+    if (chatInitialized) return;
+    chatInitialized = true;
+    subscribeChannelChat('global', 'global-messages');
+    subscribeChannelChat('prayer', 'prayer-messages');
+  }
+
+  function subscribeChannelChat(channel, msgElId) {
+    const key = channel === 'global' ? 'globalChat' : 'prayerChat';
+    unsub[key] = db.collection('chat').doc(channel).collection('messages')
+      .orderBy('createdAt', 'asc')
+      .onSnapshot(snap => {
+        const el = $(msgElId);
+        if (!el) return;
+        el.innerHTML = snap.docs.map(d => renderMsg(d.data())).join('');
+        el.scrollTop = el.scrollHeight;
+      }, err => console.warn(channel + ' chat error:', err));
+  }
+
+  function renderMsg(data) {
+    const isOwn = data.uid === currentUser?.uid;
+    const time  = data.createdAt?.toDate ? fmt(data.createdAt.toDate()) : '';
+    return `<div class="msg-row${isOwn?' own':''}">
+      ${!isOwn ? `<div class="msg-avatar">${initials(data.displayName)}</div>` : ''}
+      <div class="msg-bubble-wrap">
+        ${!isOwn ? `<div class="msg-sender">${escHtml(data.displayName||'Anonymous')}</div>` : ''}
+        <div class="msg-bubble">${escHtml(data.text||'')}</div>
+        <div class="msg-time">${time}</div>
+      </div>
+    </div>`;
+  }
+
+  async function sendChatMessage(inputId, channel) {
+    const inp  = $(inputId);
+    const text = inp.value.trim();
+    if (!text || !currentUser) return;
+    if (hasProfanity(text)) {
+      toast('Your message contains prohibited language and was not sent.', 'error');
+      return;
+    }
+    inp.value = '';
+    try {
+      await db.collection('chat').doc(channel).collection('messages').add({
+        uid: currentUser.uid,
+        displayName: userProfile?.displayName || 'Anonymous',
+        homeChurch: userProfile?.homeChurch || '',
+        text,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (e) { toast('Could not send message.', 'error'); inp.value = text; }
+  }
+
+  window.sendGlobalMessage  = () => sendChatMessage('global-msg-input', 'global');
+  window.sendPrayerMessage  = () => sendChatMessage('prayer-msg-input', 'prayer');
+
+  window.switchChatTab = function(panel) {
+    document.querySelectorAll('.chat-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.panel === panel));
+    document.querySelectorAll('.chat-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.dm-panel').forEach(p  => p.classList.remove('active'));
+    const target = $('panel-' + panel);
+    if (target) target.classList.add('active');
+    // Scroll to bottom when switching to a chat panel
+    if (panel === 'global') { const m=$('global-messages'); setTimeout(()=>m&&(m.scrollTop=m.scrollHeight),50); }
+    if (panel === 'prayer') { const m=$('prayer-messages'); setTimeout(()=>m&&(m.scrollTop=m.scrollHeight),50); }
+  };
+
+  /* ── DIRECT MESSAGES ───────────────────────── */
+  window.startDM = function(uid, name) {
+    if (uid === currentUser?.uid) { toast("That's you!", 'info'); return; }
+    currentDMUid = uid;
+    $('dm-modal-title').textContent = 'Chat with ' + name;
+    $('dm-messages').innerHTML = '';
+    $('private-chat-modal').classList.remove('hidden');
+    if (unsub.dmChat) { unsub.dmChat(); unsub.dmChat = null; }
+    const convId = [currentUser.uid, uid].sort().join('_');
+    unsub.dmChat = db.collection('chat').doc('dms').collection(convId).doc('thread')
+      .collection('messages')
+      .orderBy('createdAt','asc')
+      .onSnapshot(snap => {
+        const el = $('dm-messages');
+        el.innerHTML = snap.docs.map(d => renderMsg(d.data())).join('');
+        el.scrollTop = el.scrollHeight;
+      }, err => console.warn('DM error:', err));
+  };
+
+  window.sendDM = async function() {
+    if (!currentDMUid || !currentUser) return;
+    const inp  = $('dm-msg-input');
+    const text = inp.value.trim();
+    if (!text) return;
+    if (hasProfanity(text)) { toast('Your message contains prohibited language and was not sent.', 'error'); return; }
+    inp.value = '';
+    const convId = [currentUser.uid, currentDMUid].sort().join('_');
+    try {
+      await db.collection('chat').doc('dms').collection(convId).doc('thread').collection('messages').add({
+        uid: currentUser.uid,
+        displayName: userProfile?.displayName || 'Anonymous',
+        text,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (e) { toast('Could not send message.', 'error'); inp.value = text; }
+  };
+
+  /* ═══════════════════════════════════════════
+     PROFILE / SETTINGS
+  ════════════════════════════════════════════ */
+  window.refreshProfileUI = updateAvatarUI;
+
+  window.showEditProfileModal = function() {
+    $('edit-name').value   = userProfile?.displayName || '';
+    $('edit-church').value = userProfile?.homeChurch  || '';
+    $('edit-profile-modal').classList.remove('hidden');
+  };
+  window.saveProfile = async function() {
+    if (!currentUser) return;
+    const name   = $('edit-name').value.trim();
+    const church = $('edit-church').value.trim();
+    if (!name) { toast('Name cannot be empty.', 'error'); return; }
+    try {
+      await db.collection('users').doc(currentUser.uid).update({ displayName: name, homeChurch: church });
+      userProfile.displayName = name; userProfile.homeChurch = church;
+      updateAvatarUI();
+      closeModal('edit-profile-modal');
+      toast('Profile updated!', 'success');
+    } catch (e) { toast('Could not save profile.', 'error'); }
+  };
+
+  window.showChangePasswordModal = () => $('change-pw-modal').classList.remove('hidden');
+  window.changePassword = async function() {
+    const np = $('new-pw').value, cp = $('confirm-pw').value;
+    if (np !== cp)    { toast('Passwords do not match.', 'error'); return; }
+    if (np.length < 6){ toast('Password must be at least 6 characters.', 'error'); return; }
+    try {
+      await auth.currentUser.updatePassword(np);
+      closeModal('change-pw-modal');
+      toast('Password updated!', 'success');
+    } catch (e) { toast('Please sign out and sign back in before changing your password.', 'error'); }
+  };
+
+  window.showReminderSettings = function() {
+    $('default-reminder-select').value = userProfile?.defaultReminderMinutes || 15;
+    $('reminder-settings-modal').classList.remove('hidden');
+  };
+  window.saveDefaultReminder = async function() {
+    const mins = parseInt($('default-reminder-select').value);
+    try {
+      await db.collection('users').doc(currentUser.uid).update({ defaultReminderMinutes: mins });
+      userProfile.defaultReminderMinutes = mins;
+      $('default-reminder-label').textContent = reminderLabel(mins);
+      closeModal('reminder-settings-modal');
+      toast('Default reminder updated!', 'success');
+    } catch (e) { toast('Could not save setting.', 'error'); }
+  };
+
+  window.togglePushNotifications = async function(enabled) {
+    if (enabled) {
+      const perm = await Notification.requestPermission().catch(() => 'denied');
+      if (perm !== 'granted') {
+        $('push-toggle').checked = false;
+        toast('Notification permission denied.', 'error'); return;
+      }
+      toast('Notifications enabled!', 'success');
+      try { await db.collection('users').doc(currentUser.uid).update({ pushEnabled: true }); } catch(e){}
+    } else {
+      try { await db.collection('users').doc(currentUser.uid).update({ pushEnabled: false }); } catch(e){}
+      toast('Notifications disabled.', 'info');
+    }
+  };
+
+  window.exportBookmarks = function() {
+    const evts = Object.keys(bookmarks)
+      .map(k => allEvents.find(e => e.id === k)).filter(Boolean).sort((a,b)=>a.start-b.start);
+    if (!evts.length) { toast('No bookmarks to export.', 'info'); return; }
+    const lines = [
+      'UCJC HOLY CONVOCATION — MY PERSONAL SCHEDULE',
+      '='.repeat(50), '',
+      ...evts.map(ev => `${fmtDate(ev.start)}  ${fmt(ev.start)} – ${fmt(ev.end)}\n${ev.title}\n${ev.location||'No location listed'}\n`)
+    ];
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(new Blob([lines.join('\n')], {type:'text/plain'})),
+      download: 'my-convocation-schedule.txt'
+    });
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+
+  window.showAbout = () => $('about-modal').classList.remove('hidden');
+
+  /* ═══════════════════════════════════════════
+     CONNECTIVITY
+  ════════════════════════════════════════════ */
+  function updateConnectivity() {
+    const online = navigator.onLine;
+    const dot = $('conn-dot'), label = $('conn-label');
+    if (dot)   dot.className   = 'connection-dot' + (online ? '' : ' offline');
+    if (label) label.textContent = online ? 'Connected' : 'Offline';
+    const banner = $('offline-banner');
+    if (banner) banner.classList.toggle('show', !online);
+  }
+  window.addEventListener('online',  updateConnectivity);
+  window.addEventListener('offline', updateConnectivity);
+  updateConnectivity();
+
+  /* ═══════════════════════════════════════════
+     PWA INSTALL
+  ════════════════════════════════════════════ */
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferredInstall = e;
+    $('install-prompt').classList.add('show');
+  });
+  window.installApp = async function() {
+    if (!deferredInstall) return;
+    deferredInstall.prompt();
+    const { outcome } = await deferredInstall.userChoice;
+    if (outcome === 'accepted') toast('App installed!', 'success');
+    deferredInstall = null; dismissInstall();
+  };
+  window.dismissInstall = () => $('install-prompt').classList.remove('show');
+
+  /* ═══════════════════════════════════════════
+     SERVICE WORKER — relative path so hosting
+     subdirectory doesn't break registration
+  ════════════════════════════════════════════ */
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(err =>
+      console.warn('SW registration failed:', err));
+  }
+
+  /* ═══════════════════════════════════════════
+     SAFETY TIMEOUT — if auth takes >3 s,
+     show the login screen so the user isn't
+     stuck staring at the loading spinner
+  ════════════════════════════════════════════ */
+  setTimeout(() => {
+    const overlay = $('loading-overlay');
+    if (overlay && !overlay.classList.contains('hidden')) {
+      hideLoader();
+      if (!currentUser) $('auth-screen').classList.remove('hidden');
+    }
+  }, 3000);
+
+})();
+</script>
 </body>
 </html>

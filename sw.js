@@ -1,82 +1,107 @@
-// Push Notifications (Firebase + Manual Fallback)
-self.addEventListener("push", function (event) {
-  const data = event.data?.json();
+const CACHE_NAME = 'ucjc-convocation-v1';
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json'
+];
 
-  if (data) {
+// Install event - cache static assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(STATIC_ASSETS);
+    }).then(() => self.skipWaiting())
+  );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+// Fetch event - network first, fall back to cache
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
+  );
+});
+
+// Push notification event
+self.addEventListener('push', (event) => {
+  const data = event.data ? event.data.json() : {};
+  const title = data.title || 'UCJC Convocation';
+  const options = {
+    body: data.body || 'You have an upcoming session.',
+    icon: data.icon || '/icon-192.png',
+    badge: data.badge || '/icon-192.png',
+    tag: data.tag || 'session-reminder',
+    data: data.data || {},
+    actions: [
+      { action: 'view', title: 'View Session' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ],
+    vibrate: [200, 100, 200]
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Notification click event
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  if (event.action === 'view') {
     event.waitUntil(
-      self.registration.showNotification(data.title, {
-        body: data.body,
-        icon: "/icons/notification-icon.png"
+      clients.matchAll({ type: 'window' }).then((clientList) => {
+        for (const client of clientList) {
+          if (client.url.includes('/') && 'focus' in client) return client.focus();
+        }
+        if (clients.openWindow) return clients.openWindow('/#my-schedule');
       })
     );
-
-    self.clients.matchAll().then(clients => {
-      clients.forEach(client => {
-        client.postMessage({ type: "firebase-notification", data });
-      });
-    });
   }
 });
 
-// Offline Caching (PWA Core Assets)
-const CACHE_NAME = "ucjc-cache-v1";
-const urlsToCache = [
-  "/",
-  "/index.html",
-  "/styles.css",
-  "/app.js",
-  "/viewer.js",
-  "/pdf.worker.umd.js",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/assets/program-book.pdf",
-  "/manifest.json"
-];
-
-// Cache core assets on install
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(urlsToCache);
-    })
-  );
+// Background sync for offline actions
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-bookmarks') {
+    event.waitUntil(syncBookmarks());
+  }
 });
 
-// Serve cached assets on fetch
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
-  );
-});
+async function syncBookmarks() {
+  // Sync any queued offline bookmark actions when connectivity is restored
+  console.log('Syncing bookmarks in background...');
+}
 
-// Firebase Setup for Background Messaging
-importScripts("https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/10.5.0/firebase-messaging-compat.js");
-
-firebase.initializeApp({
-  apiKey: "AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg",
-  authDomain: "ucjcconvocation.firebaseapp.com",
-  projectId: "ucjcconvocation",
-  storageBucket: "ucjcconvocation.firebasestorage.app",
-  messagingSenderId: "698752970791",
-  appId: "1:698752970791:web:0ae1b0094858609579de02",
-  measurementId: "G-0M5WBTR83N"
-});
-
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage(payload => {
-  const { title, body } = payload.notification;
-  self.registration.showNotification(title, {
-    body,
-    icon: "/icons/notification-icon.png"
-  });
-
-  self.clients.matchAll().then(clients => {
-    clients.forEach(client => {
-      client.postMessage({ type: "firebase-notification", data: payload.notification });
-    });
-  });
+// Schedule local reminder (via postMessage from main thread)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SCHEDULE_REMINDER') {
+    const { title, body, delay, tag } = event.data;
+    setTimeout(() => {
+      self.registration.showNotification(title, {
+        body,
+        tag,
+        icon: '/icon-192.png',
+        vibrate: [200, 100, 200],
+        requireInteraction: false
+      });
+    }, delay);
+  }
 });
