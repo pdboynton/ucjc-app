@@ -43,26 +43,47 @@
     }
 
     /* ══════════════════════════════════════════════
-       LIGHT THEME
+       LIGHT THEME — warm ivory / parchment
     ══════════════════════════════════════════════ */
     [data-theme="light"] {
-      --bg-deep:   #F0EAE0;
-      --bg-mid:    #FFFFFF;
-      --bg-card:   #FAF6F0;
-      --bg-light:  #EDE5D8;
-      --gold:      #A8721E;
-      --gold-light:#C9912A;
-      --crimson:   #8B2635;
-      --text-primary: #1C1208;
-      --text-muted:   #6B5840;
-      --text-dim:     #A09080;
-      --border:      rgba(168,114,30,0.22);
-      --border-soft:  rgba(0,0,0,0.08);
-      --shadow:      0 4px 24px rgba(0,0,0,0.10);
-      --input-bg:    rgba(0,0,0,0.04);
-      --input-border:rgba(0,0,0,0.14);
-      --input-focus: rgba(0,0,0,0.06);
-      --overlay-bg:  rgba(0,0,0,0.45);
+      --bg-deep:      #F5EFE3;
+      --bg-mid:       #FDFAF5;
+      --bg-card:      #FFFFFF;
+      --bg-light:     #EDE4D5;
+      --gold:         #9A6B14;
+      --gold-light:   #B8821A;
+      --crimson:      #8B2635;
+      --text-primary: #1A1108;
+      --text-muted:   #5E4B30;
+      --text-dim:     #9E8A6E;
+      --border:       rgba(154,107,20,0.20);
+      --border-soft:  rgba(0,0,0,0.09);
+      --shadow:       0 2px 16px rgba(0,0,0,0.09);
+      --input-bg:     rgba(0,0,0,0.035);
+      --input-border: rgba(0,0,0,0.13);
+      --input-focus:  rgba(0,0,0,0.055);
+      --overlay-bg:   rgba(40,20,5,0.50);
+    }
+    /* Adjust gradients for light theme */
+    [data-theme="light"] body::before {
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgba(154,107,20,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 70% at 85% 100%, rgba(139,38,53,0.05) 0%, transparent 60%);
+    }
+    [data-theme="light"] .auth-hero {
+      background: linear-gradient(160deg, #EDE4D5 0%, #FDFAF5 100%);
+    }
+    [data-theme="light"] .profile-hero {
+      background: linear-gradient(160deg, #EDE4D5, #E5D9C5);
+    }
+    [data-theme="light"] #convocation-banner {
+      background: linear-gradient(135deg, rgba(154,107,20,0.10), rgba(154,107,20,0.03));
+    }
+    [data-theme="light"] .msg-row.own .msg-bubble {
+      background: rgba(154,107,20,0.12); border-color: rgba(154,107,20,0.25);
+    }
+    [data-theme="light"] .date-tab.active {
+      background: linear-gradient(135deg, rgba(154,107,20,0.16), rgba(154,107,20,0.06));
     }
 
     /* ══════════════════════════════════════════════
@@ -87,7 +108,16 @@
         radial-gradient(ellipse 60% 80% at 80% 100%, rgba(139,38,53,0.04) 0%, transparent 60%);
       pointer-events: none; z-index: 0;
     }
-    [data-theme="light"] body::before { opacity: 0.5; }
+    [data-theme="light"] body::before { opacity: 1; }
+
+    /* Theme toggle button in header */
+    .theme-btn {
+      width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--border);
+      background: var(--input-bg); color: var(--text-muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all 0.2s; padding: 0;
+    }
+    .theme-btn:hover { background: var(--input-focus); color: var(--gold); border-color: var(--gold); }
 
     /* ══════════════════════════════════════════════
        ICONS — inline SVG system
@@ -567,8 +597,54 @@
       color: #fff; transition: all 0.2s;
     }
     .send-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
-    .dm-panel { flex: 1; overflow-y: auto; padding: 16px; display: none; background: var(--bg-deep); }
-    .dm-panel.active { display: block; }
+    /* DM list panel */
+    .dm-panel { display: none; flex-direction: column; flex: 1; overflow: hidden; background: var(--bg-deep); }
+    .dm-panel.active { display: flex; }
+    .dm-panel-header {
+      flex-shrink: 0; background: var(--bg-mid); border-bottom: 1px solid var(--border-soft);
+      padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .dm-conv-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .dm-conv-card {
+      display: flex; align-items: center; gap: 12px; padding: 13px 16px;
+      border-bottom: 1px solid var(--border-soft); cursor: pointer;
+      transition: background 0.15s; background: var(--bg-mid);
+    }
+    .dm-conv-card:hover  { background: var(--bg-light); }
+    .dm-conv-card.has-unread { background: rgba(201,168,76,0.04); }
+    .dm-conv-avatar {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--gold), #8a5c18);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #fff; font-size: 0.88rem; position: relative;
+    }
+    .dm-conv-avatar .unread-dot {
+      position: absolute; top: -1px; right: -1px;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--crimson); border: 2px solid var(--bg-mid);
+    }
+    .dm-conv-info { flex: 1; min-width: 0; }
+    .dm-conv-name { font-weight: 700; font-size: 0.92rem; color: var(--text-primary); }
+    .dm-conv-preview {
+      font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .dm-conv-preview.bold { color: var(--text-primary); font-weight: 700; }
+    .dm-conv-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+    .dm-conv-time { font-size: 0.66rem; color: var(--text-dim); }
+    .dm-unread-pill {
+      background: var(--crimson); color: #fff; border-radius: 10px;
+      font-size: 0.62rem; font-weight: 700; padding: 1px 6px;
+      min-width: 18px; text-align: center; line-height: 1.6;
+    }
+    /* Per-tab unread badges inside chat tab buttons */
+    .tab-unread-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--crimson); color: #fff; border-radius: 10px;
+      font-size: 0.6rem; font-weight: 700; padding: 1px 5px;
+      min-width: 16px; margin-left: 2px; line-height: 1.5;
+    }
+    .tab-unread-badge.hidden { display: none; }
 
     /* ══════════════════════════════════════════════
        PROFILE / SETTINGS
@@ -604,7 +680,8 @@
     }
     .settings-row:last-child { border-bottom: none; }
     .settings-row:hover { background: var(--bg-light); }
-    .settings-row-icon { width: 20px; text-align: center; color: var(--gold); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .settings-row-icon { width: 20px; text-align: center; color: currentColor; opacity: 0.6; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .settings-row:hover .settings-row-icon { opacity: 1; color: var(--gold); }
     .settings-row-text { flex: 1; }
     .settings-row-title { font-size: 0.9rem; color: var(--text-primary); }
     .settings-row-sub   { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
@@ -677,6 +754,45 @@
 
 <!-- OFFLINE -->
 <div class="offline-banner" id="offline-banner">You are offline — some features may be unavailable</div>
+
+<!-- FIREBASE RULES NOTICE (shown when permission-denied errors occur) -->
+<div id="rules-banner" class="hidden" style="
+  background:linear-gradient(135deg,rgba(139,38,53,0.95),rgba(100,20,30,0.95));
+  color:#fff; padding:12px 16px; font-size:0.82rem; line-height:1.5;
+  border-bottom:1px solid rgba(255,255,255,0.15); position:relative; z-index:20;">
+  <strong>⚠ Firestore Rules Need Updating</strong> — The directory and your profile require a rule change in Firebase Console.<br>
+  Go to <strong>Firebase Console → Firestore → Rules</strong> and paste the rules below, then click Publish:
+  <pre id="rules-snippet" style="
+    background:rgba(0,0,0,0.35); border-radius:6px; padding:10px 12px;
+    margin:8px 0 10px; font-size:0.75rem; overflow-x:auto; white-space:pre; color:#ffd;"
+  >rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &amp;&amp; request.auth.uid == userId;
+    }
+    match /users/{userId}/bookmarks/{id} {
+      allow read, write: if request.auth != null &amp;&amp; request.auth.uid == userId;
+    }
+    match /users/{userId}/notes/{id} {
+      allow read, write: if request.auth != null &amp;&amp; request.auth.uid == userId;
+    }
+    match /chat/{doc=**} {
+      allow read, write: if request.auth != null;
+    }
+    match /feedback/{doc=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}</pre>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.5);font-size:0.75rem"
+      onclick="copyRules()">Copy Rules</button>
+    <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,0.7);font-size:0.75rem"
+      onclick="dismissRulesBanner()">Dismiss</button>
+  </div>
+</div>
 
 <!-- INSTALL PROMPT -->
 <div id="install-prompt">
@@ -751,11 +867,16 @@
       Holy Convocation
       <small><span class="connection-dot" id="conn-dot"></span>&nbsp;<span id="conn-label">Connected</span></small>
     </div>
+    <button class="theme-btn" id="header-theme-btn" onclick="toggleTheme(document.documentElement.getAttribute('data-theme')!=='light')" title="Toggle light/dark theme">
+      <span id="header-theme-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </span>
+    </button>
     <div class="header-avatar" id="user-avatar" onclick="showScreen('profile')" title="My Profile">?</div>
   </header>
 
   <div id="convocation-banner">
-    <span class="icon" style="color:var(--gold)">
+    <span class="icon" style="color:var(--gold);opacity:0.75">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     </span>
     <div class="banner-info">
@@ -816,7 +937,29 @@
       </div>
       <div class="section-header">
         <span class="section-title">Attendees</span>
-        <span class="muted-text small-text" id="attendee-count"></span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="muted-text small-text" id="attendee-count"></span>
+          <span class="muted-text small-text" id="directory-sync-label" style="font-size:0.68rem;opacity:0.7"></span>
+          <button id="directory-refresh-btn" onclick="refreshDirectory()" title="Refresh directory"
+            style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:4px;display:flex;align-items:center;transition:color 0.2s"
+            onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-dim)'">
+            <svg id="dir-refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Loading state -->
+      <div id="directory-loading" class="empty-state hidden">
+        <div class="loader-ring" style="margin:0 auto 12px"></div>
+        <p class="muted-text">Loading attendees…</p>
+      </div>
+      <!-- Error / retry state -->
+      <div id="directory-error" class="empty-state hidden">
+        <div class="empty-icon" style="color:var(--crimson);opacity:0.6">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="empty-title">Could not load attendees</div>
+        <p class="muted-text small-text" id="directory-error-msg" style="margin-bottom:16px">Check your connection and try again.</p>
+        <button class="btn btn-outline btn-sm" onclick="retryDirectory()">Retry</button>
       </div>
       <div id="attendee-list" class="attendee-list"></div>
     </div>
@@ -828,14 +971,20 @@
           <button class="chat-tab-btn active" data-panel="global" onclick="switchChatTab('global')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
             Group Chat
+            <span class="tab-unread-badge hidden" id="global-tab-badge"></span>
           </button>
           <button class="chat-tab-btn" data-panel="dms" onclick="switchChatTab('dms')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             Direct Messages
+            <span class="tab-unread-badge hidden" id="dm-tab-badge"></span>
           </button>
           <button class="chat-tab-btn" data-panel="prayer" onclick="switchChatTab('prayer')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 2 C5 2 4 3 4 4 L3 10 L2 16 C2 18 3.5 19.5 5 20 L7 21 L9 22 C10 22.5 11 22.5 12 22.5 C13 22.5 14 22.5 15 22 L17 21 L19 20 C20.5 19.5 22 18 22 16 L21 10 L20 4 C20 3 19 2 18 2 C17 2 16 3 16 4 L16 11 C15.3 10.4 14 10 12 10 C10 10 8.7 10.4 8 11 L8 4 C8 3 7 2 6 2 Z"/>
+              <line x1="12" y1="10" x2="12" y2="22.5"/>
+            </svg>
             Prayer Requests
+            <span class="tab-unread-badge hidden" id="prayer-tab-badge"></span>
           </button>
         </div>
 
@@ -851,11 +1000,22 @@
         </div>
 
         <div class="dm-panel" id="panel-dms">
-          <div id="no-dms" class="empty-state">
+          <div class="dm-panel-header">
+            <span class="section-title" style="font-size:0.88rem">Conversations</span>
+            <button class="btn btn-outline btn-sm" onclick="showScreen('directory')" style="font-size:0.72rem;padding:5px 12px">
+              + New Message
+            </button>
+          </div>
+          <div id="no-dms" class="empty-state hidden">
             <div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
             <div class="empty-title">No conversations yet</div>
-            <p class="muted-text small-text">Start a chat from the Attendees directory</p>
+            <p class="muted-text small-text">Tap "+ New Message" or start a chat<br>from the Attendees directory</p>
           </div>
+          <div id="dm-loading" class="empty-state hidden">
+            <div class="loader-ring" style="margin:0 auto 12px"></div>
+            <p class="muted-text">Loading conversations…</p>
+          </div>
+          <div id="dm-conv-list" class="dm-conv-list"></div>
         </div>
 
         <div class="chat-panel" id="panel-prayer">
@@ -1019,11 +1179,11 @@
       <div class="detail-panel active" id="panel-info">
         <div id="modal-event-desc" style="margin-bottom:16px;font-size:0.9rem;line-height:1.65;color:var(--text-muted)"></div>
         <div class="info-row">
-          <span class="icon" style="color:var(--gold)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+          <span class="icon" style="color:var(--text-dim)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
           <div><div class="info-row-label">Location</div><div class="info-row-value" id="modal-location">—</div></div>
         </div>
         <div class="info-row">
-          <span class="icon" style="color:var(--gold)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+          <span class="icon" style="color:var(--text-dim)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
           <div><div class="info-row-label">Duration</div><div class="info-row-value" id="modal-duration">—</div></div>
         </div>
       </div>
@@ -1048,12 +1208,12 @@
       </div>
       <div class="detail-panel" id="panel-reminder">
         <div class="reminder-row">
-          <span class="icon" style="color:var(--gold)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+          <span class="icon" style="color:var(--text-dim)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
           <div class="reminder-label">Bookmark this session<div class="reminder-sub">Adds to My Schedule</div></div>
           <label class="toggle"><input type="checkbox" id="modal-bookmark-toggle" onchange="modalToggleBookmark(this.checked)"/><span class="toggle-slider"></span></label>
         </div>
         <div class="reminder-row">
-          <span class="icon" style="color:var(--gold)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+          <span class="icon" style="color:var(--text-dim)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
           <div class="reminder-label">Send me a reminder<div class="reminder-sub">Notify before this session</div></div>
           <label class="toggle"><input type="checkbox" id="modal-reminder-toggle" onchange="toggleModalReminder(this.checked)"/><span class="toggle-slider"></span></label>
         </div>
@@ -1210,6 +1370,59 @@
   const FSV  = firebase.firestore.FieldValue;
 
   /* ══════════════════════════════════════════
+     LOCAL CACHE  (localStorage, keyed by uid)
+     All cached payloads: { data, ts }
+     TTL constants (ms):
+       profile   — 30 min  (personal, cheap)
+       directory — 10 min  (shared, slightly stale OK)
+       calendar  — 60 min  (external API, rate-limited)
+  ══════════════════════════════════════════ */
+  const CACHE_TTL = { profile: 30*60*1000, directory: 10*60*1000, calendar: 60*60*1000 };
+
+  const Cache = {
+    _key(name, uid) { return `ucjc_${name}_${uid || 'global'}`; },
+
+    set(name, data, uid) {
+      try {
+        const payload = JSON.stringify({ data, ts: Date.now() });
+        localStorage.setItem(this._key(name, uid), payload);
+      } catch(e) { /* storage full — silently skip */ }
+    },
+
+    get(name, uid, maxAge) {
+      try {
+        const raw = localStorage.getItem(this._key(name, uid));
+        if (!raw) return null;
+        const { data, ts } = JSON.parse(raw);
+        if (maxAge && Date.now() - ts > maxAge) return null; // expired
+        return { data, ts };
+      } catch(e) { return null; }
+    },
+
+    // Returns cached data regardless of age (for offline fallback)
+    getStale(name, uid) {
+      try {
+        const raw = localStorage.getItem(this._key(name, uid));
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch(e) { return null; }
+    },
+
+    clear(name, uid) {
+      try { localStorage.removeItem(this._key(name, uid)); } catch(e) {}
+    },
+
+    // Wipe all ucjc_ keys for a given uid on sign-out
+    clearAll(uid) {
+      try {
+        Object.keys(localStorage)
+          .filter(k => k.startsWith('ucjc_') && k.includes(uid || ''))
+          .forEach(k => localStorage.removeItem(k));
+      } catch(e) {}
+    }
+  };
+
+  /* ══════════════════════════════════════════
      APP STATE
   ══════════════════════════════════════════ */
   let currentUser        = null;
@@ -1220,10 +1433,16 @@
   let selectedEventId    = null;
   let currentRating      = 0;
   let currentDMUid       = null;
+  let currentDMName      = null;
   let chatInitialized    = false;
+  let currentChatPanel   = 'global';   // which chat tab is visible
+  let dmConversations    = [];         // metadata for each DM thread
+  let globalUnread       = 0;          // unread group chat messages
+  let prayerUnread       = 0;          // unread prayer messages
+  let msgCounts          = { global: -1, prayer: -1 }; // -1 = not yet initialised
   let deferredInstall    = null;
   let scheduledReminders = {};
-  let unsub = { bookmarks:null, notes:null, globalChat:null, prayerChat:null, dmChat:null, directory:null };
+  let unsub = { bookmarks:null, notes:null, globalChat:null, prayerChat:null, dmChat:null, dmList:null, directory:null };
 
   /* ══════════════════════════════════════════
      HELPERS
@@ -1299,27 +1518,26 @@
   function applyTheme(isLight) {
     const html = document.documentElement;
     html.setAttribute('data-theme', isLight ? 'light' : 'dark');
-    // Update meta-theme-color for browser chrome
     const mc = $('meta-theme');
-    if (mc) mc.content = isLight ? '#FFFFFF' : '#0A1628';
-    // Sync toggle UI
+    if (mc) mc.content = isLight ? '#FDFAF5' : '#0A1628';
+    // Sync profile-screen toggle
     const tog = $('theme-toggle');
     if (tog) tog.checked = isLight;
     const lbl = $('theme-label');
     if (lbl) lbl.textContent = isLight ? 'Light Theme (On)' : 'Light Theme';
-    // Swap sun <-> moon icon
-    const iconEl = $('theme-icon');
-    if (iconEl) {
-      iconEl.innerHTML = isLight
-        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>` // moon
-        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`; // sun
-    }
+    // Sync header button icon: show moon when light (to switch to dark), sun when dark
+    const sunSvg  = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const moonSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    const headerIcon = $('header-theme-icon');
+    if (headerIcon) headerIcon.innerHTML = isLight ? moonSvg : sunSvg;
+    const settingsIcon = $('theme-icon');
+    if (settingsIcon) settingsIcon.innerHTML = isLight ? moonSvg : sunSvg;
     localStorage.setItem('ucjc-theme', isLight ? 'light' : 'dark');
   }
 
   window.toggleTheme = function (checked) { applyTheme(checked); };
 
-  // Apply saved theme immediately on load
+  // Apply saved theme immediately on load (before auth resolves)
   (function () {
     const saved = localStorage.getItem('ucjc-theme');
     applyTheme(saved === 'light');
@@ -1416,26 +1634,33 @@
     } catch (err) {
       btn.textContent = 'Sign In'; btn.disabled = false;
       const code = err.code || '';
-      // No account or wrong credentials — offer to register
-      if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+      // Firebase v9+ uses auth/invalid-credential as the consolidated code
+      // for both wrong password AND no account found (to prevent email enumeration)
+      if (code === 'auth/invalid-credential' || code === 'auth/user-not-found') {
         showLoginError(
-          'No account found with that email address.',
-          'Double-check your email or create a new account.',
-          'Create an account →',
+          'No account found, or the password is incorrect.',
+          'Double-check your details, or create a free account below.',
+          '→ Create an account',
           () => switchAuthTab('register')
         );
       } else if (code === 'auth/wrong-password') {
         showLoginError(
           'Incorrect password.',
-          'Try again or reset your password below.',
+          'Please try again, or use "Forgot Password?" below.',
           null, null
         );
       } else if (code === 'auth/invalid-email') {
         showLoginError('Please enter a valid email address.', '', null, null);
       } else if (code === 'auth/too-many-requests') {
-        showLoginError('Too many failed attempts. Please wait a moment and try again.', '', null, null);
+        showLoginError(
+          'Too many failed attempts. Your account is temporarily locked.',
+          'Please wait a few minutes, or reset your password.',
+          null, null
+        );
+      } else if (code === 'auth/network-request-failed') {
+        showLoginError('Network error — check your internet connection and try again.', '', null, null);
       } else {
-        showLoginError('Could not sign in. Check your connection and try again.', '', null, null);
+        showLoginError('Could not sign in. Please check your details and try again.', '', null, null);
       }
     }
   };
@@ -1494,17 +1719,29 @@
     try {
       if (user) {
         currentUser = user;
-        await loadUserProfile();
+        // Show the app shell IMMEDIATELY — don't wait for Firestore.
+        // Profile data loads in the background and updates the UI when ready.
         $('auth-screen').classList.add('hidden');
         $('app').classList.remove('hidden');
         hideLoader();
-        updateAvatarUI();
-        applyTheme(localStorage.getItem('ucjc-theme') === 'light'); // re-sync toggle inside app
-        subscribeBookmarks();
-        loadCalendar();
+        applyTheme(localStorage.getItem('ucjc-theme') === 'light');
+        // Background: fetch profile, then update avatar + subscribe data
+        loadUserProfile().then(() => {
+          updateAvatarUI();
+          subscribeBookmarks();
+          loadCalendar();
+        }).catch(err => {
+          console.warn('Profile load failed, using defaults:', err);
+          userProfile = { displayName: currentUser.email, homeChurch: '', defaultReminderMinutes: 15 };
+          updateAvatarUI();
+          subscribeBookmarks();
+          loadCalendar();
+        });
       } else {
         currentUser = null; userProfile = null;
         cleanupListeners();
+        directoryLoaded = false;
+        directoryLoading = false;
         $('app').classList.add('hidden');
         $('auth-screen').classList.remove('hidden');
         hideLoader();
@@ -1518,18 +1755,74 @@
   });
 
   async function loadUserProfile() {
+    const uid = currentUser.uid;
+
+    // ── Step 1: serve cached profile instantly if fresh ──────────────────
+    const cached = Cache.get('profile', uid, CACHE_TTL.profile);
+    if (cached) {
+      userProfile = cached.data;
+      return; // UI will update from cache; background refresh happens below
+    }
+
+    // ── Step 2: try Firestore ─────────────────────────────────────────────
+    try {
+      const snap = await db.collection('users').doc(uid).get();
+      if (snap.exists) {
+        userProfile = snap.data();
+        Cache.set('profile', userProfile, uid);
+      } else {
+        // Profile doc doesn't exist yet — auto-create it from Auth data
+        const base = {
+          displayName: currentUser.displayName || currentUser.email.split('@')[0],
+          homeChurch: '',
+          email: currentUser.email || '',
+          createdAt: FSV.serverTimestamp(),
+          defaultReminderMinutes: 15,
+          pushEnabled: false
+        };
+        await db.collection('users').doc(uid).set(base);
+        // Store without server timestamp for cache (use plain Date)
+        userProfile = { ...base, createdAt: new Date().toISOString() };
+        Cache.set('profile', userProfile, uid);
+        toast('Welcome! Your profile has been created.', 'success');
+      }
+    } catch (e) {
+      console.warn('loadUserProfile Firestore error:', e);
+      // Fall back to stale cache, then bare minimum
+      const stale = Cache.getStale('profile', uid);
+      if (stale) {
+        userProfile = stale.data;
+      } else {
+        userProfile = {
+          displayName: currentUser.displayName || currentUser.email,
+          homeChurch: '', defaultReminderMinutes: 15
+        };
+      }
+      if (e.code === 'permission-denied') showRulesBanner();
+    }
+  }
+
+  /* Background-refresh profile (called after initial display) */
+  async function refreshProfileBackground() {
+    if (!currentUser) return;
     try {
       const snap = await db.collection('users').doc(currentUser.uid).get();
-      userProfile = snap.exists ? snap.data() : { displayName: currentUser.email, homeChurch: '', defaultReminderMinutes: 15 };
-    } catch (e) {
-      userProfile = { displayName: currentUser.email, homeChurch: '', defaultReminderMinutes: 15 };
-    }
+      if (snap.exists) {
+        userProfile = snap.data();
+        Cache.set('profile', userProfile, currentUser.uid);
+        updateAvatarUI();
+      }
+    } catch(e) { /* silent — stale cache is fine */ }
   }
 
   function cleanupListeners() {
     Object.keys(unsub).forEach(k => { if (unsub[k]) { unsub[k](); unsub[k] = null; } });
     chatInitialized = false;
-    allEvents = []; bookmarks = {}; notesByEvent = {};
+    directoryLoaded = false;
+    directoryLoading = false;
+    dmConversations = []; globalUnread = 0; prayerUnread = 0;
+    msgCounts = { global: -1, prayer: -1 };
+    allEvents = []; bookmarks = {}; notesByEvent = {}; allAttendees = [];
   }
 
   function updateAvatarUI() {
@@ -1552,7 +1845,28 @@
      GOOGLE CALENDAR
   ══════════════════════════════════════════ */
   async function loadCalendar() {
+    // ── Serve cache instantly ──────────────────────────────────────────────
+    const cached = Cache.get('calendar', currentUser?.uid, CACHE_TTL.calendar);
+    if (cached && cached.data) {
+      const { events, bannerTitle, bannerMeta } = cached.data;
+      if (events && events.length) {
+        // Deserialise dates (stored as ISO strings)
+        allEvents = events.map(e => ({ ...e, start: new Date(e.start), end: new Date(e.end) }));
+        if (bannerTitle) $('banner-title').textContent = bannerTitle;
+        if (bannerMeta)  $('banner-meta').textContent  = bannerMeta;
+        buildDateTabs();
+        // Refresh in background — don't show spinner for cached load
+        _fetchCalendarBackground();
+        return;
+      }
+    }
+
+    // ── No cache — show spinner and fetch synchronously ────────────────────
     $('events-loading').classList.remove('hidden');
+    await _fetchCalendarBackground();
+  }
+
+  async function _fetchCalendarBackground() {
     try {
       const now     = new Date();
       const yearAgo = new Date(now); yearAgo.setFullYear(yearAgo.getFullYear() - 1);
@@ -1562,18 +1876,23 @@
         + `&singleEvents=true&orderBy=startTime&maxResults=250`;
       const resp = await fetch(url);
       if (!resp.ok) { const j = await resp.json().catch(()=>({})); throw new Error(j.error?.message || resp.status); }
-      const data = await resp.json();
-      const items  = data.items || [];
+      const data  = await resp.json();
+      const items = data.items || [];
       const allDay = items.filter(e => e.start?.date && !e.start?.dateTime);
       const timed  = items.filter(e => e.start?.dateTime);
+
+      let bannerTitle = 'UCJC Holy Convocation', bannerMeta = '';
       if (allDay.length) {
-        const c = allDay[0];
+        const c  = allDay[0];
         const sd = new Date(c.start.date + 'T12:00:00');
         const ed = new Date(c.end.date   + 'T12:00:00'); ed.setDate(ed.getDate() - 1);
-        $('banner-title').textContent = stripHtml(c.summary || 'Holy Convocation');
-        $('banner-meta').textContent  = `${fmtDate(sd)} – ${fmtDate(ed)}` + (c.location ? `  ·  ${stripHtml(c.location)}` : '');
+        bannerTitle = stripHtml(c.summary || 'Holy Convocation');
+        bannerMeta  = `${fmtDate(sd)} – ${fmtDate(ed)}` + (c.location ? `  ·  ${stripHtml(c.location)}` : '');
       }
-      allEvents = timed.map(e => ({
+      $('banner-title').textContent = bannerTitle;
+      $('banner-meta').textContent  = bannerMeta;
+
+      const freshEvents = timed.map(e => ({
         id:       e.id,
         title:    stripHtml(e.summary    || 'Untitled Session'),
         start:    new Date(e.start.dateTime),
@@ -1582,14 +1901,29 @@
         desc:     stripHtml(e.description|| ''),
         colorId:  e.colorId || ''
       }));
-      if (!allEvents.length) loadDemoEvents(); else buildDateTabs();
+
+      if (freshEvents.length) {
+        allEvents = freshEvents;
+        // Cache with ISO strings (Date objects aren't JSON-serialisable)
+        Cache.set('calendar', {
+          bannerTitle, bannerMeta,
+          events: freshEvents.map(e => ({ ...e, start: e.start.toISOString(), end: e.end.toISOString() }))
+        }, currentUser?.uid);
+        buildDateTabs();
+      } else if (!allEvents.length) {
+        loadDemoEvents();
+      }
     } catch (err) {
       console.error('Calendar error:', err);
-      toast('Could not load calendar. Showing demo data.', 'error');
-      loadDemoEvents();
-    } finally { $('events-loading').classList.add('hidden'); }
+      if (!allEvents.length) {
+        toast('Could not load calendar. Showing demo data.', 'error');
+        loadDemoEvents();
+      }
+      // If we had cached data, silently fail — no toast needed
+    } finally {
+      $('events-loading').classList.add('hidden');
+    }
   }
-  window.refreshCalendar = loadCalendar;
 
   function loadDemoEvents() {
     const b = new Date(); b.setHours(0,0,0,0);
@@ -1616,6 +1950,31 @@
     ];
     buildDateTabs();
   }
+
+  /* ── Calendar refresh & rules helpers ─────── */
+  window.refreshCalendar = function () {
+    Cache.clear('calendar', currentUser?.uid);
+    allEvents = [];
+    loadCalendar();
+  };
+
+  function showRulesBanner() {
+    const b = $('rules-banner');
+    if (b) b.classList.remove('hidden');
+  }
+  window.dismissRulesBanner = function () {
+    const b = $('rules-banner');
+    if (b) b.classList.add('hidden');
+  };
+  window.copyRules = function () {
+    const pre = $('rules-snippet');
+    if (!pre) return;
+    const text = pre.textContent
+      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    navigator.clipboard.writeText(text)
+      .then(() => toast('Rules copied to clipboard!', 'success'))
+      .catch(() => toast('Select and copy the rules text manually.', 'info'));
+  };
 
   /* ── DATE TABS ──────────────────────────── */
   let activeDateKey = null;
@@ -1816,14 +2175,137 @@
      DIRECTORY
   ══════════════════════════════════════════ */
   let allAttendees = [];
+  let directoryLoaded = false;   // true once we have a successful result
+  let directoryLoading = false;  // true while a fetch is in-flight
+
   function loadDirectory() {
-    if (unsub.directory) return;
-    unsub.directory = db.collection('users').onSnapshot(snap => {
-      allAttendees = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    // Don't re-fetch if we already have data (user just switched tabs)
+    if (directoryLoaded) return;
+    // Don't start a second parallel fetch
+    if (directoryLoading) return;
+    fetchDirectory();
+  }
+
+  async function fetchDirectory(forceRefresh = false) {
+    directoryLoading = true;
+
+    // ── Step 1: show cached data instantly if available ──────────────────
+    const cached = forceRefresh
+      ? Cache.getStale('directory', currentUser.uid)   // still show stale while refreshing
+      : Cache.get('directory', currentUser.uid, CACHE_TTL.directory);
+
+    if (cached && cached.data && cached.data.length) {
+      allAttendees = cached.data;
       $('attendee-count').textContent = allAttendees.length + ' registered';
       renderDirectory(allAttendees);
-    }, err => { console.error('Directory error:', err); toast('Could not load directory.', 'error'); });
+      updateSyncLabel(cached.ts);
+      $('directory-loading').classList.add('hidden');
+      $('directory-error').classList.add('hidden');
+
+      if (!forceRefresh) {
+        // Cache is fresh — no need to hit Firestore
+        directoryLoaded = true;
+        directoryLoading = false;
+        return;
+      }
+      // forceRefresh: show cached immediately, then silently update below
+    } else {
+      // No cache — show spinner
+      $('directory-loading').classList.remove('hidden');
+      $('directory-error').classList.add('hidden');
+      $('attendee-list').innerHTML = '';
+      $('attendee-count').textContent = '';
+    }
+
+    // ── Step 2: fetch from Firestore (fresh or background refresh) ────────
+    try {
+      const snap = await db.collection('users')
+        .orderBy('displayName')
+        .get();
+
+      allAttendees = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      Cache.set('directory', allAttendees, currentUser.uid);
+
+      $('attendee-count').textContent = allAttendees.length + ' registered';
+      renderDirectory(allAttendees);
+      updateSyncLabel(Date.now());
+      $('directory-error').classList.add('hidden');
+      directoryLoaded = true;
+
+      // If current user somehow isn't in the list, ensure their profile exists
+      const selfInList = allAttendees.some(u => u.id === currentUser.uid);
+      if (!selfInList && userProfile) {
+        // Silently write profile (handles edge case of missing Firestore doc)
+        await db.collection('users').doc(currentUser.uid).set(
+          { displayName: userProfile.displayName || currentUser.email, homeChurch: userProfile.homeChurch || '', email: currentUser.email || '' },
+          { merge: true }
+        );
+      }
+    } catch (err) {
+      console.error('Directory fetch error:', err);
+
+      if (err.code === 'permission-denied') {
+        showRulesBanner();
+        // Still show cached stale data so UI isn't empty
+        const stale = Cache.getStale('directory', currentUser.uid);
+        if (stale && stale.data && stale.data.length) {
+          allAttendees = stale.data;
+          renderDirectory(allAttendees);
+          updateSyncLabel(stale.ts, true);
+          $('attendee-count').textContent = allAttendees.length + ' cached';
+        } else {
+          // No cache, show specific error
+          $('directory-error-msg').textContent =
+            'Your Firebase Security Rules are blocking this. See the banner above for instructions.';
+          $('directory-error').classList.remove('hidden');
+        }
+      } else {
+        let msg = 'Check your connection and try again.';
+        if (err.code === 'unavailable') msg = 'You appear to be offline. Showing cached data.';
+        // If we already showed cached data, don't clobber it with an error state
+        if (!allAttendees.length) {
+          $('directory-error-msg').textContent = msg;
+          $('directory-error').classList.remove('hidden');
+        } else {
+          toast('Could not refresh directory. Showing cached data.', 'info');
+        }
+      }
+    } finally {
+      $('directory-loading').classList.add('hidden');
+      directoryLoading = false;
+    }
   }
+
+  function updateSyncLabel(ts, stale = false) {
+    const el = $('directory-sync-label');
+    if (!el || !ts) return;
+    const mins = Math.round((Date.now() - ts) / 60000);
+    const timeStr = mins < 1 ? 'just now' : mins < 60 ? `${mins}m ago` : `${Math.round(mins/60)}h ago`;
+    el.textContent = stale ? `cached ${timeStr}` : `synced ${timeStr}`;
+  }
+
+  // Spin the refresh icon while in-flight
+  function setDirRefreshSpinning(spinning) {
+    const icon = $('dir-refresh-icon');
+    if (!icon) return;
+    icon.style.animation = spinning ? 'spin 0.7s linear infinite' : '';
+  }
+
+  // Called by the manual refresh button
+  window.refreshDirectory = async function () {
+    if (directoryLoading) return;
+    setDirRefreshSpinning(true);
+    directoryLoaded = false;
+    await fetchDirectory(true);
+    setDirRefreshSpinning(false);
+  };
+
+  // Called by the Retry button in the error state
+  window.retryDirectory = function () {
+    directoryLoaded = false;
+    directoryLoading = false;
+    fetchDirectory();
+  };
 
   function renderDirectory(list) {
     const ct = $('attendee-list');
@@ -1852,14 +2334,32 @@
     if (chatInitialized) return; chatInitialized = true;
     subscribeChannel('global', 'global-messages');
     subscribeChannel('prayer', 'prayer-messages');
+    subscribeDMList();
   }
+
   function subscribeChannel(ch, elId) {
     const key = ch === 'global' ? 'globalChat' : 'prayerChat';
-    unsub[key] = db.collection('chat').doc(ch).collection('messages').orderBy('createdAt','asc')
+    unsub[key] = db.collection('chat').doc(ch).collection('messages')
+      .orderBy('createdAt', 'asc')
       .onSnapshot(snap => {
         const el = $(elId); if (!el) return;
+        const newCount = snap.docs.length;
+        const prevCount = msgCounts[ch];
+
         el.innerHTML = snap.docs.map(d => renderMsg(d.data())).join('');
         el.scrollTop = el.scrollHeight;
+
+        // After initial load, track new messages for unread
+        if (prevCount >= 0 && newCount > prevCount) {
+          const added = newCount - prevCount;
+          const isVisible = $('screen-chat').classList.contains('active') && currentChatPanel === ch;
+          if (!isVisible) {
+            if (ch === 'global') globalUnread += added;
+            else prayerUnread += added;
+            updateAllUnreadBadges();
+          }
+        }
+        msgCounts[ch] = newCount;
       }, err => console.warn(ch + ' chat error:', err));
   }
 
@@ -1882,7 +2382,10 @@
     if (hasProfanity(text)) { toast('Your message contains prohibited language and was not sent.', 'error'); return; }
     inp.value = '';
     try {
-      await db.collection('chat').doc(channel).collection('messages').add({ uid:currentUser.uid, displayName:userProfile?.displayName||'Anonymous', homeChurch:userProfile?.homeChurch||'', text, createdAt:FSV.serverTimestamp() });
+      await db.collection('chat').doc(channel).collection('messages').add({
+        uid: currentUser.uid, displayName: userProfile?.displayName||'Anonymous',
+        homeChurch: userProfile?.homeChurch||'', text, createdAt: FSV.serverTimestamp()
+      });
     } catch (e) { toast('Could not send message.', 'error'); inp.value = text; }
   }
 
@@ -1890,36 +2393,189 @@
   window.sendPrayerMessage = () => sendMsg('prayer-msg-input', 'prayer');
 
   window.switchChatTab = function (panel) {
+    currentChatPanel = panel;
     document.querySelectorAll('.chat-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.panel === panel));
     document.querySelectorAll('.chat-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.dm-panel').forEach(p  => p.classList.remove('active'));
+    document.querySelectorAll('.dm-panel').forEach(p => p.classList.remove('active'));
     const target = $('panel-' + panel); if (target) target.classList.add('active');
-    if (panel === 'global') { const m=$('global-messages'); setTimeout(()=>m&&(m.scrollTop=m.scrollHeight),60); }
-    if (panel === 'prayer') { const m=$('prayer-messages'); setTimeout(()=>m&&(m.scrollTop=m.scrollHeight),60); }
+
+    if (panel === 'global') {
+      globalUnread = 0;
+      const m = $('global-messages'); setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
+    }
+    if (panel === 'prayer') {
+      prayerUnread = 0;
+      const m = $('prayer-messages'); setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
+    }
+    updateAllUnreadBadges();
   };
 
-  /* ── DMs ─────────────────────────────────── */
+  /* ── All-channel unread badge update ─────── */
+  function updateAllUnreadBadges() {
+    // DM tab badge = sum of unread counts across all conversations
+    const totalDMUnread = dmConversations.reduce(
+      (sum, c) => sum + (c.unread?.[currentUser?.uid] || 0), 0
+    );
+    const dmBadge = $('dm-tab-badge');
+    if (dmBadge) { dmBadge.textContent = totalDMUnread; dmBadge.classList.toggle('hidden', !totalDMUnread); }
+
+    // Group + Prayer tab badges
+    const gBadge = $('global-tab-badge');
+    if (gBadge) { gBadge.textContent = globalUnread; gBadge.classList.toggle('hidden', !globalUnread); }
+    const pBadge = $('prayer-tab-badge');
+    if (pBadge) { pBadge.textContent = prayerUnread; pBadge.classList.toggle('hidden', !prayerUnread); }
+
+    // Nav bar chat badge = total across everything
+    const total = totalDMUnread + globalUnread + prayerUnread;
+    const navBadge = $('chat-badge');
+    if (navBadge) {
+      navBadge.textContent = total > 99 ? '99+' : total;
+      navBadge.classList.toggle('hidden', !total);
+    }
+  }
+
+  /* ── DM Conversation List ─────────────────── */
+  function subscribeDMList() {
+    if (unsub.dmList) return;
+    $('dm-loading').classList.remove('hidden');
+    unsub.dmList = db.collection('chat').doc('dmMeta').collection('threads')
+      .where('participants', 'array-contains', currentUser.uid)
+      .onSnapshot(snap => {
+        $('dm-loading').classList.add('hidden');
+        dmConversations = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => {
+            const ta = a.lastTs?.toMillis ? a.lastTs.toMillis() : 0;
+            const tb = b.lastTs?.toMillis ? b.lastTs.toMillis() : 0;
+            return tb - ta;
+          });
+        renderDMList();
+        updateAllUnreadBadges();
+      }, err => {
+        $('dm-loading').classList.add('hidden');
+        console.warn('DM list error:', err);
+      });
+  }
+
+  function renderDMList() {
+    const listEl = $('dm-conv-list');
+    const noEl   = $('no-dms');
+    if (!listEl) return;
+
+    if (!dmConversations.length) {
+      noEl.classList.remove('hidden'); listEl.innerHTML = ''; return;
+    }
+    noEl.classList.add('hidden');
+
+    listEl.innerHTML = dmConversations.map(conv => {
+      const otherUid  = (conv.participants || []).find(p => p !== currentUser.uid) || '';
+      const otherName = conv.participantNames?.[otherUid] || 'Unknown';
+      const unread    = conv.unread?.[currentUser.uid] || 0;
+      const preview   = conv.lastText ? escHtml(conv.lastText) : '<em style="opacity:.55">No messages yet</em>';
+      const tsMs      = conv.lastTs?.toMillis ? conv.lastTs.toMillis() : 0;
+      const timeStr   = tsMs ? fmtRelative(tsMs) : '';
+      const dot       = unread ? '<span class="unread-dot"></span>' : '';
+
+      return `<div class="dm-conv-card${unread ? ' has-unread' : ''}" onclick="openDMConv('${escHtml(otherUid)}','${escHtml(otherName)}','${escHtml(conv.id)}')">
+        <div class="dm-conv-avatar">${initials(otherName)}${dot}</div>
+        <div class="dm-conv-info">
+          <div class="dm-conv-name">${escHtml(otherName)}</div>
+          <div class="dm-conv-preview${unread ? ' bold' : ''}">${preview}</div>
+        </div>
+        <div class="dm-conv-meta">
+          <div class="dm-conv-time">${timeStr}</div>
+          ${unread ? `<div class="dm-unread-pill">${unread > 99 ? '99+' : unread}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  /* Friendly relative time: "2m", "1h", "Mon", "Jan 5" */
+  function fmtRelative(tsMs) {
+    const diff = Date.now() - tsMs;
+    if (diff < 60000)          return 'now';
+    if (diff < 3600000)        return Math.floor(diff / 60000) + 'm';
+    if (diff < 86400000)       return Math.floor(diff / 3600000) + 'h';
+    const d = new Date(tsMs);
+    if (diff < 604800000)      return d.toLocaleDateString([], { weekday: 'short' });
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+
+  /* Called when tapping a conversation row in the DM list */
+  window.openDMConv = function (otherUid, otherName, convId) {
+    // Mark messages as read for current user
+    db.collection('chat').doc('dmMeta').collection('threads').doc(convId)
+      .update({ [`unread.${currentUser.uid}`]: 0 })
+      .catch(() => {});
+    startDM(otherUid, otherName);
+  };
+
+  /* Open or start a DM — creates conversation metadata on first message */
   window.startDM = function (uid, name) {
     if (uid === currentUser?.uid) { toast("That's you!", 'info'); return; }
     currentDMUid = uid;
+    currentDMName = name;
+
     $('dm-modal-title').textContent = 'Chat with ' + name;
     $('dm-messages').innerHTML = '';
     $('private-chat-modal').classList.remove('hidden');
+
+    // Ensure dmMeta doc exists so the conversation appears in the list
+    const convId   = [currentUser.uid, uid].sort().join('_');
+    const metaRef  = db.collection('chat').doc('dmMeta').collection('threads').doc(convId);
+    metaRef.get().then(snap => {
+      if (!snap.exists) {
+        metaRef.set({
+          participants:     [currentUser.uid, uid],
+          participantNames: {
+            [currentUser.uid]: userProfile?.displayName || currentUser.email,
+            [uid]: name
+          },
+          lastText: '',
+          lastTs:   FSV.serverTimestamp(),
+          unread:   { [currentUser.uid]: 0, [uid]: 0 },
+          createdAt: FSV.serverTimestamp()
+        });
+      } else {
+        // Reset unread for myself whenever I open the conversation
+        metaRef.update({ [`unread.${currentUser.uid}`]: 0 }).catch(() => {});
+      }
+    }).catch(() => {});
+
     if (unsub.dmChat) { unsub.dmChat(); unsub.dmChat = null; }
-    const convId = [currentUser.uid, uid].sort().join('_');
     unsub.dmChat = db.collection('chat').doc('dms').collection(convId).doc('thread').collection('messages')
-      .orderBy('createdAt','asc')
-      .onSnapshot(snap => { const el=$('dm-messages'); el.innerHTML=snap.docs.map(d=>renderMsg(d.data())).join(''); el.scrollTop=el.scrollHeight; }, err=>console.warn('DM error:',err));
+      .orderBy('createdAt', 'asc')
+      .onSnapshot(snap => {
+        const el = $('dm-messages'); if (!el) return;
+        el.innerHTML = snap.docs.map(d => renderMsg(d.data())).join('');
+        el.scrollTop = el.scrollHeight;
+      }, err => console.warn('DM error:', err));
   };
 
   window.sendDM = async function () {
     if (!currentDMUid || !currentUser) return;
-    const inp=$('dm-msg-input'), text=inp.value.trim(); if (!text) return;
+    const inp = $('dm-msg-input'), text = inp.value.trim(); if (!text) return;
     if (hasProfanity(text)) { toast('Your message contains prohibited language and was not sent.', 'error'); return; }
     inp.value = '';
-    const convId = [currentUser.uid, currentDMUid].sort().join('_');
+    const convId  = [currentUser.uid, currentDMUid].sort().join('_');
+    const preview = text.length > 60 ? text.slice(0, 60) + '…' : text;
     try {
-      await db.collection('chat').doc('dms').collection(convId).doc('thread').collection('messages').add({ uid:currentUser.uid, displayName:userProfile?.displayName||'Anonymous', text, createdAt:FSV.serverTimestamp() });
+      // Send the message
+      await db.collection('chat').doc('dms').collection(convId).doc('thread').collection('messages').add({
+        uid: currentUser.uid, displayName: userProfile?.displayName || 'Anonymous',
+        text, createdAt: FSV.serverTimestamp()
+      });
+      // Update conversation metadata (increment receiver's unread)
+      await db.collection('chat').doc('dmMeta').collection('threads').doc(convId).set({
+        participants: [currentUser.uid, currentDMUid],
+        participantNames: {
+          [currentUser.uid]: userProfile?.displayName || currentUser.email,
+          [currentDMUid]: currentDMName || 'User'
+        },
+        lastText: preview,
+        lastTs:   FSV.serverTimestamp(),
+        [`unread.${currentDMUid}`]: firebase.firestore.FieldValue.increment(1)
+      }, { merge: true });
     } catch (e) { toast('Could not send message.', 'error'); inp.value = text; }
   };
 
@@ -1932,30 +2588,37 @@
     $('edit-profile-modal').classList.remove('hidden');
   };
 
-  /* saveProfile — uses set+merge so it works even if the doc doesn't exist yet */
+  /* saveProfile — uses set+merge so it works for both new and existing docs */
   window.saveProfile = async function () {
-    if (!currentUser) return;
+    if (!currentUser) { toast('Not signed in.', 'error'); return; }
     const name   = $('edit-name').value.trim();
     const church = $('edit-church').value.trim();
     if (!name) { toast('Name cannot be empty.', 'error'); return; }
     const btn = document.querySelector('#edit-profile-modal .btn-primary');
     if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
     try {
-      // Use set with merge:true so it works for new AND existing docs
       await db.collection('users').doc(currentUser.uid).set(
         { displayName: name, homeChurch: church },
         { merge: true }
       );
-      // Update local cache
+      // Update in-memory profile cache
       if (!userProfile) userProfile = {};
       userProfile.displayName = name;
       userProfile.homeChurch  = church;
-      updateAvatarUI();
+      Cache.set('profile', userProfile, currentUser.uid);   // update cache
+      Cache.clear('directory', currentUser.uid);            // bust directory so new name shows
+      directoryLoaded = false;                              // force re-fetch next visit
+      // Refresh every piece of UI that shows the name/church
+      const ini = initials(name);
+      $('user-avatar').textContent    = ini;
+      $('profile-avatar').textContent = ini;
+      $('profile-name').textContent   = name;
+      $('profile-church').textContent = church;
       closeModal('edit-profile-modal');
       toast('Profile saved!', 'success');
     } catch (e) {
       console.error('saveProfile error:', e);
-      toast('Could not save profile. Please try again.', 'error');
+      toast('Could not save profile — please try again.', 'error');
     } finally {
       if (btn) { btn.textContent = 'Save Changes'; btn.disabled = false; }
     }
@@ -1979,6 +2642,7 @@
     try {
       await db.collection('users').doc(currentUser.uid).set({ defaultReminderMinutes:mins }, { merge:true });
       userProfile.defaultReminderMinutes = mins;
+      Cache.set('profile', userProfile, currentUser.uid);  // keep cache consistent
       $('default-reminder-label').textContent = reminderLabel(mins);
       closeModal('reminder-settings-modal');
       toast('Default reminder updated!', 'success');
