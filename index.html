@@ -411,16 +411,106 @@
     .empty-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--text-primary); margin-bottom: 6px; }
 
     /* ══════════════════════════════════════════════
+       ANNOUNCEMENTS / VIDEO
+    ══════════════════════════════════════════════ */
+    .video-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; padding: 0 16px 16px;
+    }
+    @media (min-width: 500px) { .video-grid { grid-template-columns: repeat(3,1fr); } }
+    .video-card {
+      background: var(--bg-card); border: 1px solid var(--border-soft);
+      border-radius: var(--radius); overflow: hidden;
+      cursor: pointer; transition: all 0.18s; position: relative;
+    }
+    .video-card:hover  { border-color: var(--border); transform: translateY(-2px); box-shadow: var(--shadow); }
+    .video-card:active { transform: scale(0.98); }
+    .video-thumb-wrap  { position: relative; aspect-ratio: 16/9; background: var(--bg-deep); overflow: hidden; }
+    .video-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .video-thumb-wrap img.errored { opacity: 0; }
+    .video-thumb-placeholder {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--bg-light), var(--bg-deep));
+      color: var(--text-dim);
+    }
+    .video-play-btn {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.28); transition: background 0.2s;
+    }
+    .video-card:hover .video-play-btn { background: rgba(0,0,0,0.45); }
+    .video-play-circle {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(201,168,76,0.92);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+      transition: transform 0.2s;
+    }
+    .video-card:hover .video-play-circle { transform: scale(1.1); }
+    .video-card-body { padding: 10px 10px 12px; }
+    .video-card-title {
+      font-size: 0.82rem; font-weight: 700; color: var(--text-primary);
+      line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .video-card-meta { font-size: 0.7rem; color: var(--text-dim); margin-top: 5px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .video-new-badge {
+      position: absolute; top: 6px; left: 6px; z-index: 1;
+      background: var(--crimson); color: #fff;
+      font-size: 0.58rem; font-weight: 700; letter-spacing: 0.05em;
+      padding: 2px 6px; border-radius: 4px; text-transform: uppercase;
+    }
+    /* Featured (first) video — full width */
+    .video-card.featured { grid-column: 1 / -1; display: flex; gap: 0; flex-direction: column; }
+    .video-card.featured .video-thumb-wrap { aspect-ratio: 16/9; }
+    .video-card.featured .video-play-circle { width: 52px; height: 52px; }
+    .video-card.featured .video-card-title { font-size: 1rem; -webkit-line-clamp: 3; }
+
+    /* YouTube player modal */
+    #yt-player-modal .modal-sheet { max-height: 96vh; }
+    .yt-iframe-wrap {
+      position: relative; width: 100%; aspect-ratio: 16/9;
+      background: #000; flex-shrink: 0;
+    }
+    .yt-iframe-wrap iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%; border: none;
+    }
+    .yt-video-info { padding: 16px 20px 20px; }
+    .yt-video-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--text-primary); margin-bottom: 6px; line-height: 1.35; }
+    .yt-video-meta  { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; }
+    .yt-video-desc  {
+      font-size: 0.84rem; color: var(--text-muted); line-height: 1.6;
+      display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .yt-video-desc.expanded { -webkit-line-clamp: unset; }
+    .yt-expand-btn {
+      background: none; border: none; color: var(--gold); cursor: pointer;
+      font-size: 0.8rem; font-weight: 700; padding: 4px 0; display: block; margin-top: 6px;
+    }
+    /* Announcements error/setup card */
+    .yt-setup-card {
+      margin: 16px; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+    }
+    .yt-setup-title { font-family: var(--font-display); font-size: 1rem; color: var(--gold); margin-bottom: 8px; }
+    .yt-setup-steps { font-size: 0.84rem; color: var(--text-muted); line-height: 1.8; }
+    .yt-setup-steps b { color: var(--text-primary); }
+
+    /* ══════════════════════════════════════════════
        BOTTOM NAV
     ══════════════════════════════════════════════ */
     .bottom-nav {
       flex-shrink: 0; background: var(--bg-mid); border-top: 1px solid var(--border-soft);
-      display: flex; padding-bottom: var(--safe-bottom);
+      display: flex; overflow-x: auto; scrollbar-width: none;
+      padding-bottom: var(--safe-bottom);
       height: calc(var(--nav-h) + var(--safe-bottom));
       position: relative; z-index: 10;
     }
+    .bottom-nav::-webkit-scrollbar { display: none; }
     .nav-item {
-      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+      flex: 0 0 calc(100% / 6); min-width: 60px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
       border: none; background: transparent; cursor: pointer; color: var(--text-dim);
       transition: color 0.2s; position: relative;
     }
@@ -907,6 +997,27 @@ service cloud.firestore {
       </div>
     </div>
 
+    <!-- ANNOUNCEMENTS -->
+    <div class="screen" id="screen-announcements">
+      <div class="section-header">
+        <span class="section-title">Messages &amp; Sermons</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="muted-text small-text" id="yt-sync-label" style="font-size:0.68rem;opacity:0.7"></span>
+          <button onclick="refreshAnnouncements()" title="Refresh videos"
+            style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:4px;display:flex;align-items:center;transition:color 0.2s"
+            onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-dim)'">
+            <svg id="yt-refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="yt-loading" class="empty-state hidden">
+        <div class="loader-ring" style="margin:0 auto 12px"></div>
+        <p class="muted-text">Loading videos…</p>
+      </div>
+      <div id="yt-error" class="hidden"></div>
+      <div id="yt-video-grid" class="video-grid"></div>
+    </div>
+
     <!-- MY SCHEDULE -->
     <div class="screen" id="screen-my-schedule">
       <div class="my-schedule-stats">
@@ -1135,6 +1246,10 @@ service cloud.firestore {
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <span class="nav-label">Schedule</span>
     </button>
+    <button class="nav-item" id="nav-announcements" onclick="showScreen('announcements')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      <span class="nav-label">Sermons</span>
+    </button>
     <button class="nav-item" id="nav-my-schedule" onclick="showScreen('my-schedule')">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       <span class="nav-label">My Plan</span>
@@ -1334,6 +1449,25 @@ service cloud.firestore {
   </div>
 </div>
 
+<!-- YOUTUBE VIDEO PLAYER -->
+<div class="modal-overlay hidden" id="yt-player-modal" onclick="closeModalOnOverlay(event,'yt-player-modal')">
+  <div class="modal-sheet" style="max-height:95vh">
+    <div class="modal-handle"></div>
+    <div class="modal-header" style="border-bottom:none;padding-bottom:0">
+      <button class="modal-close" onclick="closeYTModal()" style="margin-left:auto">✕</button>
+    </div>
+    <div class="yt-iframe-wrap" id="yt-iframe-wrap">
+      <!-- iframe injected by JS to prevent autoplay on load -->
+    </div>
+    <div class="yt-video-info" style="overflow-y:auto;max-height:260px">
+      <div class="yt-video-title" id="yt-modal-title"></div>
+      <div class="yt-video-meta"  id="yt-modal-meta"></div>
+      <div class="yt-video-desc"  id="yt-modal-desc"></div>
+      <button class="yt-expand-btn hidden" id="yt-expand-btn" onclick="toggleYTDesc()">Show more</button>
+    </div>
+  </div>
+</div>
+
 <!-- ════════════════════════════════════════════
      FIREBASE COMPAT SDK
 ════════════════════════════════════════════ -->
@@ -1358,7 +1492,9 @@ service cloud.firestore {
     measurementId:     'G-0M5WBTR83N'
   };
   const VAPID_KEY  = 'BBrSRxtM6M6j_FQoWdGPpjf2QodXhGyevf-5ng_MqXhdHV6OJQVcQful0X1wKWYxUpt3Gc_6IN-sfyDTbHGXGO8';
-  const GCAL_KEY   = 'AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg';
+  const GCAL_KEY    = 'AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg';
+  const YT_KEY      = 'AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg'; // same Google Cloud project
+  const YT_PLAYLIST = 'PLCvn5cgZDiQeejDd5FJd8Xv9YgcUUx1SC';
   const CALENDAR_ID = 'c_ab7c60e65ae19abaea378c282b6770147ad855d3c58c442c8fa611b7e5be2934@group.calendar.google.com';
 
   /* ══════════════════════════════════════════
@@ -1377,7 +1513,7 @@ service cloud.firestore {
        directory — 10 min  (shared, slightly stale OK)
        calendar  — 60 min  (external API, rate-limited)
   ══════════════════════════════════════════ */
-  const CACHE_TTL = { profile: 30*60*1000, directory: 10*60*1000, calendar: 60*60*1000 };
+  const CACHE_TTL = { profile: 30*60*1000, directory: 10*60*1000, calendar: 60*60*1000, youtube: 30*60*1000 };
 
   const Cache = {
     _key(name, uid) { return `ucjc_${name}_${uid || 'global'}`; },
@@ -1580,6 +1716,7 @@ service cloud.firestore {
     const s = $('screen-' + name), n = $('nav-' + name);
     if (s) s.classList.add('active');
     if (n) n.classList.add('active');
+    if (name === 'announcements') loadAnnouncements();
     if (name === 'my-schedule') refreshMySchedule();
     if (name === 'directory')   loadDirectory();
     if (name === 'chat')        initChat();
@@ -1974,6 +2111,239 @@ service cloud.firestore {
     navigator.clipboard.writeText(text)
       .then(() => toast('Rules copied to clipboard!', 'success'))
       .catch(() => toast('Select and copy the rules text manually.', 'info'));
+  };
+
+  /* ══════════════════════════════════════════
+     ANNOUNCEMENTS — YouTube Playlist
+  ══════════════════════════════════════════ */
+  let ytLoaded  = false;
+  let ytVideos  = [];  // { videoId, title, description, thumb, publishedAt, channelTitle }
+
+  function loadAnnouncements() {
+    if (ytLoaded) return;
+
+    // Serve cache immediately
+    const cached = Cache.get('youtube', currentUser?.uid, CACHE_TTL.youtube);
+    if (cached && cached.data && cached.data.length) {
+      ytVideos = cached.data;
+      renderVideos(ytVideos);
+      updateYTSyncLabel(cached.ts);
+      ytLoaded = true;
+      // Background refresh
+      _fetchYouTubeBackground();
+      return;
+    }
+
+    // No cache — show spinner and wait
+    $('yt-loading').classList.remove('hidden');
+    $('yt-video-grid').innerHTML = '';
+    _fetchYouTubeBackground();
+  }
+
+  async function _fetchYouTubeBackground() {
+    try {
+      // Fetch up to 50 items from the playlist
+      const url = `https://www.googleapis.com/youtube/v3/playlistItems`
+        + `?part=snippet&playlistId=${YT_PLAYLIST}&maxResults=50&key=${YT_KEY}`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+
+      if (data.error) {
+        const code = data.error.code;
+        const msg  = data.error.message || '';
+        if (code === 403 && msg.toLowerCase().includes('disabled')) {
+          showYTSetupError('api_disabled');
+        } else if (code === 403) {
+          showYTSetupError('key_restricted');
+        } else if (code === 404) {
+          showYTSetupError('playlist_not_found');
+        } else {
+          showYTSetupError('generic', msg);
+        }
+        return;
+      }
+
+      const items = (data.items || []).filter(i =>
+        i.snippet?.resourceId?.kind === 'youtube#video' &&
+        i.snippet?.title !== 'Deleted video' &&
+        i.snippet?.title !== 'Private video'
+      );
+
+      ytVideos = items.map(i => ({
+        videoId:      i.snippet.resourceId.videoId,
+        title:        i.snippet.title,
+        description:  i.snippet.description || '',
+        thumb:        i.snippet.thumbnails?.high?.url
+                   || i.snippet.thumbnails?.medium?.url
+                   || i.snippet.thumbnails?.default?.url || '',
+        publishedAt:  i.snippet.publishedAt || '',
+        channelTitle: i.snippet.videoOwnerChannelTitle || i.snippet.channelTitle || ''
+      }));
+
+      if (!ytVideos.length) {
+        $('yt-video-grid').innerHTML = '';
+        $('yt-error').classList.remove('hidden');
+        $('yt-error').innerHTML = `<div class="empty-state">
+          <div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div class="empty-title">No videos yet</div>
+          <p class="muted-text small-text">Videos added to the playlist will appear here.</p>
+        </div>`;
+        return;
+      }
+
+      Cache.set('youtube', ytVideos, currentUser?.uid);
+      $('yt-error').classList.add('hidden');
+      renderVideos(ytVideos);
+      updateYTSyncLabel(Date.now());
+      ytLoaded = true;
+
+    } catch (err) {
+      console.error('YouTube fetch error:', err);
+      if (!ytVideos.length) showYTSetupError('network');
+    } finally {
+      $('yt-loading').classList.add('hidden');
+    }
+  }
+
+  function renderVideos(videos) {
+    const grid = $('yt-video-grid');
+    if (!grid) return;
+    const now = Date.now();
+    grid.innerHTML = videos.map((v, i) => {
+      const isNew     = v.publishedAt && (now - new Date(v.publishedAt).getTime()) < 7 * 86400000;
+      const featured  = i === 0 ? ' featured' : '';
+      const dateStr   = v.publishedAt ? new Date(v.publishedAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+      return `<div class="video-card${featured}" onclick="openVideo(${i})">
+        ${isNew && i > 0 ? '<span class="video-new-badge">New</span>' : ''}
+        <div class="video-thumb-wrap">
+          <div class="video-thumb-placeholder">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          </div>
+          ${v.thumb ? `<img src="${escHtml(v.thumb)}" alt="" loading="lazy" onerror="this.classList.add('errored')"/>` : ''}
+          <div class="video-play-btn">
+            <div class="video-play-circle">
+              <svg width="${featured ? 22 : 14}" height="${featured ? 22 : 14}" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+          ${isNew && i === 0 ? '<span class="video-new-badge">New</span>' : ''}
+        </div>
+        <div class="video-card-body">
+          <div class="video-card-title">${escHtml(v.title)}</div>
+          <div class="video-card-meta">
+            ${dateStr ? `<span>${dateStr}</span>` : ''}
+            ${v.channelTitle ? `<span>· ${escHtml(v.channelTitle)}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function updateYTSyncLabel(ts, stale = false) {
+    const el = $('yt-sync-label'); if (!el || !ts) return;
+    const mins = Math.round((Date.now() - ts) / 60000);
+    const t = mins < 1 ? 'just now' : mins < 60 ? `${mins}m ago` : `${Math.round(mins/60)}h ago`;
+    el.textContent = stale ? `cached ${t}` : `synced ${t}`;
+  }
+
+  function showYTSetupError(type, extra) {
+    const el = $('yt-error'); if (!el) return;
+    $('yt-video-grid').innerHTML = '';
+    $('yt-loading').classList.add('hidden');
+    el.classList.remove('hidden');
+
+    const msgs = {
+      api_disabled: {
+        title: 'YouTube API Not Enabled',
+        steps: `The <b>YouTube Data API v3</b> needs to be enabled for your Google API key.<br><br>
+          <b>1.</b> Go to <b>console.cloud.google.com</b><br>
+          <b>2.</b> Select your project (same one as your Calendar &amp; Firebase)<br>
+          <b>3.</b> Search <b>"YouTube Data API v3"</b> in the API Library<br>
+          <b>4.</b> Click <b>Enable</b> — it's free for read-only usage<br>
+          <b>5.</b> Wait 1–2 minutes, then refresh this screen`
+      },
+      key_restricted: {
+        title: 'API Key Restriction',
+        steps: `Your API key may be restricted to specific APIs or domains.<br><br>
+          <b>1.</b> Go to <b>console.cloud.google.com → APIs &amp; Services → Credentials</b><br>
+          <b>2.</b> Click your API key<br>
+          <b>3.</b> Under <b>API restrictions</b>, add <b>YouTube Data API v3</b><br>
+          <b>4.</b> Save and wait 1–2 minutes`
+      },
+      playlist_not_found: {
+        title: 'Playlist Not Found',
+        steps: `The playlist could not be found. It may be set to <b>Private</b>.<br><br>
+          <b>1.</b> Open YouTube Studio<br>
+          <b>2.</b> Go to <b>Playlists</b> and find <em>PLCvn5cgZDiQeejDd5FJd8Xv9YgcUUx1SC</em><br>
+          <b>3.</b> Set the visibility to <b>Public</b> or <b>Unlisted</b>`
+      },
+      network: {
+        title: 'Could Not Connect',
+        steps: `Check your internet connection and try again.`
+      },
+      generic: {
+        title: 'YouTube Error',
+        steps: extra ? escHtml(extra) : 'An unexpected error occurred. Please try again.'
+      }
+    };
+
+    const m = msgs[type] || msgs.generic;
+    el.innerHTML = `<div class="yt-setup-card">
+      <div class="yt-setup-title">⚠ ${m.title}</div>
+      <div class="yt-setup-steps">${m.steps}</div>
+      <button class="btn btn-outline btn-sm" style="margin-top:14px" onclick="refreshAnnouncements()">Retry</button>
+    </div>`;
+  }
+
+  window.refreshAnnouncements = function () {
+    ytLoaded = false;
+    Cache.clear('youtube', currentUser?.uid);
+    $('yt-error').classList.add('hidden');
+    $('yt-video-grid').innerHTML = '';
+    const icon = $('yt-refresh-icon');
+    if (icon) icon.style.animation = 'spin 0.7s linear infinite';
+    $('yt-loading').classList.remove('hidden');
+    _fetchYouTubeBackground().then(() => {
+      if (icon) icon.style.animation = '';
+    });
+  };
+
+  /* ── Video player modal ────────────────── */
+  window.openVideo = function (idx) {
+    const v = ytVideos[idx]; if (!v) return;
+    const wrap = $('yt-iframe-wrap');
+    // Inject iframe only when opening — prevents autoplaying in background
+    wrap.innerHTML = `<iframe
+      src="https://www.youtube.com/embed/${escHtml(v.videoId)}?autoplay=1&rel=0&modestbranding=1"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen></iframe>`;
+    $('yt-modal-title').textContent = v.title;
+    const date = v.publishedAt ? new Date(v.publishedAt).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : '';
+    $('yt-modal-meta').textContent = [v.channelTitle, date].filter(Boolean).join(' · ');
+    const descEl = $('yt-modal-desc');
+    descEl.textContent = v.description || '';
+    descEl.classList.remove('expanded');
+    const expandBtn = $('yt-expand-btn');
+    // Show "show more" only if description is long enough to be clamped
+    if (v.description && v.description.length > 120) {
+      expandBtn.classList.remove('hidden');
+      expandBtn.textContent = 'Show more';
+    } else {
+      expandBtn.classList.add('hidden');
+    }
+    $('yt-player-modal').classList.remove('hidden');
+  };
+
+  window.closeYTModal = function () {
+    // Remove iframe to stop video playback immediately
+    $('yt-iframe-wrap').innerHTML = '';
+    closeModal('yt-player-modal');
+  };
+
+  window.toggleYTDesc = function () {
+    const el  = $('yt-modal-desc');
+    const btn = $('yt-expand-btn');
+    const expanded = el.classList.toggle('expanded');
+    btn.textContent = expanded ? 'Show less' : 'Show more';
   };
 
   /* ── DATE TABS ──────────────────────────── */
