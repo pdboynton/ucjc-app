@@ -1,7 +1,7 @@
 {
-  "name": "UCJC Holy Convocation",
-  "short_name": "Convocation",
-  "description": "United Churches of Jesus Christ Holy Convocation App",
+  "name": "United Church of Jesus Christ",
+  "short_name": "UCJC(A)",
+  "description": "United Church of Jesus Christ (Apostolic) App",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A1628",
@@ -9,15 +9,15 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230A1628'/><text y='140' x='96' text-anchor='middle' font-size='120' fill='%23C9A84C'>✝</text></svg>",
+      "src": "logo.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230A1628'/><text y='380' x='256' text-anchor='middle' font-size='320' fill='%23C9A84C'>✝</text></svg>",
+      "src": "logo.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
