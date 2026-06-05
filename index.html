@@ -38,7 +38,6 @@
       --radius-sm: 8px;
       --font-display: 'Playfair Display', serif;
       --font-body:    'Lato', sans-serif;
-      --nav-h: 68px;
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
@@ -340,7 +339,7 @@
     .screen {
       position: absolute; inset: 0;
       overflow-y: auto; -webkit-overflow-scrolling: touch;
-      padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px);
+      padding-bottom: calc(var(--safe-bottom) + 24px);
       display: none;
     }
     .screen.active { display: block; }
@@ -524,34 +523,199 @@
     .yt-setup-steps b { color: var(--text-primary); }
 
     /* ══════════════════════════════════════════════
-       BOTTOM NAV  (visible ≥ 430px)
+       BOTTOM NAV — removed; nav lives in side drawer
+       (keeping .nav-badge for DM/chat unread counts)
     ══════════════════════════════════════════════ */
-    .bottom-nav {
-      flex-shrink: 0; background: var(--bg-mid); border-top: 1px solid var(--border-soft);
-      display: flex;
-      padding-bottom: var(--safe-bottom);
-      height: calc(var(--nav-h) + var(--safe-bottom));
-      position: relative; z-index: 10;
-    }
-    .nav-item {
-      flex: 1; min-width: 0;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-      border: none; background: transparent; cursor: pointer; color: var(--text-dim);
-      transition: color 0.2s; position: relative; padding: 0 4px;
-    }
-    .nav-item.active { color: var(--gold); }
-    .nav-item.active::before {
-      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-      width: 28px; height: 2.5px; background: var(--gold); border-radius: 0 0 3px 3px;
-    }
-    .nav-label { font-size: 0.6rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 700; }
     .nav-badge {
-      position: absolute; top: 8px; right: calc(50% - 16px);
-      background: var(--crimson); color: #fff; font-size: 0.58rem; font-weight: 700;
-      min-width: 16px; height: 16px; border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
+      background: var(--crimson); color: #fff; font-size: 0.58rem;
+      font-weight: 700; min-width: 16px; height: 16px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
       padding: 0 4px; border: 2px solid var(--bg-mid);
     }
+
+    /* ══════════════════════════════════════════════
+       HAMBURGER BUTTON — always visible in header
+    ══════════════════════════════════════════════ */
+    #hamburger-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px; border-radius: var(--radius-sm);
+      background: var(--input-bg); border: 1px solid var(--border-soft);
+      cursor: pointer; color: var(--text-primary); flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    #hamburger-btn:hover { background: var(--bg-light); color: var(--gold); }
+    #hamburger-btn.open  { color: var(--gold); border-color: var(--border); }
+
+    /* ══════════════════════════════════════════════
+       SIDE DRAWER — full-height right panel
+    ══════════════════════════════════════════════ */
+    #nav-drawer-overlay {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: var(--overlay-bg); backdrop-filter: blur(4px);
+    }
+    #nav-drawer-overlay.open { display: block; animation: fade-in 0.2s ease; }
+
+    #nav-drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 501;
+      width: min(300px, 88vw);
+      background: var(--bg-mid); border-left: 1px solid var(--border-soft);
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: -8px 0 32px rgba(0,0,0,0.35);
+      overflow: hidden;
+    }
+    #nav-drawer.open { transform: translateX(0); }
+
+    /* Drawer header — profile section */
+    .drawer-profile {
+      flex-shrink: 0; padding: 20px 20px 16px;
+      padding-top: calc(env(safe-area-inset-top,0px) + 20px);
+      background: linear-gradient(160deg, var(--bg-card), var(--bg-light));
+      border-bottom: 1px solid var(--border-soft);
+      display: flex; align-items: center; gap: 13px;
+    }
+    .drawer-avatar {
+      width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--gold), #8a5c18);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #fff; font-size: 1rem;
+      border: 2px solid var(--border);
+    }
+    .drawer-profile-info { flex: 1; min-width: 0; }
+    .drawer-profile-name   { font-weight: 700; font-size: 0.95rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer-profile-church { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer-close-btn {
+      width: 30px; height: 30px; border-radius: 50%; background: var(--input-bg);
+      border: 1px solid var(--border-soft); color: var(--text-muted);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; flex-shrink: 0; transition: all 0.15s;
+    }
+    .drawer-close-btn:hover { background: var(--bg-light); color: var(--text-primary); }
+
+    /* Drawer nav list */
+    .drawer-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .drawer-nav-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 20px; border: none; background: transparent;
+      cursor: pointer; color: var(--text-muted); width: 100%;
+      font-family: var(--font-body); font-size: 0.9rem; font-weight: 600;
+      transition: all 0.15s; position: relative; text-align: left;
+    }
+    .drawer-nav-item:hover  { background: var(--input-bg); color: var(--text-primary); }
+    .drawer-nav-item.active { background: rgba(201,168,76,0.10); color: var(--gold); }
+    .drawer-nav-item.active::before {
+      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
+      width: 3px; background: var(--gold); border-radius: 0 2px 2px 0;
+    }
+    .drawer-nav-icon { width: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .drawer-nav-label { flex: 1; }
+    .drawer-nav-badge {
+      background: var(--crimson); color: #fff; border-radius: 10px;
+      font-size: 0.62rem; font-weight: 700; padding: 1px 6px;
+      min-width: 18px; text-align: center;
+    }
+    .drawer-section-label {
+      font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-dim); font-weight: 700; padding: 14px 20px 4px;
+    }
+    .drawer-divider { height: 1px; background: var(--border-soft); margin: 6px 0; }
+
+    /* Drawer footer */
+    .drawer-footer {
+      flex-shrink: 0; padding: 12px 16px;
+      padding-bottom: calc(env(safe-area-inset-bottom,0px) + 12px);
+      border-top: 1px solid var(--border-soft);
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .drawer-give-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px; border-radius: var(--radius-sm); border: none;
+      background: linear-gradient(135deg, var(--gold), #8a5c18);
+      color: #fff; font-family: var(--font-body); font-size: 0.85rem;
+      font-weight: 700; cursor: pointer; transition: all 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .drawer-give-btn:hover { filter: brightness(1.1); }
+    .drawer-theme-row {
+      display: flex; align-items: center; gap: 12px; padding: 6px 4px;
+    }
+    .drawer-theme-label { flex: 1; font-size: 0.84rem; color: var(--text-muted); font-family: var(--font-body); }
+    .drawer-signout-btn {
+      display: flex; align-items: center; gap: 10px; padding: 10px 4px;
+      border: none; background: transparent; cursor: pointer;
+      color: var(--crimson); font-family: var(--font-body); font-size: 0.84rem;
+      font-weight: 600; transition: opacity 0.15s; text-align: left;
+    }
+    .drawer-signout-btn:hover { opacity: 0.75; }
+
+    /* ══════════════════════════════════════════════
+       HOME / DASHBOARD SCREEN
+    ══════════════════════════════════════════════ */
+    .home-hero {
+      background: linear-gradient(160deg, var(--bg-card) 0%, var(--bg-light) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 18px 18px; margin-bottom: 4px;
+    }
+    .home-greeting {
+      font-family: var(--font-display); font-size: 1.4rem;
+      color: var(--text-primary); line-height: 1.2; margin-bottom: 4px;
+    }
+    .home-greeting em { color: var(--gold); font-style: italic; }
+    .home-subgreeting { font-size: 0.82rem; color: var(--text-muted); }
+
+    .home-banner-card {
+      margin: 12px 16px 0; padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(139,38,53,0.06));
+      border: 1px solid var(--border); border-radius: var(--radius);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .home-banner-icon { color: var(--gold); flex-shrink: 0; }
+    .home-banner-title { font-family: var(--font-display); font-size: 0.95rem; color: var(--gold); }
+    .home-banner-meta  { font-size: 0.74rem; color: var(--text-muted); margin-top: 3px; }
+
+    .home-quick-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 10px; padding: 0 16px;
+    }
+    .home-quick-card {
+      background: var(--bg-card); border: 1px solid var(--border-soft);
+      border-radius: var(--radius); padding: 16px 10px 14px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      cursor: pointer; transition: all 0.18s; position: relative;
+    }
+    .home-quick-card:hover  { background: var(--bg-light); border-color: var(--border); transform: translateY(-2px); }
+    .home-quick-card:active { transform: scale(0.97); }
+    .home-quick-icon  { color: var(--gold); }
+    .home-quick-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.04em; text-align: center; text-transform: uppercase; }
+    .home-quick-badge {
+      position: absolute; top: 8px; right: 8px;
+      background: var(--crimson); color: #fff; border-radius: 8px;
+      font-size: 0.58rem; font-weight: 700; padding: 1px 5px;
+    }
+
+    .home-upcoming-card {
+      background: var(--bg-card); border: 1px solid var(--border-soft);
+      border-left: 3px solid var(--gold); border-radius: var(--radius);
+      padding: 12px 14px; display: flex; gap: 12px; align-items: center;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .home-upcoming-card:hover { background: var(--bg-light); }
+    .home-upcoming-time { flex-shrink: 0; text-align: right; min-width: 48px; }
+    .home-upcoming-start { font-size: 0.8rem; font-weight: 700; color: var(--gold); }
+    .home-upcoming-end   { font-size: 0.7rem; color: var(--text-dim); }
+    .home-upcoming-title { font-weight: 700; font-size: 0.88rem; color: var(--text-primary); margin-bottom: 3px; }
+    .home-upcoming-loc   { font-size: 0.74rem; color: var(--text-muted); }
+
+    .home-notif-card {
+      background: var(--bg-card); border: 1px solid var(--border-soft);
+      border-radius: var(--radius); padding: 13px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .home-notif-icon { color: var(--gold); flex-shrink: 0; margin-top: 1px; }
+    .home-notif-title { font-weight: 700; font-size: 0.88rem; color: var(--text-primary); margin-bottom: 3px; }
+    .home-notif-body  { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+    .home-notif-time  { font-size: 0.68rem; color: var(--text-dim); margin-top: 4px; }
 
     /* ══════════════════════════════════════════════
        MODALS
@@ -934,71 +1098,6 @@
       animation: fade-in 0.3s ease 0.5s both;
     }
 
-    /* ══════════════════════════════════════════════
-       HAMBURGER BUTTON  (visible < 430px only)
-    ══════════════════════════════════════════════ */
-    #hamburger-btn {
-      display: none;            /* hidden by default; shown via media query below */
-      align-items: center; justify-content: center;
-      width: 38px; height: 38px; border-radius: var(--radius-sm);
-      background: var(--input-bg); border: 1px solid var(--border-soft);
-      cursor: pointer; color: var(--text-primary); flex-shrink: 0;
-      transition: background 0.15s, color 0.15s;
-    }
-    #hamburger-btn:hover { background: var(--bg-light); color: var(--gold); }
-    #hamburger-btn.open  { color: var(--gold); border-color: var(--border); }
-
-    /* ══════════════════════════════════════════════
-       NAV DRAWER  (slide-up sheet used on small screens)
-    ══════════════════════════════════════════════ */
-    #nav-drawer-overlay {
-      display: none;
-      position: fixed; inset: 0; z-index: 500;
-      background: var(--overlay-bg); backdrop-filter: blur(4px);
-    }
-    #nav-drawer-overlay.open { display: block; animation: fade-in 0.2s ease; }
-
-    #nav-drawer {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 501;
-      background: var(--bg-mid); border-radius: var(--radius) var(--radius) 0 0;
-      border-top: 1px solid var(--border-soft);
-      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
-      transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-      box-shadow: 0 -8px 32px rgba(0,0,0,0.35);
-    }
-    #nav-drawer.open { transform: translateY(0); }
-
-    .drawer-handle {
-      width: 38px; height: 4px; border-radius: 2px;
-      background: var(--border-soft); margin: 12px auto 6px;
-    }
-    .drawer-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 4px; padding: 8px 12px 4px;
-    }
-    .drawer-item {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 7px; padding: 14px 8px; border-radius: var(--radius-sm);
-      border: none; background: transparent; cursor: pointer;
-      color: var(--text-dim); transition: all 0.18s; position: relative;
-    }
-    .drawer-item:hover  { background: var(--input-bg); color: var(--text-primary); }
-    .drawer-item.active { background: rgba(201,168,76,0.10); color: var(--gold); }
-    .drawer-item-label  {
-      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em;
-      text-transform: uppercase; line-height: 1;
-    }
-    .drawer-item .nav-badge {
-      position: absolute; top: 8px; right: calc(50% - 18px);
-    }
-
-    /* ── Responsive switch ─────────────────────── */
-    @media (max-width: 429px) {
-      .bottom-nav    { display: none !important; }
-      #hamburger-btn { display: flex; }
-    }
-
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
@@ -1040,6 +1139,25 @@ service cloud.firestore {
     }
     match /feedback/{doc=**} {
       allow read, write: if request.auth != null;
+    }
+    match /notifications/{id} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /chatGroups/{groupId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+      match /members/{userId} {
+        allow read: if request.auth != null &amp;&amp; request.auth.uid == userId;
+        allow write: if false;
+      }
+      match /messages/{messageId} {
+        allow read: if request.auth != null &amp;&amp;
+          exists(/databases/$(database)/documents/chatGroups/$(groupId)/members/$(request.auth.uid));
+        allow create: if request.auth != null &amp;&amp;
+          exists(/databases/$(database)/documents/chatGroups/$(groupId)/members/$(request.auth.uid));
+        allow update, delete: if false;
+      }
     }
   }
 }</pre>
@@ -1124,14 +1242,6 @@ service cloud.firestore {
       Holy Convocation
       <small><span class="connection-dot" id="conn-dot"></span>&nbsp;<span id="conn-label">Connected</span></small>
     </div>
-    <button class="give-btn" onclick="openGiving()" title="Give / Donate">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-    </button>
-    <button class="theme-btn" id="header-theme-btn" onclick="toggleTheme(document.documentElement.getAttribute('data-theme')!=='light')" title="Toggle light/dark theme">
-      <span id="header-theme-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      </span>
-    </button>
     <button id="hamburger-btn" onclick="toggleDrawer()" aria-label="Navigation menu" aria-expanded="false">
       <svg id="hamburger-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="3" y1="6"  x2="21" y2="6"/>
@@ -1139,7 +1249,6 @@ service cloud.firestore {
         <line x1="3" y1="18" x2="21" y2="18"/>
       </svg>
     </button>
-    <div class="header-avatar" id="user-avatar" onclick="showScreen('profile')" title="My Profile">?</div>
   </header>
 
   <div id="convocation-banner">
@@ -1156,6 +1265,80 @@ service cloud.firestore {
   </div>
 
   <div class="app-content">
+
+    <!-- HOME / DASHBOARD -->
+    <div class="screen active" id="screen-home">
+      <!-- Greeting -->
+      <div class="home-hero">
+        <div class="home-greeting">Welcome back,<br/><em id="home-greeting-name">Friend</em></div>
+        <div class="home-subgreeting" id="home-subgreeting">UCJC Holy Convocation</div>
+      </div>
+
+      <!-- Convocation Banner -->
+      <div class="home-banner-card">
+        <span class="home-banner-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </span>
+        <div>
+          <div class="home-banner-title" id="home-banner-title">Loading schedule…</div>
+          <div class="home-banner-meta"  id="home-banner-meta"></div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section-header" style="margin-top:18px"><span class="section-title">Quick Access</span></div>
+      <div class="home-quick-grid">
+        <div class="home-quick-card" onclick="showScreen('schedule')">
+          <span class="home-quick-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          <span class="home-quick-label">Schedule</span>
+        </div>
+        <div class="home-quick-card" onclick="showScreen('chat')">
+          <span class="home-quick-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          <span class="home-quick-label">Chat</span>
+          <span class="home-quick-badge hidden" id="home-chat-badge"></span>
+        </div>
+        <div class="home-quick-card" onclick="showScreen('announcements')">
+          <span class="home-quick-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+          <span class="home-quick-label">Updates</span>
+        </div>
+        <div class="home-quick-card" onclick="showScreen('directory')">
+          <span class="home-quick-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          <span class="home-quick-label">Directory</span>
+        </div>
+        <div class="home-quick-card" onclick="openMap()">
+          <span class="home-quick-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
+          <span class="home-quick-label">Venue Map</span>
+        </div>
+        <div class="home-quick-card" onclick="openGiving()">
+          <span class="home-quick-icon" style="color:var(--crimson)"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+          <span class="home-quick-label">Give</span>
+        </div>
+      </div>
+
+      <!-- Today's Sessions -->
+      <div class="section-header" style="margin-top:18px">
+        <span class="section-title">Today's Sessions</span>
+        <button class="btn-link" onclick="showScreen('schedule')" style="font-size:0.78rem">See all</button>
+      </div>
+      <div id="home-today-list" style="padding:0 16px;display:flex;flex-direction:column;gap:8px">
+        <div class="empty-state" style="padding:24px 0">
+          <div class="loader-ring" style="margin:0 auto 10px"></div>
+          <p class="muted-text small-text">Loading…</p>
+        </div>
+      </div>
+
+      <!-- Latest Notification -->
+      <div class="section-header" style="margin-top:18px">
+        <span class="section-title">Latest Update</span>
+        <button class="btn-link" onclick="showScreen('announcements')" style="font-size:0.78rem">See all</button>
+      </div>
+      <div id="home-latest-notif" style="padding:0 16px 8px">
+        <div style="background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:10px;color:var(--text-dim);font-size:0.82rem">
+          <div class="loader-ring" style="width:18px;height:18px;border-width:2px;flex-shrink:0"></div>
+          Loading…
+        </div>
+      </div>
+    </div>
 
     <!-- SCHEDULE -->
     <div class="screen active" id="screen-schedule">
@@ -1294,6 +1477,11 @@ service cloud.firestore {
             Prayer Requests
             <span class="tab-unread-badge hidden" id="prayer-tab-badge"></span>
           </button>
+          <!-- Dynamic group tabs injected here by loadUserGroups() -->
+          <div id="groups-loading-tab" style="display:none;align-items:center;gap:6px;padding:0 10px;color:var(--text-dim);font-size:0.75rem;flex-shrink:0">
+            <div class="loader-ring" style="width:14px;height:14px;border-width:2px"></div>
+            Loading…
+          </div>
         </div>
 
         <div class="chat-panel active" id="panel-global">
@@ -1438,69 +1626,88 @@ service cloud.firestore {
 
   </div><!-- end app-content -->
 
-  <!-- NAV DRAWER (small screens only) -->
+  <!-- SIDE NAV DRAWER -->
   <div id="nav-drawer-overlay" onclick="closeDrawer()"></div>
   <div id="nav-drawer" role="dialog" aria-label="Navigation">
-    <div class="drawer-handle"></div>
-    <div class="drawer-grid">
-      <button class="drawer-item active" id="drawer-schedule" onclick="showScreenFromDrawer('schedule')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span class="drawer-item-label">Schedule</span>
+
+    <!-- Profile section -->
+    <div class="drawer-profile">
+      <div class="drawer-avatar" id="drawer-avatar">?</div>
+      <div class="drawer-profile-info">
+        <div class="drawer-profile-name"   id="drawer-name">Loading…</div>
+        <div class="drawer-profile-church" id="drawer-church"></div>
+      </div>
+      <button class="drawer-close-btn" onclick="closeDrawer()" aria-label="Close menu">✕</button>
+    </div>
+
+    <!-- Nav items -->
+    <nav class="drawer-nav">
+      <div class="drawer-section-label">Navigation</div>
+
+      <button class="drawer-nav-item active" id="drawer-home" onclick="showScreenFromDrawer('home')">
+        <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+        <span class="drawer-nav-label">Home</span>
       </button>
-      <button class="drawer-item" id="drawer-announcements" onclick="showScreenFromDrawer('announcements')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span class="drawer-item-label">Updates</span>
+      <button class="drawer-nav-item" id="drawer-schedule" onclick="showScreenFromDrawer('schedule')">
+        <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+        <span class="drawer-nav-label">Schedule</span>
       </button>
-      <button class="drawer-item" id="drawer-my-schedule" onclick="showScreenFromDrawer('my-schedule')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        <span class="drawer-item-label">My Plan</span>
-        <span class="nav-badge hidden" id="drawer-plan-badge"></span>
+      <button class="drawer-nav-item" id="drawer-announcements" onclick="showScreenFromDrawer('announcements')">
+        <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+        <span class="drawer-nav-label">Updates</span>
       </button>
-      <button class="drawer-item" id="drawer-directory" onclick="showScreenFromDrawer('directory')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span class="drawer-item-label">Directory</span>
+      <button class="drawer-nav-item" id="drawer-my-schedule" onclick="showScreenFromDrawer('my-schedule')">
+        <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+        <span class="drawer-nav-label">My Plan</span>
+        <span class="drawer-nav-badge hidden" id="drawer-plan-badge"></span>
       </button>
-      <button class="drawer-item" id="drawer-chat" onclick="showScreenFromDrawer('chat')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <span class="drawer-item-label">Chat</span>
-        <span class="nav-badge hidden" id="drawer-chat-badge"></span>
+      <button class="drawer-nav-item" id="drawer-directory" onclick="showScreenFromDrawer('directory')">
+        <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <span class="drawer-nav-label">Directory</span>
       </button>
-      <button class="drawer-item" id="drawer-map" onclick="openMap();closeDrawer()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-        <span class="drawer-item-label">Map</span>
+      <button class="drawer-nav-item" id="drawer-chat" onclick="showScreenFromDrawer('chat')">
+        <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        <span class="drawer-nav-label">Chat</span>
+        <span class="drawer-nav-badge hidden" id="drawer-chat-badge"></span>
+      </button>
+      <button class="drawer-nav-item" id="drawer-profile" onclick="showScreenFromDrawer('profile')">
+        <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span class="drawer-nav-label">Profile &amp; Settings</span>
+      </button>
+
+      <div class="drawer-divider"></div>
+      <div class="drawer-section-label">Tools</div>
+
+      <button class="drawer-nav-item" id="drawer-map" onclick="openMap();closeDrawer()">
+        <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
+        <span class="drawer-nav-label">Venue Map</span>
+      </button>
+    </nav>
+
+    <!-- Footer: Give, Theme, Sign Out -->
+    <div class="drawer-footer">
+      <button class="drawer-give-btn" onclick="openGiving();closeDrawer()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Give / Donate
+      </button>
+      <div class="drawer-theme-row">
+        <span class="drawer-nav-icon" id="drawer-theme-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </span>
+        <span class="drawer-theme-label" id="drawer-theme-label">Light Theme</span>
+        <label class="toggle">
+          <input type="checkbox" id="drawer-theme-toggle" onchange="toggleTheme(this.checked)"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="drawer-signout-btn" onclick="handleSignOut();closeDrawer()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
       </button>
     </div>
   </div>
 
-  <nav class="bottom-nav">
-    <button class="nav-item active" id="nav-schedule" onclick="showScreen('schedule')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span class="nav-label">Schedule</span>
-    </button>
-    <button class="nav-item" id="nav-announcements" onclick="showScreen('announcements')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      <span class="nav-label">Updates</span>
-    </button>
-    <button class="nav-item" id="nav-my-schedule" onclick="showScreen('my-schedule')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-      <span class="nav-label">My Plan</span>
-      <span class="nav-badge hidden" id="my-plan-badge">0</span>
-    </button>
-    <button class="nav-item" id="nav-directory" onclick="showScreen('directory')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <span class="nav-label">Directory</span>
-    </button>
-    <button class="nav-item" id="nav-chat" onclick="showScreen('chat')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span class="nav-label">Chat</span>
-      <span class="nav-badge hidden" id="chat-badge">0</span>
-    </button>
-    <button class="nav-item" id="nav-map" onclick="openMap()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-      <span class="nav-label">Map</span>
-    </button>
-  </nav>
-</div>
+</div><!-- end #app -->
 
 <!-- ════════ MODALS ════════ -->
 
@@ -1835,11 +2042,16 @@ service cloud.firestore {
   let globalUnread       = 0;          // unread group chat messages
   let prayerUnread       = 0;          // unread prayer messages
   let msgCounts          = { global: -1, prayer: -1 }; // -1 = not yet initialised
+  // Dynamic chat groups
+  let userGroups         = [];         // { id, name, description } — groups user belongs to
+  let groupUnsubs        = {};         // groupId → unsubscribe function
+  let groupMsgCounts     = {};         // groupId → last known message count
+  let groupUnread        = {};         // groupId → unread count
   let deferredInstall    = null;
   let scheduledReminders = {};
   let notificationUnsubscribe = null;
   let lastNotificationSeen    = null;
-  let unsub = { bookmarks:null, notes:null, globalChat:null, prayerChat:null, dmChat:null, dmList:null, directory:null };
+  let unsub = { bookmarks:null, notes:null, globalChat:null, prayerChat:null, dmChat:null, dmList:null, directory:null, groupsList:null };
 
   /* ══════════════════════════════════════════
      HELPERS
@@ -1917,18 +2129,20 @@ service cloud.firestore {
     html.setAttribute('data-theme', isLight ? 'light' : 'dark');
     const mc = $('meta-theme');
     if (mc) mc.content = isLight ? '#FDFAF5' : '#0A1628';
-    // Sync profile-screen toggle
-    const tog = $('theme-toggle');
-    if (tog) tog.checked = isLight;
-    const lbl = $('theme-label');
-    if (lbl) lbl.textContent = isLight ? 'Light Theme (On)' : 'Light Theme';
-    // Sync header button icon: show moon when light (to switch to dark), sun when dark
-    const sunSvg  = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
-    const moonSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-    const headerIcon = $('header-theme-icon');
-    if (headerIcon) headerIcon.innerHTML = isLight ? moonSvg : sunSvg;
-    const settingsIcon = $('theme-icon');
-    if (settingsIcon) settingsIcon.innerHTML = isLight ? moonSvg : sunSvg;
+
+    const sunSvg  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const moonSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
+    // Profile screen toggle
+    const tog = $('theme-toggle');       if (tog) tog.checked = isLight;
+    const lbl = $('theme-label');        if (lbl) lbl.textContent = isLight ? 'Light Theme (On)' : 'Light Theme';
+    const si  = $('theme-icon');         if (si)  si.innerHTML = isLight ? moonSvg : sunSvg;
+
+    // Drawer footer toggle
+    const dt  = $('drawer-theme-toggle'); if (dt)  dt.checked = isLight;
+    const dl  = $('drawer-theme-label');  if (dl)  dl.textContent = isLight ? 'Light Theme (On)' : 'Light Theme';
+    const di  = $('drawer-theme-icon');   if (di)  di.innerHTML = isLight ? moonSvg : sunSvg;
+
     localStorage.setItem('ucjc-theme', isLight ? 'light' : 'dark');
   }
 
@@ -1969,65 +2183,43 @@ service cloud.firestore {
   }
 
   /* ══════════════════════════════════════════
-     HAMBURGER DRAWER  (small screens)
+     SIDE DRAWER
   ══════════════════════════════════════════ */
   let drawerOpen = false;
 
-  window.toggleDrawer = function () {
-    drawerOpen ? closeDrawer() : openDrawer();
-  };
+  window.toggleDrawer = function () { drawerOpen ? closeDrawer() : openDrawer(); };
 
   function openDrawer() {
     drawerOpen = true;
-    const overlay = $('nav-drawer-overlay');
-    const drawer  = $('nav-drawer');
-    const btn     = $('hamburger-btn');
-    overlay.classList.add('open');
-    // Trigger transition on next frame so CSS animation fires
-    requestAnimationFrame(() => drawer.classList.add('open'));
-    btn.classList.add('open');
-    btn.setAttribute('aria-expanded', 'true');
-    // Swap hamburger → X icon
-    $('hamburger-icon').innerHTML = `
-      <line x1="18" y1="6"  x2="6"  y2="18"/>
-      <line x1="6"  y1="6"  x2="18" y2="18"/>`;
+    $('nav-drawer-overlay').classList.add('open');
+    requestAnimationFrame(() => $('nav-drawer').classList.add('open'));
+    $('hamburger-btn').classList.add('open');
+    $('hamburger-btn').setAttribute('aria-expanded', 'true');
+    $('hamburger-icon').innerHTML = `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`;
   }
 
   window.closeDrawer = function () {
     drawerOpen = false;
-    const overlay = $('nav-drawer-overlay');
-    const drawer  = $('nav-drawer');
-    const btn     = $('hamburger-btn');
-    drawer.classList.remove('open');
-    overlay.classList.remove('open');
-    btn.classList.remove('open');
-    btn.setAttribute('aria-expanded', 'false');
-    // Restore hamburger icon
-    $('hamburger-icon').innerHTML = `
-      <line x1="3" y1="6"  x2="21" y2="6"/>
-      <line x1="3" y1="12" x2="21" y2="12"/>
-      <line x1="3" y1="18" x2="21" y2="18"/>`;
+    $('nav-drawer').classList.remove('open');
+    $('nav-drawer-overlay').classList.remove('open');
+    $('hamburger-btn').classList.remove('open');
+    $('hamburger-btn').setAttribute('aria-expanded', 'false');
+    $('hamburger-icon').innerHTML = `<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>`;
   };
 
-  // Called by each drawer button — navigates then closes drawer
-  window.showScreenFromDrawer = function (name) {
-    showScreen(name);
-    closeDrawer();
-  };
+  window.showScreenFromDrawer = function (name) { showScreen(name); closeDrawer(); };
 
   /* ══════════════════════════════════════════
      SCREEN NAV
   ══════════════════════════════════════════ */
   window.showScreen = function (name) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelectorAll('.drawer-item').forEach(d => d.classList.remove('active'));
+    document.querySelectorAll('.drawer-nav-item').forEach(d => d.classList.remove('active'));
     const s  = $('screen-' + name);
-    const n  = $('nav-' + name);
     const dr = $('drawer-' + name);
     if (s)  s.classList.add('active');
-    if (n)  n.classList.add('active');
     if (dr) dr.classList.add('active');
+    if (name === 'home')          loadHomeDashboard();
     if (name === 'announcements') loadAnnouncements();
     if (name === 'my-schedule')   refreshMySchedule();
     if (name === 'directory')     loadDirectory();
@@ -2232,24 +2424,25 @@ service cloud.firestore {
       if (user) {
         currentUser = user;
         // Show the app shell IMMEDIATELY — don't wait for Firestore.
-        // Profile data loads in the background and updates the UI when ready.
         $('auth-screen').classList.add('hidden');
         $('app').classList.remove('hidden');
         hideLoader();
         applyTheme(localStorage.getItem('ucjc-theme') === 'light');
-        // Start the notifications listener right away — doesn't need profile data
+        // Start on the Home screen
+        showScreen('home');
+        // Start the notifications listener right away
         startNotificationListener();
         // Background: fetch profile, then update avatar + subscribe data
         loadUserProfile().then(() => {
           updateAvatarUI();
           subscribeBookmarks();
-          loadCalendar();
+          loadCalendar().then(() => renderHomeTodaySessions());
         }).catch(err => {
           console.warn('Profile load failed, using defaults:', err);
           userProfile = { displayName: currentUser.email, homeChurch: '', defaultReminderMinutes: 15 };
           updateAvatarUI();
           subscribeBookmarks();
-          loadCalendar();
+          loadCalendar().then(() => renderHomeTodaySessions());
         });
       } else {
         currentUser = null; userProfile = null;
@@ -2332,6 +2525,9 @@ service cloud.firestore {
 
   function cleanupListeners() {
     Object.keys(unsub).forEach(k => { if (unsub[k]) { unsub[k](); unsub[k] = null; } });
+    // Tear down all dynamic group channel listeners
+    Object.keys(groupUnsubs).forEach(k => { if (groupUnsubs[k]) groupUnsubs[k](); });
+    groupUnsubs = {}; groupMsgCounts = {}; groupUnread = {}; userGroups = [];
     chatInitialized = false;
     directoryLoaded = false;
     directoryLoading = false;
@@ -2342,17 +2538,28 @@ service cloud.firestore {
 
   function updateAvatarUI() {
     if (!userProfile) return;
-    const name = userProfile.displayName || '?';
-    const ini  = initials(name);
-    $('user-avatar').textContent    = ini;
-    $('profile-avatar').textContent = ini;
-    $('profile-name').textContent   = name;
-    $('profile-church').textContent = userProfile.homeChurch || '';
+    const name   = userProfile.displayName || '?';
+    const church = userProfile.homeChurch  || '';
+    const ini    = initials(name);
+
+    // Profile screen
+    const pa = $('profile-avatar'); if (pa) pa.textContent = ini;
+    const pn = $('profile-name');   if (pn) pn.textContent = name;
+    const pc = $('profile-church'); if (pc) pc.textContent = church;
+
+    // Drawer profile section
+    const da = $('drawer-avatar'); if (da) da.textContent = ini;
+    const dn = $('drawer-name');   if (dn) dn.textContent = name;
+    const dc = $('drawer-church'); if (dc) dc.textContent = church;
+
+    // Home greeting
+    const hg = $('home-greeting-name'); if (hg) hg.textContent = name.split(' ')[0] || name;
+
     const mins = userProfile.defaultReminderMinutes || 15;
-    $('default-reminder-label').textContent = reminderLabel(mins);
-    $('default-reminder-select').value      = mins;
-    if ($('push-toggle')) $('push-toggle').checked = !!userProfile.pushEnabled;
-    // Sync theme toggle
+    const drl = $('default-reminder-label');   if (drl) drl.textContent = reminderLabel(mins);
+    const drs = $('default-reminder-select');  if (drs) drs.value = mins;
+    const pt  = $('push-toggle');              if (pt)  pt.checked = !!userProfile.pushEnabled;
+
     applyTheme(localStorage.getItem('ucjc-theme') === 'light');
   }
 
@@ -2406,6 +2613,9 @@ service cloud.firestore {
       }
       $('banner-title').textContent = bannerTitle;
       $('banner-meta').textContent  = bannerMeta;
+      // Also sync home screen banner
+      const hbt = $('home-banner-title'); if (hbt) hbt.textContent = bannerTitle;
+      const hbm = $('home-banner-meta');  if (hbm) hbm.textContent = bannerMeta;
 
       const freshEvents = timed.map(e => ({
         id:       e.id,
@@ -3165,6 +3375,7 @@ service cloud.firestore {
     subscribeChannel('global', 'global-messages');
     subscribeChannel('prayer', 'prayer-messages');
     subscribeDMList();
+    loadUserGroups();
   }
 
   function subscribeChannel(ch, elId) {
@@ -3194,12 +3405,15 @@ service cloud.firestore {
   }
 
   function renderMsg(data) {
-    const isOwn = data.uid === currentUser?.uid;
-    const time  = data.createdAt?.toDate ? fmt(data.createdAt.toDate()) : '';
+    // Normalise: channel messages use uid/displayName; group messages use senderId/senderName
+    const uid    = data.uid || data.senderId || '';
+    const name   = data.displayName || data.senderName || 'Anonymous';
+    const isOwn  = uid === currentUser?.uid;
+    const time   = data.createdAt?.toDate ? fmt(data.createdAt.toDate()) : '';
     return `<div class="msg-row${isOwn?' own':''}">
-      ${!isOwn?`<div class="msg-avatar">${initials(data.displayName)}</div>`:''}
+      ${!isOwn?`<div class="msg-avatar">${initials(name)}</div>`:''}
       <div class="msg-bubble-wrap">
-        ${!isOwn?`<div class="msg-sender">${escHtml(data.displayName||'Anonymous')}</div>`:''}
+        ${!isOwn?`<div class="msg-sender">${escHtml(name)}</div>`:''}
         <div class="msg-bubble">${escHtml(data.text||'')}</div>
         <div class="msg-time">${time}</div>
       </div>
@@ -3222,6 +3436,205 @@ service cloud.firestore {
   window.sendGlobalMessage = () => sendMsg('global-msg-input', 'global');
   window.sendPrayerMessage = () => sendMsg('prayer-msg-input', 'prayer');
 
+  /* ══════════════════════════════════════════
+     DYNAMIC CHAT GROUPS
+  ══════════════════════════════════════════ */
+
+  /* Step 1 — discover which groups the current user belongs to.
+     Strategy: listen to all active chatGroups, then for each group
+     fetch the user's member doc. Snapshot re-runs when a group is
+     added/removed/activated so the tab bar stays current. */
+  function loadUserGroups() {
+    if (unsub.groupsList) return; // already subscribed
+
+    const loadingEl = $('groups-loading-tab');
+    if (loadingEl) loadingEl.style.display = 'flex';
+
+    unsub.groupsList = db.collection('chatGroups')
+      .where('active', '==', true)
+      .onSnapshot(async snap => {
+        try {
+          // Check membership for every active group in parallel
+          const checks = snap.docs.map(async doc => {
+            try {
+              const memberSnap = await db
+                .collection('chatGroups').doc(doc.id)
+                .collection('members').doc(currentUser.uid)
+                .get();
+              return memberSnap.exists
+                ? { id: doc.id, name: doc.data().name || 'Group', description: doc.data().description || '' }
+                : null;
+            } catch (_) { return null; }
+          });
+
+          const results = await Promise.all(checks);
+          userGroups = results
+            .filter(Boolean)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          renderGroupTabs();
+        } catch (err) {
+          console.warn('loadUserGroups error:', err);
+        } finally {
+          if (loadingEl) loadingEl.style.display = 'none';
+        }
+      }, err => {
+        console.warn('chatGroups snapshot error:', err);
+        if (loadingEl) loadingEl.style.display = 'none';
+      });
+  }
+
+  /* Step 2 — rebuild only the dynamic group tabs + panels.
+     The Global, Prayer, and DM tabs/panels are never touched. */
+  function renderGroupTabs() {
+    // 1. Tear down existing group listeners
+    Object.keys(groupUnsubs).forEach(k => { if (groupUnsubs[k]) groupUnsubs[k](); });
+    groupUnsubs = {};
+
+    // 2. Remove any previously injected group tab buttons
+    document.querySelectorAll('[data-group-tab]').forEach(el => el.remove());
+
+    // 3. Remove any previously injected group panels
+    document.querySelectorAll('[data-group-panel]').forEach(el => el.remove());
+
+    if (!userGroups.length) return; // user belongs to no groups
+
+    // 4. Find anchor elements to insert after
+    const prayerTabBtn = document.querySelector('.chat-tab-btn[data-panel="prayer"]');
+    const prayerPanel  = $('panel-prayer');
+    if (!prayerTabBtn || !prayerPanel) return;
+
+    let lastTab   = prayerTabBtn;
+    let lastPanel = prayerPanel;
+
+    // Send button SVG (shared markup)
+    const sendSVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+
+    // Group icon SVG
+    const groupSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+
+    userGroups.forEach(group => {
+      const gid = group.id;
+
+      // ── Tab button ──────────────────────────────────
+      const tabBtn = document.createElement('button');
+      tabBtn.className      = 'chat-tab-btn';
+      tabBtn.dataset.panel  = 'group-' + gid;
+      tabBtn.dataset.groupTab = gid;          // marker for cleanup
+      tabBtn.setAttribute('onclick', `switchChatTab('group-${gid}')`);
+      tabBtn.innerHTML = `
+        ${groupSVG}
+        ${escHtml(group.name)}
+        <span class="tab-unread-badge hidden" id="group-tab-badge-${gid}"></span>`;
+      lastTab.insertAdjacentElement('afterend', tabBtn);
+      lastTab = tabBtn;
+
+      // ── Chat panel ──────────────────────────────────
+      const panel = document.createElement('div');
+      panel.className          = 'chat-panel';
+      panel.id                 = 'panel-group-' + gid;
+      panel.dataset.groupPanel = gid;         // marker for cleanup
+      panel.innerHTML = `
+        <div class="chat-messages" id="group-messages-${gid}">
+          ${group.description ? `<div style="text-align:center;padding:20px 24px 10px;font-size:0.78rem;color:var(--text-dim);font-style:italic">${escHtml(group.description)}</div>` : ''}
+        </div>
+        <div class="chat-input-bar">
+          <input type="text" id="group-msg-input-${gid}"
+            placeholder="Message ${escHtml(group.name)}…"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendGroupMessage('${gid}');}"/>
+          <button class="send-btn" onclick="sendGroupMessage('${gid}')">${sendSVG}</button>
+        </div>`;
+      lastPanel.insertAdjacentElement('afterend', panel);
+      lastPanel = panel;
+
+      // Initialise counters
+      groupMsgCounts[gid] = -1;
+      groupUnread[gid]    = groupUnread[gid] || 0;
+
+      // Subscribe to messages
+      subscribeGroupChannel(gid);
+    });
+
+    updateAllUnreadBadges();
+  }
+
+  /* Step 3 — real-time message subscription for one group */
+  function subscribeGroupChannel(groupId) {
+    // Safety: never subscribe to a group the user doesn't belong to
+    if (!userGroups.find(g => g.id === groupId)) return;
+
+    const unsubFn = db
+      .collection('chatGroups').doc(groupId).collection('messages')
+      .orderBy('createdAt', 'asc')
+      .onSnapshot(snap => {
+        const el = $('group-messages-' + groupId);
+        if (!el) return;
+
+        // Preserve description line if present (first child is not a message)
+        const descEl = el.querySelector('[data-group-desc]');
+        const newHTML = snap.docs.map(d => renderMsg(d.data())).join('');
+        if (descEl) {
+          // Keep description, replace the rest
+          descEl.insertAdjacentHTML('afterend',
+            snap.docs.map(d => renderMsg(d.data())).join(''));
+          // Remove duplicate messages that were there before
+          [...el.querySelectorAll('.msg-row')].forEach(r => r.remove());
+          snap.docs.forEach(d => {
+            el.insertAdjacentHTML('beforeend', renderMsg(d.data()));
+          });
+        } else {
+          el.innerHTML = (el.querySelector('div[style]')?.outerHTML || '') + newHTML;
+        }
+        el.scrollTop = el.scrollHeight;
+
+        const newCount = snap.docs.length;
+        const prevCount = groupMsgCounts[groupId];
+
+        // Count unreads for messages arriving after initial load
+        if (prevCount >= 0 && newCount > prevCount) {
+          const added = newCount - prevCount;
+          const isVisible =
+            $('screen-chat').classList.contains('active') &&
+            currentChatPanel === 'group-' + groupId;
+          if (!isVisible) {
+            groupUnread[groupId] = (groupUnread[groupId] || 0) + added;
+            updateAllUnreadBadges();
+          }
+        }
+        groupMsgCounts[groupId] = newCount;
+      }, err => console.warn('group chat error (' + groupId + '):', err));
+
+    groupUnsubs[groupId] = unsubFn;
+  }
+
+  /* Step 4 — send a message to a group channel.
+     Uses senderId/senderName per the spec schema. */
+  window.sendGroupMessage = async function (groupId) {
+    // Guard: user must be a confirmed member
+    if (!userGroups.find(g => g.id === groupId)) {
+      toast('You are not a member of this group.', 'error'); return;
+    }
+    const inp  = $('group-msg-input-' + groupId);
+    if (!inp || !currentUser) return;
+    const text = inp.value.trim(); if (!text) return;
+    if (hasProfanity(text)) {
+      toast('Your message contains prohibited language and was not sent.', 'error'); return;
+    }
+    inp.value = '';
+    try {
+      await db.collection('chatGroups').doc(groupId).collection('messages').add({
+        senderId:   currentUser.uid,
+        senderName: userProfile?.displayName || 'Anonymous',
+        text,
+        createdAt:  FSV.serverTimestamp()
+      });
+    } catch (e) {
+      console.error('sendGroupMessage error:', e);
+      toast('Could not send message.', 'error');
+      inp.value = text;
+    }
+  };
+
   window.switchChatTab = function (panel) {
     currentChatPanel = panel;
     document.querySelectorAll('.chat-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.panel === panel));
@@ -3232,36 +3645,61 @@ service cloud.firestore {
     if (panel === 'global') {
       globalUnread = 0;
       const m = $('global-messages'); setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
-    }
-    if (panel === 'prayer') {
+    } else if (panel === 'prayer') {
       prayerUnread = 0;
       const m = $('prayer-messages'); setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
+    } else if (panel.startsWith('group-')) {
+      // Clear unread for this group and scroll to bottom
+      const groupId = panel.slice(6);
+      groupUnread[groupId] = 0;
+      const badge = $('group-tab-badge-' + groupId);
+      if (badge) badge.classList.add('hidden');
+      const m = $('group-messages-' + groupId);
+      setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
     }
     updateAllUnreadBadges();
   };
 
   /* ── All-channel unread badge update ─────── */
   function updateAllUnreadBadges() {
-    // DM tab badge = sum of unread counts across all conversations
+    // DM tab badge
     const totalDMUnread = dmConversations.reduce(
       (sum, c) => sum + (c.unread?.[currentUser?.uid] || 0), 0
     );
     const dmBadge = $('dm-tab-badge');
     if (dmBadge) { dmBadge.textContent = totalDMUnread; dmBadge.classList.toggle('hidden', !totalDMUnread); }
 
-    // Group + Prayer tab badges
+    // Global + Prayer tab badges
     const gBadge = $('global-tab-badge');
     if (gBadge) { gBadge.textContent = globalUnread; gBadge.classList.toggle('hidden', !globalUnread); }
     const pBadge = $('prayer-tab-badge');
     if (pBadge) { pBadge.textContent = prayerUnread; pBadge.classList.toggle('hidden', !prayerUnread); }
 
-    // Nav bar chat badge = total across everything
-    const total = totalDMUnread + globalUnread + prayerUnread;
-    const navBadge = $('chat-badge');
-    if (navBadge) {
-      navBadge.textContent = total > 99 ? '99+' : total;
-      navBadge.classList.toggle('hidden', !total);
-    }
+    // Per-group tab badges
+    let totalGroupUnread = 0;
+    Object.keys(groupUnread).forEach(groupId => {
+      const count = groupUnread[groupId] || 0;
+      totalGroupUnread += count;
+      const badge = $('group-tab-badge-' + groupId);
+      if (badge) { badge.textContent = count; badge.classList.toggle('hidden', !count); }
+    });
+
+    // Total across everything
+    const total = totalDMUnread + globalUnread + prayerUnread + totalGroupUnread;
+    const totalStr = total > 99 ? '99+' : String(total);
+
+    // Drawer chat badge
+    const drawerChatBadge = $('drawer-chat-badge');
+    if (drawerChatBadge) { drawerChatBadge.textContent = totalStr; drawerChatBadge.classList.toggle('hidden', !total); }
+
+    // Home screen quick-action chat badge
+    const homeChatBadge = $('home-chat-badge');
+    if (homeChatBadge) { homeChatBadge.textContent = totalStr; homeChatBadge.classList.toggle('hidden', !total); }
+
+    // My Plan badge in drawer
+    const planCount = Object.keys(bookmarks).length;
+    const planBadge = $('drawer-plan-badge');
+    if (planBadge) { planBadge.textContent = planCount; planBadge.classList.toggle('hidden', !planCount); }
   }
 
   /* ── DM Conversation List ─────────────────── */
@@ -3720,6 +4158,95 @@ service cloud.firestore {
       if (e.key === 'Escape' && modal()?.classList.contains('open')) closeMap();
     });
   })();
+
+  /* ══════════════════════════════════════════
+     HOME DASHBOARD
+  ══════════════════════════════════════════ */
+  function loadHomeDashboard() {
+    // Greeting with time of day
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    const subEl = $('home-subgreeting');
+    if (subEl) subEl.textContent = greeting + ' · UCJC Holy Convocation';
+
+    // Today's sessions
+    renderHomeTodaySessions();
+
+    // Latest notification
+    loadHomeLatestNotif();
+
+    // Sync banner if calendar already loaded
+    const hbt = $('home-banner-title');
+    const hbm = $('home-banner-meta');
+    const bt  = $('banner-title');
+    const bm  = $('banner-meta');
+    if (hbt && bt && bt.textContent !== 'Loading schedule…') hbt.textContent = bt.textContent;
+    if (hbm && bm) hbm.textContent = bm.textContent;
+
+    // Sync badges
+    updateAllUnreadBadges();
+  }
+
+  function renderHomeTodaySessions() {
+    const listEl = $('home-today-list'); if (!listEl) return;
+    const todayKey = fmtDateKey(new Date());
+    const todayEvents = allEvents
+      .filter(e => fmtDateKey(e.start) === todayKey && e.end > new Date())
+      .sort((a, b) => a.start - b.start)
+      .slice(0, 3);
+
+    if (!todayEvents.length) {
+      const hasEvents = allEvents.length > 0;
+      listEl.innerHTML = `<div style="background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius);padding:16px 18px;color:var(--text-muted);font-size:0.84rem;text-align:center">
+        ${hasEvents ? 'No more sessions scheduled for today' : 'Schedule loading…'}
+      </div>`;
+      return;
+    }
+
+    const COLOR_MAP = { '11':'#8B2635','6':'#C9A84C','2':'#2a6496','9':'#2e7d4f','10':'#5c3e8f' };
+    listEl.innerHTML = todayEvents.map(ev => {
+      const color = COLOR_MAP[ev.colorId] || 'var(--gold)';
+      return `<div class="home-upcoming-card" onclick="openSessionModal('${escHtml(ev.id)}')" style="border-left-color:${color}">
+        <div class="home-upcoming-time">
+          <div class="home-upcoming-start">${fmt(ev.start)}</div>
+          <div class="home-upcoming-end">${fmt(ev.end)}</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="home-upcoming-title">${escHtml(ev.title)}</div>
+          ${ev.location ? `<div class="home-upcoming-loc">${escHtml(ev.location)}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadHomeLatestNotif() {
+    const el = $('home-latest-notif'); if (!el) return;
+    try {
+      const snap = await db.collection('notifications')
+        .orderBy('createdAt', 'desc').limit(1).get();
+      if (snap.empty) {
+        el.innerHTML = `<div class="home-notif-card">
+          <span class="home-notif-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+          <div><div class="home-notif-title">No announcements yet</div><div class="home-notif-body">Check back soon for updates from leadership.</div></div>
+        </div>`; return;
+      }
+      const data = snap.docs[0].data();
+      const ts   = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+      const diff = Date.now() - ts.getTime();
+      const mins = Math.floor(diff / 60000);
+      const timeStr = mins < 1 ? 'Just now' : mins < 60 ? `${mins}m ago` : mins < 1440 ? `${Math.floor(mins/60)}h ago` : fmtDate(ts);
+      el.innerHTML = `<div class="home-notif-card" onclick="showScreen('announcements')" style="cursor:pointer">
+        <span class="home-notif-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+        <div>
+          <div class="home-notif-title">${escHtml(data.title || 'Announcement')}</div>
+          ${data.body ? `<div class="home-notif-body">${escHtml(data.body)}</div>` : ''}
+          <div class="home-notif-time">${timeStr}</div>
+        </div>
+      </div>`;
+    } catch (e) {
+      el.innerHTML = `<div class="home-notif-card"><div class="home-notif-body" style="color:var(--text-dim)">Could not load latest update.</div></div>`;
+    }
+  }
 
   /* ══════════════════════════════════════════
      CONNECTIVITY
