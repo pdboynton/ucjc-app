@@ -3,8 +3,15 @@
    Place this file in the SAME folder as index.html
 ================================================================ */
 
-const CACHE_NAME = 'ucjc-convocation-v1';
+const CACHE_NAME = 'ucjc-convocation-v2';
 const PRECACHE   = ['/', '/index.html', '/logo.png', '/map.jpg', '/icon-192.png', '/icon-512.png'];
+
+// NOTE: Venue map images are stored in IndexedDB (not the SW cache) by the
+// MapDB module in index.html. They are automatically available offline
+// because IndexedDB persists across page loads and browser restarts.
+// The SW therefore does not need to intercept or cache OSM tile requests —
+// map generation runs once, the result is saved to IDB, and subsequent loads
+// read from IDB instantly without any network request.
 
 // ── Install: pre-cache shell assets ──────────────────────────────
 self.addEventListener('install', event => {
