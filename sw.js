@@ -1,107 +1,95 @@
+/* ================================================================
+   UCJC Holy Convocation — Service Worker  (sw.js)
+   Place this file in the SAME folder as index.html
+================================================================ */
+
 const CACHE_NAME = 'ucjc-convocation-v1';
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json'
-];
+const PRECACHE   = ['/', '/index.html', '/logo.png', '/map.jpg', '/icon-192.png', '/icon-512.png'];
 
-// Install event - cache static assets
-self.addEventListener('install', (event) => {
+// ── Install: pre-cache shell assets ──────────────────────────────
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.allSettled(PRECACHE.map(url => cache.add(url).catch(() => null)))
+    ).then(() => self.skipWaiting())
   );
 });
 
-// Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
+// ── Activate: clean old caches ───────────────────────────────────
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
 });
 
-// Fetch event - network first, fall back to cache
-self.addEventListener('fetch', (event) => {
+// ── Fetch: network-first, fall back to cache ─────────────────────
+self.addEventListener('fetch', event => {
+  // Only handle same-origin GET requests
   if (event.request.method !== 'GET') return;
-  
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+
   event.respondWith(
     fetch(event.request)
-      .then((response) => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+      .then(resp => {
+        // Cache successful HTML/JS/CSS/image responses
+        if (resp.ok && ['document','script','style','image'].includes(event.request.destination)) {
+          caches.open(CACHE_NAME).then(c => c.put(event.request, resp.clone()));
         }
-        return response;
+        return resp;
       })
       .catch(() => caches.match(event.request))
   );
 });
 
-// Push notification event
-self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : {};
-  const title = data.title || 'UCJC Convocation';
-  const options = {
-    body: data.body || 'You have an upcoming session.',
-    icon: data.icon || '/icon-192.png',
-    badge: data.badge || '/icon-192.png',
-    tag: data.tag || 'session-reminder',
-    data: data.data || {},
-    actions: [
-      { action: 'view', title: 'View Session' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ],
-    vibrate: [200, 100, 200]
-  };
-  event.waitUntil(self.registration.showNotification(title, options));
-});
+// ── Message: handle reminder scheduling from the main thread ─────
+//   The main app posts: { type:'SCHEDULE_REMINDER', title, body, tag, delay }
+//   We show the notification after `delay` ms (default 0 = immediately).
+self.addEventListener('message', event => {
+  if (!event.data) return;
 
-// Notification click event
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  if (event.action === 'view') {
-    event.waitUntil(
-      clients.matchAll({ type: 'window' }).then((clientList) => {
-        for (const client of clientList) {
-          if (client.url.includes('/') && 'focus' in client) return client.focus();
-        }
-        if (clients.openWindow) return clients.openWindow('/#my-schedule');
-      })
-    );
-  }
-});
-
-// Background sync for offline actions
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-bookmarks') {
-    event.waitUntil(syncBookmarks());
-  }
-});
-
-async function syncBookmarks() {
-  // Sync any queued offline bookmark actions when connectivity is restored
-  console.log('Syncing bookmarks in background...');
-}
-
-// Schedule local reminder (via postMessage from main thread)
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SCHEDULE_REMINDER') {
-    const { title, body, delay, tag } = event.data;
-    setTimeout(() => {
+  if (event.data.type === 'SCHEDULE_REMINDER') {
+    const { title, body, tag, delay = 0, icon = '/icon-192.png' } = event.data;
+    const show = () =>
       self.registration.showNotification(title, {
-        body,
-        tag,
-        icon: '/icon-192.png',
-        vibrate: [200, 100, 200],
-        requireInteraction: false
+        body, tag, icon, badge: icon,
+        requireInteraction: false,
+        vibrate: [200, 100, 200]
       });
-    }, delay);
+    delay > 0 ? setTimeout(show, delay) : show();
   }
+});
+
+// ── Push: receive server-sent push notifications (FCM/WebPush) ───
+//   Payload format (JSON string in push.data):
+//   { title: string, body: string, type: string, url?: string }
+self.addEventListener('push', event => {
+  let payload = { title: '📢 UCJC', body: 'New announcement', tag: 'push-notif' };
+  try { payload = { ...payload, ...event.data.json() }; } catch (_) {}
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body:  payload.body,
+      icon:  '/icon-192.png',
+      badge: '/icon-192.png',
+      tag:   payload.tag || 'push-notif',
+      data:  { url: payload.url || '/' },
+      requireInteraction: payload.type === 'urgent'
+    })
+  );
+});
+
+// ── Notification click: focus or open the app ────────────────────
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const target = event.notification.data?.url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      const existing = clients.find(c => c.url.includes(self.location.origin));
+      if (existing) return existing.focus();
+      return self.clients.openWindow(target);
+    })
+  );
 });
