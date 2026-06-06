@@ -2065,6 +2065,62 @@ service cloud.firestore {
   };
 
   /* ══════════════════════════════════════════
+     MapDB — IndexedDB store for offline venue map
+     Keys: venueMapHash | venueMapImage | venueCoordinates
+  ══════════════════════════════════════════ */
+  const MapDB = {
+    _db:     null,
+    NAME:    'ucjc-venue-map',
+    VERSION: 1,
+    STORE:   'mapCache',
+
+    open() {
+      if (this._db) return Promise.resolve(this._db);
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(this.NAME, this.VERSION);
+        req.onupgradeneeded = e => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(this.STORE)) {
+            db.createObjectStore(this.STORE);
+          }
+        };
+        req.onsuccess = e => { this._db = e.target.result; resolve(this._db); };
+        req.onerror   = e => reject(e.target.error);
+      });
+    },
+
+    async get(key) {
+      const db = await this.open();
+      return new Promise((resolve, reject) => {
+        const req = db.transaction(this.STORE, 'readonly')
+                      .objectStore(this.STORE).get(key);
+        req.onsuccess = e => resolve(e.target.result ?? null);
+        req.onerror   = e => reject(e.target.error);
+      });
+    },
+
+    async set(key, value) {
+      const db = await this.open();
+      return new Promise((resolve, reject) => {
+        const req = db.transaction(this.STORE, 'readwrite')
+                      .objectStore(this.STORE).put(value, key);
+        req.onsuccess = () => resolve();
+        req.onerror   = e => reject(e.target.error);
+      });
+    },
+
+    async clear() {
+      const db = await this.open();
+      return new Promise((resolve, reject) => {
+        const req = db.transaction(this.STORE, 'readwrite')
+                      .objectStore(this.STORE).clear();
+        req.onsuccess = () => resolve();
+        req.onerror   = e => reject(e.target.error);
+      });
+    }
+  };
+
+  /* ══════════════════════════════════════════
      APP STATE
   ══════════════════════════════════════════ */
   let currentUser        = null;
@@ -2615,7 +2671,7 @@ service cloud.firestore {
         allEvents = events.map(e => ({ ...e, start: new Date(e.start), end: new Date(e.end) }));
         if (bannerTitle) $('banner-title').textContent = bannerTitle;
         if (bannerMeta)  $('banner-meta').textContent  = bannerMeta;
-        updateHomeMapCard(venueLocation || '', bannerTitle || '');
+        loadVenueMap(venueLocation || '', bannerTitle || '');
         buildDateTabs();
         // Refresh in background — don't show spinner for cached load
         _fetchCalendarBackground();
@@ -2654,8 +2710,8 @@ service cloud.firestore {
       }
       $('banner-title').textContent = bannerTitle;
       $('banner-meta').textContent  = bannerMeta;
-      // Update home map card with live venue data
-      updateHomeMapCard(venueLocation, bannerTitle);
+      // Update home map card — geocodes and generates map if address changed
+      loadVenueMap(venueLocation, bannerTitle);
 
       const freshEvents = timed.map(e => ({
         id:       e.id,
@@ -4231,11 +4287,224 @@ service cloud.firestore {
   })();
 
   /* ══════════════════════════════════════════
-     HOME MAP CARD — Google Maps Static API
+     VENUE MAP — Offline-capable, API-key-free
+     Pipeline:
+       loadVenueMap(address)
+         → hash check (SHA-256 via crypto.subtle)
+         → load IndexedDB cache instantly (no flicker)
+         → if address changed: geocode via Nominatim
+             → generate canvas map from OSM tiles
+             → draw gold marker
+             → export WebP → save to IndexedDB
+     Zero Google Maps dependency.
   ══════════════════════════════════════════ */
+
   let _currentVenueAddress = '';
 
-  function updateHomeMapCard(address, venueName) {
+  /* ── 1. Address hash via SubtleCrypto ────── */
+  async function getAddressHash(address) {
+    const data    = new TextEncoder().encode(address.toLowerCase().trim());
+    const hashBuf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuf))
+      .map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /* ── 2. Check whether a new map must be drawn ── */
+  async function mapNeedsRefresh(address) {
+    try {
+      const [newHash, storedHash] = await Promise.all([
+        getAddressHash(address),
+        MapDB.get('venueMapHash')
+      ]);
+      return { needsRefresh: newHash !== storedHash, newHash };
+    } catch (e) {
+      const newHash = await getAddressHash(address);
+      return { needsRefresh: true, newHash };
+    }
+  }
+
+  /* ── 3. Geocode via OpenStreetMap Nominatim ── */
+  async function geocodeAddress(address) {
+    const url = 'https://nominatim.openstreetmap.org/search'
+      + `?format=json&q=${encodeURIComponent(address)}&limit=1&addressdetails=0`;
+    const resp = await fetch(url, {
+      headers: { 'Accept': 'application/json' },
+      signal:  AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined
+    });
+    if (!resp.ok) throw new Error('Nominatim HTTP ' + resp.status);
+    const results = await resp.json();
+    if (!results.length) throw new Error('No geocoding result for: ' + address);
+    return {
+      lat: parseFloat(results[0].lat),
+      lng: parseFloat(results[0].lon),
+      displayName: results[0].display_name || address
+    };
+  }
+
+  /* ── 4. OSM tile maths ────────────────────── */
+  function _deg2rad(d) { return d * Math.PI / 180; }
+
+  function _latLngToTile(lat, lng, zoom) {
+    const n = Math.pow(2, zoom);
+    const x = Math.floor((lng + 180) / 360 * n);
+    const sinLat = Math.sin(_deg2rad(lat));
+    const y = Math.floor(
+      (1 - Math.log((sinLat + 1) / Math.cos(_deg2rad(lat))) / Math.PI) / 2 * n
+    );
+    return { x: Math.max(0, x), y: Math.max(0, y) };
+  }
+
+  /* Pixel position of lat/lng within a tile grid whose top-left tile is (gridX, gridY) */
+  function _latLngToPixel(lat, lng, gridX, gridY, zoom) {
+    const n    = Math.pow(2, zoom);
+    const xFrac = (lng + 180) / 360 * n;
+    const sinLat = Math.sin(_deg2rad(lat));
+    const yFrac  = (1 - Math.log((sinLat + 1) / Math.cos(_deg2rad(lat))) / Math.PI) / 2 * n;
+    return {
+      px: (xFrac - gridX) * 256,
+      py: (yFrac - gridY) * 256
+    };
+  }
+
+  /* ── 5. Fetch one OSM tile as an Image element ── */
+  function _fetchTile(z, x, y) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      // Rotate between a/b/c OSM subdomains for load balancing
+      const sub = ['a', 'b', 'c'][(Math.abs(x + y) % 3)];
+      img.onload  = () => resolve(img);
+      img.onerror = () => reject(new Error(`tile ${z}/${x}/${y}`));
+      img.src = `https://${sub}.tile.openstreetmap.org/${z}/${x}/${y}.png`;
+    });
+  }
+
+  /* ── 6. Draw gold map-pin marker ─────────── */
+  function _drawMarker(ctx, cx, cy) {
+    const r = 11; // head radius
+
+    ctx.save();
+    ctx.shadowColor   = 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur    = 8;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 4;
+
+    // Teardrop body
+    ctx.beginPath();
+    ctx.arc(cx, cy - r - 2, r, Math.PI, 0);
+    ctx.bezierCurveTo(cx + r, cy - 2, cx + 4, cy + 4, cx, cy + 14);
+    ctx.bezierCurveTo(cx - 4, cy + 4, cx - r, cy - 2, cx - r, cy - r - 2);
+    ctx.closePath();
+    ctx.fillStyle = '#C9A84C';   // app gold
+    ctx.fill();
+
+    ctx.shadowColor = 'transparent';
+
+    // White border
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth   = 2.5;
+    ctx.stroke();
+
+    // Inner white dot
+    ctx.beginPath();
+    ctx.arc(cx, cy - r - 2, r * 0.38, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  /* ── 7. Generate full map image on a Canvas ── */
+  async function generateMapImage(lat, lng) {
+    const ZOOM       = 15;
+    const TILE_PX    = 256;
+    const CANVAS_W   = 600;
+    const CANVAS_H   = 280;
+    const GRID_COLS  = 5;   // tiles across
+    const GRID_ROWS  = 3;   // tiles tall
+
+    const center     = _latLngToTile(lat, lng, ZOOM);
+    const startX     = center.x - Math.floor(GRID_COLS / 2);
+    const startY     = center.y - Math.floor(GRID_ROWS / 2);
+
+    // Where the venue falls in pixel space within the tile grid
+    const { px: venueGridPx, py: venueGridPy } =
+      _latLngToPixel(lat, lng, startX, startY, ZOOM);
+
+    // Offset so venue sits at canvas centre
+    const offsetX = CANVAS_W / 2 - venueGridPx;
+    const offsetY = CANVAS_H / 2 - venueGridPy;
+
+    const canvas    = document.createElement('canvas');
+    canvas.width    = CANVAS_W;
+    canvas.height   = CANVAS_H;
+    const ctx       = canvas.getContext('2d');
+
+    // Fallback background matching OSM land colour
+    ctx.fillStyle = '#f2efe9';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    // Fetch and render tiles in parallel; ignore individual failures
+    const draws = [];
+    for (let row = 0; row < GRID_ROWS; row++) {
+      for (let col = 0; col < GRID_COLS; col++) {
+        const tx = startX + col;
+        const ty = startY + row;
+        const dx = col * TILE_PX + offsetX;
+        const dy = row * TILE_PX + offsetY;
+        draws.push(
+          _fetchTile(ZOOM, tx, ty)
+            .then(img => ctx.drawImage(img, dx, dy, TILE_PX, TILE_PX))
+            .catch(() => { /* partial tile — already has bg fill */ })
+        );
+      }
+    }
+    await Promise.allSettled(draws);
+
+    // Subtle vignette so edges fade to dark
+    const vignette = ctx.createRadialGradient(
+      CANVAS_W / 2, CANVAS_H / 2, CANVAS_H * 0.25,
+      CANVAS_W / 2, CANVAS_H / 2, CANVAS_H * 0.9
+    );
+    vignette.addColorStop(0, 'rgba(0,0,0,0)');
+    vignette.addColorStop(1, 'rgba(0,0,0,0.22)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    // Gold marker at exact venue position
+    _drawMarker(ctx, CANVAS_W / 2, CANVAS_H / 2);
+
+    // Export — prefer WebP, fall back to PNG
+    try {
+      const webp = canvas.toDataURL('image/webp', 0.9);
+      if (webp.startsWith('data:image/webp')) return webp;
+    } catch (_) {}
+    return canvas.toDataURL('image/png');
+  }
+
+  /* ── 8. IndexedDB persistence helpers ─────── */
+  async function saveMap(hash, imageDataUrl, coords) {
+    await Promise.all([
+      MapDB.set('venueMapHash',        hash),
+      MapDB.set('venueMapImage',       imageDataUrl),
+      MapDB.set('venueCoordinates',    coords)
+    ]);
+  }
+
+  async function loadCachedMapData() {
+    try {
+      const [image, coords] = await Promise.all([
+        MapDB.get('venueMapImage'),
+        MapDB.get('venueCoordinates')
+      ]);
+      return { image: image || null, coords: coords || null };
+    } catch (e) {
+      return { image: null, coords: null };
+    }
+  }
+
+  /* ── 9. Main entry — called from calendar load ── */
+  async function loadVenueMap(address, venueName) {
     _currentVenueAddress = address || '';
 
     const venueEl = $('home-map-venue');
@@ -4243,37 +4512,80 @@ service cloud.firestore {
     const imgEl   = $('home-map-img');
     const phEl    = $('home-map-placeholder');
 
+    // Always update text labels immediately
     if (venueEl) venueEl.textContent = venueName || 'UCJC Holy Convocation';
     if (addrEl)  addrEl.textContent  = address   || '';
 
-    if (!address || !imgEl) {
-      if (phEl) phEl.style.display = 'flex';
-      if (imgEl) imgEl.style.display = 'none';
+    // No address → placeholder
+    if (!address) {
+      if (phEl)  { phEl.style.display = 'flex'; phEl.textContent = 'No venue listed'; }
+      if (imgEl)   imgEl.style.display = 'none';
       return;
     }
 
-    // Google Maps Static API — same key as Calendar
-    const encoded = encodeURIComponent(address);
-    const mapStyle = [
-      'style=feature:poi|visibility:off',
-      'style=feature:transit|visibility:off',
-      'style=feature:road|element:labels.icon|visibility:off'
-    ].join('&');
-    const src = `https://maps.googleapis.com/maps/api/staticmap`
-      + `?center=${encoded}&zoom=15&size=600x280&scale=2`
-      + `&markers=color:0xC9A84C|${encoded}`
-      + `&${mapStyle}`
-      + `&key=${GCAL_KEY}`;
+    // Step A: show cached image immediately (zero latency)
+    const { image: cachedImage } = await loadCachedMapData();
+    if (cachedImage && imgEl) {
+      imgEl.src           = cachedImage;
+      imgEl.style.display = 'block';
+      if (phEl) phEl.style.display = 'none';
+    }
 
-    imgEl.src = src;
-    imgEl.alt = address;
-    // onload/onerror handlers are on the img element in HTML
+    // Step B: decide if regeneration is needed
+    let needsRefresh = false, newHash = '';
+    try {
+      const result = await mapNeedsRefresh(address);
+      needsRefresh = result.needsRefresh;
+      newHash      = result.newHash;
+    } catch (_) { needsRefresh = true; newHash = address; }
+
+    if (!needsRefresh && cachedImage) return; // Cache is fresh — done
+
+    // Step C: show a loading state only if no cached image available
+    if (!cachedImage && phEl) {
+      phEl.style.display  = 'flex';
+      phEl.innerHTML      = `<div class="loader-ring" style="width:22px;height:22px;border-width:3px;flex-shrink:0"></div>&nbsp;Generating map…`;
+      if (imgEl) imgEl.style.display = 'none';
+    }
+
+    // Step D: go offline? show cached or placeholder
+    if (!navigator.onLine) {
+      if (!cachedImage && phEl) {
+        phEl.style.display = 'flex';
+        phEl.innerHTML     = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg><span style="font-size:0.74rem;padding:0 12px;text-align:center">Offline — map will load when connected</span>`;
+      }
+      return;
+    }
+
+    // Step E: geocode → generate → save → display
+    try {
+      const coords       = await geocodeAddress(address);
+      const imageDataUrl = await generateMapImage(coords.lat, coords.lng);
+      await saveMap(newHash, imageDataUrl, coords);
+
+      if (imgEl) {
+        imgEl.src           = imageDataUrl;
+        imgEl.style.display = 'block';
+        if (phEl) phEl.style.display = 'none';
+      }
+    } catch (err) {
+      console.warn('loadVenueMap generation error:', err);
+      // Keep showing cached image if we have one; otherwise show error state
+      if (!cachedImage && phEl) {
+        phEl.style.display = 'flex';
+        phEl.innerHTML     = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg><span style="font-size:0.74rem;padding:0 12px;text-align:center">Map unavailable — check address in Google Calendar</span>`;
+      }
+    }
   }
 
+  /* ── 10. Directions — cross-platform deep-link ── */
   window.openDirections = function () {
     if (!_currentVenueAddress) return;
-    const url = `https://maps.google.com/maps?q=${encodeURIComponent(_currentVenueAddress)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    // google.com/maps/search works on Android (opens Google Maps app),
+    // iOS (offers choice of maps app), and desktop (browser maps)
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(_currentVenueAddress)}`;
+    const w = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!w) window.location.href = url; // popup blocked fallback
   };
 
   /* ══════════════════════════════════════════
@@ -4292,17 +4604,21 @@ service cloud.firestore {
     // Latest notification
     loadHomeLatestNotif();
 
-    // If calendar already loaded, sync the map card from the stored banner text
+    // If calendar loaded before dashboard opened, re-trigger map
     const bt = $('banner-title');
-    const bm = $('banner-meta');
-    if (bt && bt.textContent && bt.textContent !== 'Loading schedule…') {
-      const venueEl = $('home-map-venue');
-      if (venueEl && venueEl.textContent === 'Loading venue…') {
-        // Calendar loaded before dashboard opened — re-trigger map update
-        if (_currentVenueAddress) {
-          updateHomeMapCard(_currentVenueAddress, bt.textContent);
+    if (_currentVenueAddress) {
+      loadVenueMap(_currentVenueAddress, bt ? bt.textContent : '');
+    } else {
+      // Try loading from IndexedDB cache (handles offline restart)
+      loadCachedMapData().then(({ image, coords }) => {
+        const imgEl = $('home-map-img');
+        const phEl  = $('home-map-placeholder');
+        if (image && imgEl) {
+          imgEl.src           = image;
+          imgEl.style.display = 'block';
+          if (phEl) phEl.style.display = 'none';
         }
-      }
+      }).catch(() => {});
     }
 
     // Sync badges
