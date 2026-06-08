@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "app.vercel.ucjc_app.twa",
-        "sha256_cert_fingerprints": ["32:8B:FD:41:E5:48:57:DD:5F:45:BE:95:A2:CB:31:F1:1F:95:C7:87:EA:CC:19:C5:F8:2A:88:56:1B:5A:9F:32"]
+        "sha256_cert_fingerprints": ["94:B3:D2:79:B4:9D:A8:D3:96:AA:EC:7A:D7:0A:82:1C:1A:57:80:EA:8C:9A:D3:DA:20:71:27:03:A3:15:99:EE"]
       }
     }]
