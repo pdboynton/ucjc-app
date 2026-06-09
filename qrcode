@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UCJC Apostolic</title>
+
+<style>
+    :root{
+        --burgundy:#7A1F36;
+        --burgundy-dark:#5E1628;
+        --gold:#D4AF37;
+        --gold-light:#F2D77A;
+        --white:#FFFFFF;
+        --text:#333333;
+    }
+
+    *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+    }
+
+    body{
+        min-height:100vh;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg,
+            var(--burgundy-dark) 0%,
+            var(--burgundy) 45%,
+            #8d2a44 100%);
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        padding:20px;
+    }
+
+    .container{
+        width:100%;
+        max-width:420px;
+        background:rgba(255,255,255,0.98);
+        border-radius:24px;
+        padding:32px 24px;
+        text-align:center;
+        box-shadow:0 15px 40px rgba(0,0,0,0.25);
+    }
+
+    h1{
+        color:var(--burgundy);
+        font-size:2rem;
+        font-weight:800;
+        margin-bottom:20px;
+        letter-spacing:0.5px;
+    }
+
+    .logo{
+        width:170px;
+        max-width:70%;
+        height:auto;
+        margin:0 auto 24px auto;
+        display:block;
+    }
+
+    .description{
+        background:#faf7ef;
+        border:2px solid var(--gold-light);
+        border-radius:16px;
+        padding:16px;
+        color:var(--text);
+        font-size:1rem;
+        line-height:1.5;
+        margin-bottom:28px;
+    }
+
+    .btn{
+        display:block;
+        width:100%;
+        text-decoration:none;
+        padding:18px 20px;
+        margin-bottom:16px;
+        border-radius:14px;
+        font-size:1.05rem;
+        font-weight:700;
+        transition:all .2s ease;
+        box-shadow:0 6px 15px rgba(0,0,0,0.15);
+    }
+
+    .btn-apple{
+        background:var(--burgundy);
+        color:white;
+    }
+
+    .btn-apple:hover{
+        background:var(--burgundy-dark);
+        transform:translateY(-2px);
+    }
+
+    .btn-android{
+        background:var(--gold);
+        color:#3d2b00;
+    }
+
+    .btn-android:hover{
+        background:#e3bc45;
+        transform:translateY(-2px);
+    }
+
+    .footer{
+        margin-top:18px;
+        color:#777;
+        font-size:.85rem;
+    }
+
+    @media (max-width: 380px){
+        h1{
+            font-size:1.7rem;
+        }
+
+        .logo{
+            width:140px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>UCJC Apostolic</h1>
+
+    <img src="logo192.png" alt="UCJC Apostolic Logo" class="logo">
+
+    <div class="description">
+        The official app of the United Church of Jesus Christ
+    </div>
+
+    <a href="https://apps.apple.com/YOUR_APP_LINK"
+       class="btn btn-apple">
+        Download on the App Store
+    </a>
+
+    <a href="https://play.google.com/store/apps/details?id=YOUR_APP_ID"
+       class="btn btn-android">
+       ▶ Download on Google Play
+    </a>
+
+    <div class="footer">
+        Connect • Worship • Grow
+    </div>
+
+</div>
+
+</body>
+</html>
