@@ -131,6 +131,7 @@
        UTILITIES
     ══════════════════════════════════════════════ */
     .hidden { display: none !important; }
+    .flex   { display: flex !important; }
 
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -538,34 +539,48 @@
     ══════════════════════════════════════════════ */
     #hamburger-btn {
       display: flex; align-items: center; justify-content: center;
-      width: 38px; height: 38px; border-radius: var(--radius-sm);
+      width: 44px; height: 44px; border-radius: var(--radius-sm);
       background: var(--input-bg); border: 1px solid var(--border-soft);
       cursor: pointer; color: var(--text-primary); flex-shrink: 0;
       transition: background 0.15s, color 0.15s;
+      /* Eliminate 300ms tap delay and prevent ghost double-fire on mobile */
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none; user-select: none;
     }
     #hamburger-btn:hover { background: var(--bg-light); color: var(--gold); }
     #hamburger-btn.open  { color: var(--gold); border-color: var(--border); }
+    /* SVG must not intercept pointer events — let them reach the button */
+    #hamburger-icon { pointer-events: none; display: block; }
 
     /* ══════════════════════════════════════════════
        SIDE DRAWER — full-height right panel
     ══════════════════════════════════════════════ */
     #nav-drawer-overlay {
-      display: none; position: fixed; inset: 0; z-index: 500;
+      display: none; position: fixed; inset: 0; z-index: 8999;
       background: var(--overlay-bg); backdrop-filter: blur(4px);
     }
     #nav-drawer-overlay.open { display: block; animation: fade-in 0.2s ease; }
 
     #nav-drawer {
-      position: fixed; top: 0; right: 0; bottom: 0; z-index: 501;
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 9000;
       width: min(300px, 88vw);
       background: var(--bg-mid); border-left: 1px solid var(--border-soft);
       display: flex; flex-direction: column;
       transform: translateX(100%);
+      -webkit-transform: translateX(100%);
       transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
       box-shadow: -8px 0 32px rgba(0,0,0,0.35);
       overflow: hidden;
+      /* Force own GPU compositing layer so no scrollable screen
+         can ever render above the drawer via compositing conflicts */
+      will-change: transform;
     }
-    #nav-drawer.open { transform: translateX(0); }
+    #nav-drawer.open {
+      transform: translateX(0);
+      -webkit-transform: translateX(0);
+    }
 
     /* Drawer header — profile section */
     .drawer-profile {
@@ -1123,6 +1138,68 @@
       animation: fade-in 0.3s ease 0.5s both;
     }
 
+    /* ══════════════════════════════════════════════
+       CONTACT ADMIN PANEL
+    ══════════════════════════════════════════════ */
+    .contact-admin-wrap {
+      flex: 1; display: flex; flex-direction: column;
+      overflow-y: auto; background: var(--bg-deep);
+    }
+    .contact-admin-header {
+      flex-shrink: 0; padding: 20px 20px 16px;
+      background: linear-gradient(160deg, var(--bg-card), var(--bg-light));
+      border-bottom: 1px solid var(--border-soft);
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .contact-admin-icon {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(201,168,76,0.12); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; color: var(--gold);
+    }
+    .contact-admin-title { font-family: var(--font-display); font-size: 1rem; color: var(--text-primary); margin-bottom: 4px; }
+    .contact-admin-sub   { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+
+    .contact-admin-form-area { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .contact-admin-form-area textarea {
+      flex: 1; min-height: 120px; resize: none;
+      font-family: var(--font-body); font-size: 0.92rem;
+    }
+    .contact-admin-form-area .btn { align-self: flex-end; }
+
+    .contact-admin-success {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; padding: 32px; text-align: center;
+    }
+    .contact-admin-success-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(80,180,80,0.12); border: 1px solid rgba(80,180,80,0.3);
+      display: flex; align-items: center; justify-content: center; color: #5cb85c; font-size: 1.5rem;
+    }
+    .contact-admin-success-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--text-primary); }
+    .contact-admin-success-sub   { font-size: 0.84rem; color: var(--text-muted); }
+
+    /* Public submission badge in admin chat view */
+    .msg-public-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(201,168,76,0.14); color: var(--gold);
+      border: 1px solid var(--border); border-radius: 4px;
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.05em;
+      padding: 1px 6px; margin-left: 6px; vertical-align: middle;
+      text-transform: uppercase;
+    }
+    .msg-bubble.public-submission {
+      border-left: 3px solid var(--gold);
+      background: rgba(201,168,76,0.06);
+    }
+
+    /* Admin header banner (members only view) */
+    .admin-chat-header {
+      flex-shrink: 0; padding: 10px 16px;
+      background: rgba(201,168,76,0.07); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.78rem; color: var(--text-muted);
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
@@ -1177,9 +1254,10 @@ service cloud.firestore {
         allow write: if false;
       }
       match /messages/{messageId} {
+        // ANY signed-in user may submit (create) — enables the Contact Admin form.
+        allow create: if request.auth != null;
+        // Only group members may read messages — enforces write-only for non-members.
         allow read: if request.auth != null &amp;&amp;
-          exists(/databases/$(database)/documents/chatGroups/$(groupId)/members/$(request.auth.uid));
-        allow create: if request.auth != null &amp;&amp;
           exists(/databases/$(database)/documents/chatGroups/$(groupId)/members/$(request.auth.uid));
         allow update, delete: if false;
       }
@@ -1522,6 +1600,11 @@ service cloud.firestore {
             <div class="loader-ring" style="width:14px;height:14px;border-width:2px"></div>
             Loading…
           </div>
+          <!-- Fixed Contact Admin tab — always visible -->
+          <button class="chat-tab-btn" data-panel="contact-admin" onclick="switchChatTab('contact-admin')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Contact Admin
+          </button>
         </div>
 
         <div class="chat-panel active" id="panel-global">
@@ -1564,8 +1647,75 @@ service cloud.firestore {
             </button>
           </div>
         </div>
+
+        <!-- CONTACT ADMIN PANEL — two inner states:
+             submit-view (all users) and chat-view (admin members only) -->
+        <div class="chat-panel" id="panel-contact-admin">
+
+          <!-- ── Submit view (non-admin users) ── -->
+          <div id="contact-admin-submit-view" class="contact-admin-wrap">
+            <div class="contact-admin-header">
+              <div class="contact-admin-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div>
+                <div class="contact-admin-title">Contact Administrative Team</div>
+                <div class="contact-admin-sub">Send a private message directly to our admin team. Your message is confidential and you will be responded to through other channels.</div>
+              </div>
+            </div>
+
+            <!-- Form state -->
+            <div id="contact-admin-form-area" class="contact-admin-form-area">
+              <textarea id="contact-admin-input" placeholder="Type your message to the administrative team…" rows="5"
+                onkeydown="if(event.key==='Enter'&&event.ctrlKey){submitAdminContact();}"></textarea>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <span class="muted-text small-text" style="font-size:0.72rem">Ctrl+Enter to send</span>
+                <button class="btn btn-primary btn-sm" onclick="submitAdminContact()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  Send Message
+                </button>
+              </div>
+              <div id="contact-admin-error" class="hidden" style="font-size:0.82rem;color:var(--crimson);padding:4px 2px"></div>
+            </div>
+
+            <!-- Success state (shown after send) -->
+            <div id="contact-admin-success" class="contact-admin-success hidden">
+              <div class="contact-admin-success-icon">✓</div>
+              <div class="contact-admin-success-title">Message Sent</div>
+              <div class="contact-admin-success-sub">Your message has been delivered to the administrative team.</div>
+              <button class="btn btn-outline btn-sm" onclick="resetContactAdminForm()" style="margin-top:8px">Send Another</button>
+            </div>
+
+            <!-- No admin group configured -->
+            <div id="contact-admin-unavailable" class="contact-admin-success hidden">
+              <div class="contact-admin-icon" style="width:56px;height:56px;margin:0 auto">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="contact-admin-success-title">Not Yet Available</div>
+              <div class="contact-admin-success-sub">The admin contact channel hasn't been configured yet. Please check back later.</div>
+            </div>
+          </div>
+
+          <!-- ── Admin chat view (members only — hidden by default) ── -->
+          <div id="contact-admin-chat-view" class="hidden" style="flex-direction:column;flex:1;overflow:hidden">
+            <div class="admin-chat-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span><strong style="color:var(--gold)">Administrative Team</strong> · Visible to admin members only</span>
+            </div>
+            <div class="chat-messages" id="admin-group-messages" style="flex:1;background:var(--bg-deep)"></div>
+            <div class="chat-input-bar">
+              <input type="text" id="admin-group-msg-input" placeholder="Message the admin team…"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAdminGroupMessage();}"/>
+              <button class="send-btn" onclick="sendAdminGroupMessage()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        </div>
       </div>
-    </div>
 
     <!-- PROFILE -->
     <div class="screen" id="screen-profile">
@@ -1666,9 +1816,17 @@ service cloud.firestore {
 
   </div><!-- end app-content -->
 
-  <!-- SIDE NAV DRAWER -->
-  <div id="nav-drawer-overlay" onclick="closeDrawer()"></div>
-  <div id="nav-drawer" role="dialog" aria-label="Navigation">
+</div><!-- end #app -->
+
+<!-- ══════════════════════════════════════════
+     SIDE NAV DRAWER
+     Placed OUTSIDE #app so it lives in the
+     document root stacking context. This prevents
+     GPU-composited scrollable screens inside #app
+     from ever rendering above the drawer.
+══════════════════════════════════════════ -->
+<div id="nav-drawer-overlay" onclick="closeDrawer()"></div>
+<div id="nav-drawer" role="dialog" aria-label="Navigation">
 
     <!-- Profile section -->
     <div class="drawer-profile">
@@ -1745,9 +1903,7 @@ service cloud.firestore {
         Sign Out
       </button>
     </div>
-  </div>
-
-</div><!-- end #app -->
+</div>
 
 <!-- ════════ MODALS ════════ -->
 
@@ -2143,6 +2299,10 @@ service cloud.firestore {
   let groupUnsubs        = {};         // groupId → unsubscribe function
   let groupMsgCounts     = {};         // groupId → last known message count
   let groupUnread        = {};         // groupId → unread count
+  // Admin contact group
+  let adminGroupId       = null;       // Firestore ID of the group with isAdminGroup:true
+  let isAdminMember      = false;      // whether current user is a member of the admin group
+  let adminUnsub         = null;       // message listener for admin group (members only)
   let deferredInstall    = null;
   let scheduledReminders = {};
   let notificationUnsubscribe = null;
@@ -2281,27 +2441,61 @@ service cloud.firestore {
   /* ══════════════════════════════════════════
      SIDE DRAWER
   ══════════════════════════════════════════ */
-  let drawerOpen = false;
+  let drawerOpen  = false;
+  let _drawerBusy = false;  // guard against double-fire (touch + synthetic click)
 
-  window.toggleDrawer = function () { drawerOpen ? closeDrawer() : openDrawer(); };
+  /* toggleDrawer is called by the hamburger button onclick.
+     The busy flag blocks the second call that arrives ~300ms later
+     from the browser's synthesized click event after touchend. */
+  window.toggleDrawer = function () {
+    if (_drawerBusy) return;
+    _drawerBusy = true;
+    // Drawer CSS transition is 300ms; clear flag after it completes
+    setTimeout(() => { _drawerBusy = false; }, 350);
+    drawerOpen ? closeDrawer() : openDrawer();
+  };
 
   function openDrawer() {
+    if (drawerOpen) return;
     drawerOpen = true;
-    $('nav-drawer-overlay').classList.add('open');
-    requestAnimationFrame(() => $('nav-drawer').classList.add('open'));
-    $('hamburger-btn').classList.add('open');
-    $('hamburger-btn').setAttribute('aria-expanded', 'true');
-    $('hamburger-icon').innerHTML = `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`;
+
+    const overlay = $('nav-drawer-overlay');
+    const drawer  = $('nav-drawer');
+    const btn     = $('hamburger-btn');
+
+    overlay.classList.add('open');
+
+    // Force a reflow so the browser registers the initial transform state
+    // before adding .open — this guarantees the CSS transition fires.
+    // Using reflow instead of requestAnimationFrame prevents the rAF timing
+    // race where a second call could arrive before the frame executes.
+    drawer.getBoundingClientRect();
+    drawer.classList.add('open');
+
+    btn.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    $('hamburger-icon').innerHTML =
+      `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`;
   }
 
   window.closeDrawer = function () {
+    if (!drawerOpen) return;
     drawerOpen = false;
+
     $('nav-drawer').classList.remove('open');
     $('nav-drawer-overlay').classList.remove('open');
-    $('hamburger-btn').classList.remove('open');
-    $('hamburger-btn').setAttribute('aria-expanded', 'false');
-    $('hamburger-icon').innerHTML = `<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>`;
+
+    const btn = $('hamburger-btn');
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    $('hamburger-icon').innerHTML =
+      `<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>`;
   };
+
+  // Close drawer on Escape key (accessibility + desktop UX)
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && drawerOpen) closeDrawer();
+  });
 
   window.showScreenFromDrawer = function (name) { showScreen(name); closeDrawer(); };
 
@@ -2624,6 +2818,8 @@ service cloud.firestore {
     // Tear down all dynamic group channel listeners
     Object.keys(groupUnsubs).forEach(k => { if (groupUnsubs[k]) groupUnsubs[k](); });
     groupUnsubs = {}; groupMsgCounts = {}; groupUnread = {}; userGroups = [];
+    if (adminUnsub) { adminUnsub(); adminUnsub = null; }
+    adminGroupId = null; isAdminMember = false;
     chatInitialized = false;
     directoryLoaded = false;
     directoryLoading = false;
@@ -3585,25 +3781,46 @@ service cloud.firestore {
       .where('active', '==', true)
       .onSnapshot(async snap => {
         try {
+          // Reset admin tracking on each snapshot (group config may change)
+          let foundAdminId = null;
+          let foundAdminMember = false;
+
           // Check membership for every active group in parallel
           const checks = snap.docs.map(async doc => {
+            const data = doc.data();
+            // Identify the admin group by its flag (regardless of membership)
+            if (data.isAdminGroup) foundAdminId = doc.id;
+
             try {
               const memberSnap = await db
                 .collection('chatGroups').doc(doc.id)
                 .collection('members').doc(currentUser.uid)
                 .get();
-              return memberSnap.exists
-                ? { id: doc.id, name: doc.data().name || 'Group', description: doc.data().description || '' }
-                : null;
+              if (!memberSnap.exists) return null;
+
+              if (data.isAdminGroup) foundAdminMember = true;
+              return {
+                id:           doc.id,
+                name:         data.name        || 'Group',
+                description:  data.description || '',
+                isAdminGroup: !!data.isAdminGroup
+              };
             } catch (_) { return null; }
           });
 
           const results = await Promise.all(checks);
+
+          // Update admin state
+          adminGroupId   = foundAdminId;
+          isAdminMember  = foundAdminMember;
+
           userGroups = results
             .filter(Boolean)
             .sort((a, b) => a.name.localeCompare(b.name));
 
           renderGroupTabs();
+          // Always refresh the contact-admin panel after groups load
+          updateContactAdminPanel();
         } catch (err) {
           console.warn('loadUserGroups error:', err);
         } finally {
@@ -3646,6 +3863,9 @@ service cloud.firestore {
 
     userGroups.forEach(group => {
       const gid = group.id;
+
+      // Admin group has its own fixed "Contact Admin" tab — skip here
+      if (group.isAdminGroup) return;
 
       // ── Tab button ──────────────────────────────────
       const tabBtn = document.createElement('button');
@@ -3738,6 +3958,175 @@ service cloud.firestore {
     groupUnsubs[groupId] = unsubFn;
   }
 
+  /* ══════════════════════════════════════════
+     CONTACT ADMIN PANEL
+     - All users: write-only submission form
+     - Admin members: full bidirectional chat
+     The distinction is enforced both client-side
+     (no subscription for non-members) and by
+     Firestore rules (read restricted to members).
+  ══════════════════════════════════════════ */
+
+  /* Called by loadUserGroups() after every snapshot.
+     Switches the panel between submit-form and full-chat views. */
+  function updateContactAdminPanel() {
+    const submitView    = $('contact-admin-submit-view');
+    const chatView      = $('contact-admin-chat-view');
+    const unavailableEl = $('contact-admin-unavailable');
+    const formAreaEl    = $('contact-admin-form-area');
+
+    if (isAdminMember && adminGroupId) {
+      // Admin member — show full bidirectional chat, hide submit form
+      if (submitView) submitView.classList.add('hidden');
+      if (chatView) {
+        chatView.classList.remove('hidden');
+        chatView.classList.add('flex');   // display:flex !important overrides any lingering state
+      }
+      // Subscribe to messages if not already subscribed
+      if (!adminUnsub) subscribeAdminGroupChat(adminGroupId);
+    } else {
+      // Regular user — show the submit form
+      if (chatView)   { chatView.classList.add('hidden'); chatView.classList.remove('flex'); }
+      if (submitView) submitView.classList.remove('hidden');
+      if (!adminGroupId) {
+        // No admin group configured in Firestore yet
+        if (formAreaEl)    formAreaEl.classList.add('hidden');
+        if (unavailableEl) unavailableEl.classList.remove('hidden');
+      } else {
+        if (formAreaEl)    formAreaEl.classList.remove('hidden');
+        if (unavailableEl) unavailableEl.classList.add('hidden');
+      }
+    }
+  }
+
+  /* Subscribe to the admin group's message thread (admin members only) */
+  function subscribeAdminGroupChat(groupId) {
+    if (adminUnsub) return; // already subscribed
+
+    adminUnsub = db.collection('chatGroups').doc(groupId).collection('messages')
+      .orderBy('createdAt', 'asc')
+      .onSnapshot(snap => {
+        const el = $('admin-group-messages'); if (!el) return;
+        el.innerHTML = snap.docs.map(d => renderAdminMsg(d.data())).join('');
+        el.scrollTop = el.scrollHeight;
+      }, err => console.warn('Admin group chat error:', err));
+  }
+
+  /* Render a message in the admin chat view.
+     Public submissions (type:'public_submission') get a gold badge
+     so admins can distinguish them from internal messages. */
+  function renderAdminMsg(data) {
+    const uid    = data.uid || data.senderId || '';
+    const name   = data.displayName || data.senderName || 'Anonymous';
+    const church = data.homeChurch ? ` · ${escHtml(data.homeChurch)}` : '';
+    const isOwn  = uid === currentUser?.uid;
+    const time   = data.createdAt?.toDate ? fmt(data.createdAt.toDate()) : '';
+    const isPub  = data.type === 'public_submission';
+
+    const badge  = isPub
+      ? `<span class="msg-public-badge">Member Submission</span>`
+      : '';
+
+    return `<div class="msg-row${isOwn && !isPub ? ' own' : ''}">
+      ${(!isOwn || isPub) ? `<div class="msg-avatar" style="${isPub ? 'background:rgba(201,168,76,0.15);color:var(--gold)' : ''}">${initials(name)}</div>` : ''}
+      <div class="msg-bubble-wrap">
+        ${(!isOwn || isPub) ? `<div class="msg-sender">${escHtml(name)}${church}${badge}</div>` : ''}
+        <div class="msg-bubble${isPub ? ' public-submission' : ''}">${escHtml(data.text || '')}</div>
+        <div class="msg-time">${time}</div>
+      </div>
+    </div>`;
+  }
+
+  /* Admin members send internal messages (admin ↔ admin) */
+  window.sendAdminGroupMessage = async function () {
+    if (!isAdminMember || !adminGroupId || !currentUser) return;
+    const inp  = $('admin-group-msg-input');
+    if (!inp) return;
+    const text = inp.value.trim(); if (!text) return;
+    if (hasProfanity(text)) {
+      toast('Your message contains prohibited language and was not sent.', 'error'); return;
+    }
+    inp.value = '';
+    try {
+      await db.collection('chatGroups').doc(adminGroupId).collection('messages').add({
+        senderId:   currentUser.uid,
+        senderName: userProfile?.displayName || 'Anonymous',
+        homeChurch: userProfile?.homeChurch  || '',
+        text,
+        createdAt:  FSV.serverTimestamp()
+        // No type field = internal admin message
+      });
+    } catch (e) {
+      console.error('sendAdminGroupMessage error:', e);
+      toast('Could not send message.', 'error');
+      inp.value = text;
+    }
+  };
+
+  /* Any authenticated user submits a message to the admin group.
+     Writes with type:'public_submission' so admins can distinguish it.
+     The user cannot read any messages — write-only by design. */
+  window.submitAdminContact = async function () {
+    if (!currentUser) return;
+    const inp    = $('contact-admin-input');
+    const errEl  = $('contact-admin-error');
+    if (!inp) return;
+
+    const text = inp.value.trim();
+    if (!text) {
+      if (errEl) { errEl.textContent = 'Please enter a message before sending.'; errEl.classList.remove('hidden'); }
+      return;
+    }
+    if (hasProfanity(text)) {
+      if (errEl) { errEl.textContent = 'Your message contains prohibited language.'; errEl.classList.remove('hidden'); }
+      return;
+    }
+    if (!adminGroupId) {
+      if (errEl) { errEl.textContent = 'Admin contact is not yet configured. Please try again later.'; errEl.classList.remove('hidden'); }
+      return;
+    }
+    if (errEl) errEl.classList.add('hidden');
+
+    const btn = document.querySelector('#contact-admin-form-area .btn-primary');
+    if (btn) { btn.textContent = 'Sending…'; btn.disabled = true; }
+
+    try {
+      await db.collection('chatGroups').doc(adminGroupId).collection('messages').add({
+        senderId:   currentUser.uid,
+        senderName: userProfile?.displayName || 'Anonymous',
+        homeChurch: userProfile?.homeChurch  || '',
+        text,
+        type:       'public_submission',   // flag so admins see the badge
+        createdAt:  FSV.serverTimestamp()
+      });
+
+      // Show success state
+      $('contact-admin-form-area').classList.add('hidden');
+      $('contact-admin-success').classList.remove('hidden');
+      inp.value = '';
+    } catch (e) {
+      console.error('submitAdminContact error:', e);
+      if (errEl) {
+        errEl.textContent = 'Could not send your message. Check your connection and try again.';
+        errEl.classList.remove('hidden');
+      }
+    } finally {
+      if (btn) { btn.textContent = 'Send Message'; btn.disabled = false; }
+    }
+  };
+
+  /* Reset the contact form so the user can send another message */
+  window.resetContactAdminForm = function () {
+    const formArea = $('contact-admin-form-area');
+    const success  = $('contact-admin-success');
+    const errEl    = $('contact-admin-error');
+    const inp      = $('contact-admin-input');
+    if (success)  success.classList.add('hidden');
+    if (errEl)    errEl.classList.add('hidden');
+    if (inp)      inp.value = '';
+    if (formArea) formArea.classList.remove('hidden');
+  };
+
   /* Step 4 — send a message to a group channel.
      Uses senderId/senderName per the spec schema. */
   window.sendGroupMessage = async function (groupId) {
@@ -3779,6 +4168,12 @@ service cloud.firestore {
     } else if (panel === 'prayer') {
       prayerUnread = 0;
       const m = $('prayer-messages'); setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
+    } else if (panel === 'contact-admin') {
+      // If admin member, scroll to bottom of admin chat
+      if (isAdminMember) {
+        const m = $('admin-group-messages');
+        setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
+      }
     } else if (panel.startsWith('group-')) {
       // Clear unread for this group and scroll to bottom
       const groupId = panel.slice(6);
