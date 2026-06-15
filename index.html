@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -147,7 +148,15 @@
     .btn-ghost { background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--border-soft); }
     .btn-ghost:hover { background: var(--input-focus); }
     .btn-sm { padding: 8px 14px; font-size: 0.8rem; }
-    .btn-link {
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: grayscale(25%);
+      transform: none !important;
+      pointer-events: none;
+    }
+.btn-link {
       background: none; border: none; color: var(--gold); cursor: pointer;
       font-family: var(--font-body); font-size: 0.88rem; text-decoration: underline;
       padding: 0; font-weight: 700;
@@ -1331,7 +1340,15 @@ service cloud.firestore {
         <input type="password" id="reg-password" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password"/></div>
       <div class="field"><label>Confirm Password</label>
         <input type="password" id="reg-confirm" placeholder="Repeat your password" required autocomplete="new-password"/></div>
-      <button type="submit" class="btn btn-primary" style="width:100%" id="register-btn">Create Account</button>
+      
+      <div class="field" style="margin-top:18px;">
+        <label style="display:flex;align-items:flex-start;gap:10px;text-transform:none;letter-spacing:normal;font-size:0.85rem;color:var(--text-primary);">
+          <input type="checkbox" id="reg-eula" style="width:auto;margin-top:3px;flex-shrink:0;"/>
+          <span>I have read and agree to the <a href="https://ucjc-app.vercel.app/eula.html" target="_blank" rel="noopener" style="color:var(--gold);">End User License Agreement (EULA)</a>.</span>
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%" id="register-btn" disabled>Create Account</button>
+
     </form>
   </div>
 </div>
@@ -2677,6 +2694,8 @@ service cloud.firestore {
     const email   = $('reg-email').value.trim();
     const pw      = $('reg-password').value;
     const confirm = $('reg-confirm').value;
+    const acceptedEula = $('reg-eula').checked;
+    if (!acceptedEula) { toast('You must agree to the EULA before creating an account.', 'error'); return; }
     if (pw !== confirm) { toast('Passwords do not match.', 'error'); return; }
     const btn = $('register-btn');
     btn.textContent = 'Creating account…'; btn.disabled = true;
@@ -2692,6 +2711,17 @@ service cloud.firestore {
       btn.textContent = 'Create Account'; btn.disabled = false;
     }
   };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const eulaCheckbox = $('reg-eula');
+    const registerBtn = $('register-btn');
+    if (eulaCheckbox && registerBtn) {
+      registerBtn.disabled = !eulaCheckbox.checked;
+      eulaCheckbox.addEventListener('change', () => {
+        registerBtn.disabled = !eulaCheckbox.checked;
+      });
+    }
+  });
 
   window.handleForgotPassword = async function () {
     const email = $('login-email').value.trim();
