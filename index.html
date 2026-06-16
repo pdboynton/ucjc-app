@@ -3759,7 +3759,9 @@ window.handleRegister = async function (e) {
         .orderBy('displayName')
         .get();
 
-      allAttendees = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      allAttendees = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(u => !u.hiddenFromDirectory);
       Cache.set('directory', allAttendees, currentUser.uid);
 
       $('attendee-count').textContent = allAttendees.length + ' registered';
