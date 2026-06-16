@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -148,15 +147,7 @@
     .btn-ghost { background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--border-soft); }
     .btn-ghost:hover { background: var(--input-focus); }
     .btn-sm { padding: 8px 14px; font-size: 0.8rem; }
-    
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      filter: grayscale(25%);
-      transform: none !important;
-      pointer-events: none;
-    }
-.btn-link {
+    .btn-link {
       background: none; border: none; color: var(--gold); cursor: pointer;
       font-family: var(--font-body); font-size: 0.88rem; text-decoration: underline;
       padding: 0; font-weight: 700;
@@ -828,6 +819,33 @@
     .reminder-sub { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
 
     /* ══════════════════════════════════════════════
+       TAG FILTER BAR
+    ══════════════════════════════════════════════ */
+    .tag-filter-bar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 16px 10px; overflow-x: auto; scrollbar-width: none;
+      flex-shrink: 0; flex-wrap: nowrap;
+    }
+    .tag-filter-bar::-webkit-scrollbar { display: none; }
+    .tag-filter-label {
+      font-size: 0.64rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-dim); flex-shrink: 0;
+    }
+    .tag-pill {
+      flex-shrink: 0; padding: 4px 11px; border-radius: 20px;
+      border: 1px solid var(--border-soft); background: var(--input-bg);
+      color: var(--text-muted); font-family: var(--font-body); font-size: 0.74rem;
+      font-weight: 700; cursor: pointer; transition: all 0.18s;
+      white-space: nowrap; letter-spacing: 0.02em;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none; user-select: none;
+    }
+    .tag-pill:hover  { border-color: var(--border); color: var(--text-primary); background: var(--bg-light); }
+    .tag-pill.active { background: rgba(201,168,76,0.14); color: var(--gold); border-color: var(--gold); }
+    .tag-pill-clear  { color: var(--text-dim); }
+    .tag-pill-clear:hover { color: var(--crimson); border-color: rgba(139,38,53,0.4); background: rgba(139,38,53,0.07); }
+
+    /* ══════════════════════════════════════════════
        MY SCHEDULE
     ══════════════════════════════════════════════ */
     .my-schedule-stats {
@@ -1286,7 +1304,7 @@ service cloud.firestore {
   <span style="font-size:1.3rem;color:var(--gold)">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="17" r="1"/></svg>
   </span>
-  <div class="install-text"><strong>Install App</strong><br>Add UCJC Convocation to your home screen</div>
+  <div class="install-text"><strong>Install App</strong><br>Add UCJC Apostolic to your home screen</div>
   <button class="btn btn-primary btn-sm" onclick="installApp()">Install</button>
   <button class="btn btn-ghost btn-sm" onclick="dismissInstall()" style="padding:8px">✕</button>
 </div>
@@ -1302,7 +1320,7 @@ service cloud.firestore {
 <div id="auth-screen" class="hidden">
   <div class="auth-hero">
     <img src="logo.png" alt="UCJC Logo" class="auth-hero-logo" onerror="this.style.display='none'"/>
-    <h1>United Church of<br/><em>Jesus Christ</em></br>(Apostolic)</h1>
+    <h1>United Church of<br/><em>Jesus Christ</em><br/>(Apostolic)</h1>
     <p>Official Companion App</p>
   </div>
   <div class="auth-body">
@@ -1341,14 +1359,13 @@ service cloud.firestore {
       <div class="field"><label>Confirm Password</label>
         <input type="password" id="reg-confirm" placeholder="Repeat your password" required autocomplete="new-password"/></div>
       
-      <div class="field" style="margin-top:18px;">
-        <label style="display:flex;align-items:flex-start;gap:10px;text-transform:none;letter-spacing:normal;font-size:0.85rem;color:var(--text-primary);">
-          <input type="checkbox" id="reg-eula" style="width:auto;margin-top:3px;flex-shrink:0;"/>
-          <span>I have read and agree to the <a href="https://ucjc-app.vercel.app/eula.html" target="_blank" rel="noopener" style="color:var(--gold);">End User License Agreement (EULA)</a>.</span>
+      <div class="field" style="display:flex;align-items:flex-start;gap:10px;margin-bottom:18px;">
+        <input type="checkbox" id="eula-agree" style="width:auto;margin-top:3px;flex-shrink:0;">
+        <label for="eula-agree" style="font-size:0.85rem;color:var(--text-muted);text-transform:none;letter-spacing:normal;font-weight:400;margin:0;">
+          I agree to the <a href="https://ucjc-app.vercel.app/eula.html" target="_blank" style="color:var(--gold);">End User License Agreement (EULA)</a>.
         </label>
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%" id="register-btn" disabled>Create Account</button>
-
+      <button type="submit" class="btn btn-primary" style="width:100%;opacity:.5;cursor:not-allowed" id="register-btn" disabled>Create Account</button>
     </form>
   </div>
 </div>
@@ -1391,7 +1408,7 @@ service cloud.firestore {
       <!-- Greeting -->
       <div class="home-hero">
         <div class="home-greeting">Welcome back,<br/><em id="home-greeting-name">Friend</em></div>
-        <div class="home-subgreeting" id="home-subgreeting">UCJC Apostolic</div>
+        <div class="home-subgreeting" id="home-subgreeting">UCJC Holy Convocation</div>
       </div>
 
       <!-- Venue Map Banner -->
@@ -1478,6 +1495,7 @@ service cloud.firestore {
     <!-- SCHEDULE -->
     <div class="screen active" id="screen-schedule">
       <div id="date-tabs" class="date-tab-list"></div>
+      <div id="tag-filters" class="tag-filter-bar hidden"></div>
       <div id="events-loading" class="empty-state hidden">
         <div class="loader-ring" style="margin:0 auto 12px"></div>
         <p class="muted-text">Fetching schedule…</p>
@@ -1729,10 +1747,9 @@ service cloud.firestore {
             </div>
           </div>
 
-        </div>
-
-        </div>
-      </div>
+        </div><!-- end panel-contact-admin -->
+      </div><!-- end chat-screen-wrap -->
+    </div><!-- end screen-chat -->
 
     <!-- PROFILE -->
     <div class="screen" id="screen-profile">
@@ -1823,7 +1840,7 @@ service cloud.firestore {
               <div class="settings-row-sub">UCJC Convocation v1.0</div>
             </div>
           </div>
-          <div class="settings-row danger">
+          <div class="settings-row">
             <span class="settings-row-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="delete-account-icon">
                 <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
@@ -2314,6 +2331,7 @@ service cloud.firestore {
   let notesByEvent       = {};
   let selectedEventId    = null;
   let currentRating      = 0;
+  let activeFilters      = new Set();  // hashtag filters active on schedule screen
   let currentDMUid       = null;
   let currentDMName      = null;
   let chatInitialized    = false;
@@ -2376,6 +2394,46 @@ service cloud.firestore {
     tmp.querySelectorAll('br').forEach(el => el.replaceWith(' '));
     tmp.querySelectorAll('p,div,li,tr').forEach(el => el.insertAdjacentText('afterend',' '));
     return (tmp.textContent || tmp.innerText || '').replace(/\s+/g,' ').trim();
+  }
+
+  /* Like stripHtml but converts <br> / block elements to \n so line breaks survive */
+  function stripHtmlLines(str) {
+    if (!str) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = str;
+    tmp.querySelectorAll('br').forEach(el => el.replaceWith('\n'));
+    tmp.querySelectorAll('p,div,li,tr').forEach(el => el.insertAdjacentText('afterend','\n'));
+    return (tmp.textContent || tmp.innerText || '')
+      .split('\n').map(l => l.trim())
+      .join('\n').replace(/\n{3,}/g,'\n\n').trim();
+  }
+
+  /* ── Schedule hashtag filtering ─────────── */
+  const KNOWN_TAGS = [
+    'men','women','youth','youngadult','ordination',
+    'consecration','rehearsal','pastors','bishops'
+  ];
+  const TAG_LABELS = {
+    men:'Men', women:'Women', youth:'Youth', youngadult:'Young Adults',
+    ordination:'Ordination', consecration:'Consecration',
+    rehearsal:'Rehearsal', pastors:'Pastors', bishops:'Bishops'
+  };
+  function _tagRe() {
+    return new RegExp('#(' + KNOWN_TAGS.join('|') + ')(?![a-zA-Z0-9_])', 'gi');
+  }
+  function extractEventTags(text) {
+    const tags = [], re = _tagRe(); let m;
+    while ((m = re.exec(text)) !== null) tags.push(m[1].toLowerCase());
+    return [...new Set(tags)];
+  }
+  function removeEventHashtags(text) {
+    return text.replace(_tagRe(), '').replace(/[ \t]{2,}/g,' ').replace(/\n /g,'\n').trim();
+  }
+  /* Process raw description: extract tags + strip hashtags in one step */
+  function processDesc(raw) {
+    const tags = extractEventTags(raw);
+    const desc = removeEventHashtags(raw);
+    return { desc, tags };
   }
   function reminderLabel(m) {
     if (m < 60) return `${m} minutes before`;
@@ -2687,15 +2745,31 @@ service cloud.firestore {
     }
   };
 
-  window.handleRegister = async function (e) {
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    const eula = $('eula-agree');
+    const btn = $('register-btn');
+    if (eula && btn) {
+      const update = () => {
+        btn.disabled = !eula.checked;
+        btn.style.opacity = eula.checked ? '1' : '.5';
+        btn.style.cursor = eula.checked ? 'pointer' : 'not-allowed';
+      };
+      eula.addEventListener('change', update);
+      update();
+    }
+  });
+
+window.handleRegister = async function (e) {
     e.preventDefault();
     const name    = $('reg-name').value.trim();
     const church  = $('reg-church').value.trim();
     const email   = $('reg-email').value.trim();
     const pw      = $('reg-password').value;
     const confirm = $('reg-confirm').value;
-    const acceptedEula = $('reg-eula').checked;
-    if (!acceptedEula) { toast('You must agree to the EULA before creating an account.', 'error'); return; }
+    const eula = $('eula-agree');
+    if (eula && !eula.checked) { toast('You must agree to the EULA before creating an account.', 'error'); return; }
+
     if (pw !== confirm) { toast('Passwords do not match.', 'error'); return; }
     const btn = $('register-btn');
     btn.textContent = 'Creating account…'; btn.disabled = true;
@@ -2711,17 +2785,6 @@ service cloud.firestore {
       btn.textContent = 'Create Account'; btn.disabled = false;
     }
   };
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const eulaCheckbox = $('reg-eula');
-    const registerBtn = $('register-btn');
-    if (eulaCheckbox && registerBtn) {
-      registerBtn.disabled = !eulaCheckbox.checked;
-      eulaCheckbox.addEventListener('change', () => {
-        registerBtn.disabled = !eulaCheckbox.checked;
-      });
-    }
-  });
 
   window.handleForgotPassword = async function () {
     const email = $('login-email').value.trim();
@@ -2950,15 +3013,18 @@ service cloud.firestore {
       // Update home map card — geocodes and generates map if address changed
       loadVenueMap(venueLocation, bannerTitle);
 
-      const freshEvents = timed.map(e => ({
-        id:       e.id,
-        title:    stripHtml(e.summary    || 'Untitled Session'),
-        start:    new Date(e.start.dateTime),
-        end:      new Date(e.end.dateTime),
-        location: stripHtml(e.location   || ''),
-        desc:     stripHtml(e.description|| ''),
-        colorId:  e.colorId || ''
-      }));
+      const freshEvents = timed.map(e => {
+        const { desc, tags } = processDesc(stripHtmlLines(e.description || ''));
+        return {
+          id:       e.id,
+          title:    stripHtml(e.summary    || 'Untitled Session'),
+          start:    new Date(e.start.dateTime),
+          end:      new Date(e.end.dateTime),
+          location: stripHtml(e.location   || ''),
+          desc, tags,
+          colorId:  e.colorId || ''
+        };
+      });
 
       if (freshEvents.length) {
         allEvents = freshEvents;
@@ -2987,23 +3053,25 @@ service cloud.firestore {
     const t = (d,h,m=0) => { const x = new Date(b.getTime()+d*86400000); x.setHours(h,m); return x; };
     $('banner-title').textContent = 'UCJC Holy Convocation (Demo)';
     $('banner-meta').textContent  = `${fmtDate(b)} – ${fmtDate(t(4,0))}  ·  Connect your Google Calendar for live data`;
+    const ev = (obj) => ({ ...obj, ...processDesc(obj._raw || obj.desc || ''), _raw: undefined });
     allEvents = [
-      { id:'d1',  title:'Opening Worship Service',         start:t(0,9),    end:t(0,11),   location:'Main Sanctuary',   desc:'The convocation opens with praise, worship, and a powerful message from our presiding bishop.', colorId:'11' },
-      { id:'d2',  title:'Holy Communion',                  start:t(0,11,30),end:t(0,12,30),location:'Main Sanctuary',   desc:'We gather at the table of the Lord.',                                                          colorId:'6'  },
-      { id:'d3',  title:'Afternoon Bible Study',           start:t(0,14),   end:t(0,16),   location:'Fellowship Hall',  desc:'Deep dive into the Word. Bring your Bible.',                                                   colorId:'2'  },
-      { id:'d4',  title:'Youth & Young Adults Service',    start:t(0,19),   end:t(0,21),   location:'Youth Auditorium', desc:'A spirit-filled night for the next generation.',                                               colorId:'9'  },
-      { id:'d5',  title:'Morning Devotion & Prayer',       start:t(1,7),    end:t(1,8),    location:'Chapel',           desc:'Start the day in prayer and meditation.',                                                      colorId:'10' },
-      { id:'d6',  title:'Workshop: Faith & Finance',       start:t(1,9),    end:t(1,11),   location:'Room 201',         desc:'Practical guidance on stewardship from a Kingdom perspective.',                                colorId:'2'  },
-      { id:'d7',  title:'Workshop: Marriage & Family',     start:t(1,9),    end:t(1,11),   location:'Room 205',         desc:'Strengthening households through biblical principles.',                                         colorId:'9'  },
-      { id:'d8',  title:'Evening Revival Service',         start:t(1,19),   end:t(1,21,30),location:'Main Sanctuary',   desc:'An anointed evening of revival, testimony, and breakthrough.',                                 colorId:'11' },
-      { id:'d9',  title:'Morning Devotion & Prayer',       start:t(2,7),    end:t(2,8),    location:'Chapel',           desc:'',                                                                                             colorId:'10' },
-      { id:'d10', title:'Ordination Service',              start:t(2,10),   end:t(2,12,30),location:'Main Sanctuary',   desc:'Ordination of ministers and consecration of elders.',                                          colorId:'6'  },
-      { id:'d11', title:"Women's Ministry Hour",           start:t(2,14),   end:t(2,16),   location:'Fellowship Hall',  desc:'Celebrating and equipping the women of UCJC.',                                                 colorId:'9'  },
-      { id:'d12', title:"Men's Ministry Gathering",        start:t(2,14),   end:t(2,16),   location:'Room 201',         desc:'Brotherhood, accountability, and purpose.',                                                    colorId:'2'  },
-      { id:'d13', title:'Night of Worship',                start:t(2,19),   end:t(2,21),   location:'Main Sanctuary',   desc:'Extended worship and intercession.',                                                           colorId:'11' },
-      { id:'d14', title:'Business Session',                start:t(3,9),    end:t(3,11),   location:'Main Sanctuary',   desc:'Annual business meeting of the United Church of Jesus Christ.',                                colorId:'2'  },
-      { id:'d15', title:'Closing Banquet',                 start:t(3,18),   end:t(3,20,30),location:'Grand Ballroom',   desc:'An elegant closing celebration. Semi-formal attire.',                                          colorId:'6'  },
-      { id:'d16', title:'Closing Worship & Commissioning', start:t(4,10),   end:t(4,12),   location:'Main Sanctuary',   desc:'Our final gathering: commissioning, blessing, and farewell until next year.',                  colorId:'11' },
+      ev({ id:'d1',  title:'Opening Worship Service',         start:t(0,9),    end:t(0,11),   location:'Main Sanctuary',   _raw:'The convocation opens with praise, worship, and a powerful message from our presiding bishop.',                  colorId:'11' }),
+      ev({ id:'d2',  title:'Holy Communion',                  start:t(0,11,30),end:t(0,12,30),location:'Main Sanctuary',   _raw:'We gather at the table of the Lord.',                                                                           colorId:'6'  }),
+      ev({ id:'d3',  title:'Afternoon Bible Study',           start:t(0,14),   end:t(0,16),   location:'Fellowship Hall',  _raw:'Deep dive into the Word. Bring your Bible.',                                                                    colorId:'2'  }),
+      ev({ id:'d4',  title:'Youth & Young Adults Service',    start:t(0,19),   end:t(0,21),   location:'Youth Auditorium', _raw:'A spirit-filled night for the next generation. #youth #youngadult',                                             colorId:'9'  }),
+      ev({ id:'d5',  title:'Morning Devotion & Prayer',       start:t(1,7),    end:t(1,8),    location:'Chapel',           _raw:'Start the day in prayer and meditation.',                                                                       colorId:'10' }),
+      ev({ id:'d6',  title:'Workshop: Faith & Finance',       start:t(1,9),    end:t(1,11),   location:'Room 201',         _raw:'Practical guidance on stewardship from a Kingdom perspective.',                                                 colorId:'2'  }),
+      ev({ id:'d7',  title:'Workshop: Marriage & Family',     start:t(1,9),    end:t(1,11),   location:'Room 205',         _raw:'Strengthening households through biblical principles.',                                                          colorId:'9'  }),
+      ev({ id:'d8',  title:'Evening Revival Service',         start:t(1,19),   end:t(1,21,30),location:'Main Sanctuary',   _raw:'An anointed evening of revival, testimony, and breakthrough.',                                                  colorId:'11' }),
+      ev({ id:'d9',  title:'Morning Devotion & Prayer',       start:t(2,7),    end:t(2,8),    location:'Chapel',           _raw:'',                                                                                                              colorId:'10' }),
+      ev({ id:'d10', title:'Ordination Service',              start:t(2,10),   end:t(2,12,30),location:'Main Sanctuary',   _raw:'Ordination of ministers and consecration of elders. #ordination #consecration #pastors #bishops',               colorId:'6'  }),
+      ev({ id:'d11', title:"Women's Ministry Hour",           start:t(2,14),   end:t(2,16),   location:'Fellowship Hall',  _raw:'Celebrating and equipping the women of UCJC. #women',                                                           colorId:'9'  }),
+      ev({ id:'d12', title:"Men's Ministry Gathering",        start:t(2,14),   end:t(2,16),   location:'Room 201',         _raw:'Brotherhood, accountability, and purpose. #men',                                                                colorId:'2'  }),
+      ev({ id:'d13', title:'Night of Worship',                start:t(2,19),   end:t(2,21),   location:'Main Sanctuary',   _raw:'Extended worship and intercession.',                                                                            colorId:'11' }),
+      ev({ id:'d14', title:'Business Session',                start:t(3,9),    end:t(3,11),   location:'Main Sanctuary',   _raw:'Annual business meeting of the United Church of Jesus Christ. #bishops #pastors',                               colorId:'2'  }),
+      ev({ id:'d15', title:'Rehearsal — Closing Service',     start:t(3,15),   end:t(3,16,30),location:'Main Sanctuary',   _raw:'Run-through for all participants in the closing worship service. #rehearsal',                                    colorId:'10' }),
+      ev({ id:'d16', title:'Closing Banquet',                 start:t(3,18),   end:t(3,20,30),location:'Grand Ballroom',   _raw:'An elegant closing celebration. Semi-formal attire.',                                                           colorId:'6'  }),
+      ev({ id:'d17', title:'Closing Worship & Commissioning', start:t(4,10),   end:t(4,12),   location:'Main Sanctuary',   _raw:'Our final gathering: commissioning, blessing, and farewell until next year.',                                    colorId:'11' }),
     ];
     buildDateTabs();
   }
@@ -3365,6 +3433,7 @@ service cloud.firestore {
       tab.innerHTML = `<div class="date-tab-day">${d.toLocaleDateString([],{weekday:'short'})}</div><div class="date-tab-num">${d.getDate()}</div>`;
       tab.onclick = () => {
         activeDateKey = key;
+        activeFilters.clear();   // reset filters when switching dates
         document.querySelectorAll('.date-tab').forEach(t => t.classList.toggle('active', t.dataset.key === key));
         renderEvents();
       };
@@ -3375,17 +3444,74 @@ service cloud.firestore {
 
   function renderEvents() {
     const list = $('event-list'), none = $('no-events');
-    const filtered = allEvents.filter(e => fmtDateKey(e.start) === activeDateKey).sort((a,b)=>a.start-b.start);
-    if (!filtered.length) { list.innerHTML = ''; none.classList.remove('hidden'); return; }
+    const todayAll = allEvents.filter(e => fmtDateKey(e.start) === activeDateKey).sort((a,b)=>a.start-b.start);
+
+    // Apply tag filters (OR logic — event must have at least one selected tag)
+    const filtered = activeFilters.size > 0
+      ? todayAll.filter(e => (e.tags || []).some(t => activeFilters.has(t)))
+      : todayAll;
+
+    // Update tag pill bar from unfiltered today events
+    renderTagFilters(todayAll);
+
+    if (!filtered.length) {
+      list.innerHTML = '';
+      none.classList.remove('hidden');
+      const title = none.querySelector('.empty-title');
+      const sub   = none.querySelector('.muted-text.small-text');
+      if (activeFilters.size > 0) {
+        if (title) title.textContent = 'No sessions match these filters';
+        if (sub)   sub.textContent   = 'Try removing a filter or selecting another date';
+      } else {
+        if (title) title.textContent = 'No sessions scheduled';
+        if (sub)   sub.textContent   = 'Check back soon or select another date';
+      }
+      return;
+    }
     none.classList.add('hidden');
     list.innerHTML = filtered.map(ev => eventCardHTML(ev)).join('');
   }
 
+  /* Render the tag filter pill row above the event list */
+  function renderTagFilters(todayEvents) {
+    const bar = $('tag-filters'); if (!bar) return;
+    const events = todayEvents || allEvents.filter(e => fmtDateKey(e.start) === activeDateKey);
+
+    // Collect tags that actually appear in today's events (ordered per KNOWN_TAGS)
+    const available = KNOWN_TAGS.filter(t => events.some(e => (e.tags || []).includes(t)));
+
+    if (!available.length) { bar.classList.add('hidden'); return; }
+    bar.classList.remove('hidden');
+
+    bar.innerHTML =
+      `<span class="tag-filter-label">Filter:</span>` +
+      available.map(tag => {
+        const on = activeFilters.has(tag);
+        return `<button class="tag-pill${on ? ' active' : ''}"
+          onclick="toggleTagFilter('${tag}')">${escHtml(TAG_LABELS[tag] || tag)}</button>`;
+      }).join('') +
+      (activeFilters.size > 0
+        ? `<button class="tag-pill tag-pill-clear" onclick="clearTagFilters()">✕ Clear</button>`
+        : '');
+  }
+
+  window.toggleTagFilter = function(tag) {
+    if (activeFilters.has(tag)) activeFilters.delete(tag); else activeFilters.add(tag);
+    renderEvents();
+  };
+
+  window.clearTagFilters = function() {
+    activeFilters.clear();
+    renderEvents();
+  };
+
   function eventCardHTML(ev) {
-    const bm    = bookmarks[ev.id];
-    const color = COLOR_MAP[ev.colorId] || 'var(--gold)';
-    const dur   = minsDiff(ev.start, ev.end);
-    const bmSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="${bm?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+    const bm      = bookmarks[ev.id];
+    const color   = COLOR_MAP[ev.colorId] || 'var(--gold)';
+    const dur     = minsDiff(ev.start, ev.end);
+    const bmSvg   = `<svg width="18" height="18" viewBox="0 0 24 24" fill="${bm?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+    // Flatten multiline desc to single line for the card preview
+    const preview = ev.desc ? ev.desc.replace(/\n+/g, ' ').trim() : '';
     return `<div class="event-card${bm?' bookmarked':''}" onclick="openSessionModal('${escHtml(ev.id)}')" style="border-left-color:${color}">
       <div class="event-time-col">
         <div class="event-start">${fmt(ev.start)}</div>
@@ -3395,7 +3521,8 @@ service cloud.firestore {
       <div class="event-info">
         <div class="event-title">${escHtml(ev.title)}</div>
         ${ev.location ? `<div class="event-location"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${escHtml(ev.location)}</div>` : ''}
-        ${ev.desc ? `<div class="event-desc">${escHtml(ev.desc)}</div>` : ''}
+        ${preview ? `<div class="event-desc">${escHtml(preview)}</div>` : ''}
+        ${ev.tags && ev.tags.length ? `<div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">${ev.tags.map(t=>`<span style="font-size:0.62rem;font-weight:700;color:var(--gold);opacity:0.8">#${escHtml(TAG_LABELS[t]||t)}</span>`).join('')}</div>` : ''}
       </div>
       <div class="event-actions">
         <button class="bookmark-btn${bm?' active':''}" onclick="event.stopPropagation();quickBookmark('${escHtml(ev.id)}')" title="${bm?'Remove bookmark':'Bookmark'}">${bmSvg}</button>
@@ -3469,8 +3596,10 @@ service cloud.firestore {
     const ev = allEvents.find(e => e.id === eventId); if (!ev) return;
     const bm = bookmarks[eventId]; currentRating = 0;
     $('modal-event-title').textContent = ev.title;
-    $('modal-event-meta').innerHTML = `<span class="badge badge-gold">${fmt(ev.start)} – ${fmt(ev.end)}</span>${ev.location?`<span class="badge badge-blue">${escHtml(ev.location)}</span>`:''}`;
-    $('modal-event-desc').textContent  = ev.desc || 'No additional description provided.';
+    $('modal-event-meta').innerHTML = `<span class="badge badge-gold">${fmt(ev.start)} – ${fmt(ev.end)}</span>${ev.location?`<span class="badge badge-blue">${escHtml(ev.location)}</span>`:''}${(ev.tags||[]).map(t=>`<span class="badge badge-gold" style="opacity:0.75">#${escHtml(TAG_LABELS[t]||t)}</span>`).join('')}`;
+    // Render description preserving line breaks; hashtags already stripped at load time
+    const descText = ev.desc || 'No additional description provided.';
+    $('modal-event-desc').innerHTML = descText.split('\n').map(l => escHtml(l)).join('<br>');
     $('modal-location').textContent    = ev.location || '—';
     $('modal-duration').textContent    = hrsMin(minsDiff(ev.start, ev.end));
     $('notes-textarea').value          = notesByEvent[eventId] || '';
