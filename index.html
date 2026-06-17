@@ -1630,12 +1630,21 @@ service cloud.firestore {
     <div class="screen" id="screen-chat">
       <div class="chat-screen-wrap">
         <div class="chat-tabs">
+          <!-- ══════════════════════════════════════════════════════════
+               GROUP CHAT TAB — DISABLED
+               Commented out per request. The underlying infrastructure
+               (subscribeChannel('global',...), sendGlobalMessage(),
+               global-tab-badge tracking, unread counters, etc.) is left
+               fully intact in the JavaScript so this can be re-enabled
+               at any time by simply uncommenting this block and the
+               matching panel below.
           <button class="chat-tab-btn active" data-panel="global" onclick="switchChatTab('global')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
             Group Chat
             <span class="tab-unread-badge hidden" id="global-tab-badge"></span>
           </button>
-          <button class="chat-tab-btn" data-panel="dms" onclick="switchChatTab('dms')">
+          ══════════════════════════════════════════════════════════ -->
+          <button class="chat-tab-btn active" data-panel="dms" onclick="switchChatTab('dms')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             Direct Messages
             <span class="tab-unread-badge hidden" id="dm-tab-badge"></span>
@@ -1660,6 +1669,8 @@ service cloud.firestore {
           </button>
         </div>
 
+        <!-- ══════════════════════════════════════════════════════════
+             GROUP CHAT PANEL — DISABLED (see matching tab comment above)
         <div class="chat-panel active" id="panel-global">
           <div class="chat-messages" id="global-messages"></div>
           <div class="chat-input-bar">
@@ -1670,8 +1681,9 @@ service cloud.firestore {
             </button>
           </div>
         </div>
+        ══════════════════════════════════════════════════════════ -->
 
-        <div class="dm-panel" id="panel-dms">
+        <div class="dm-panel active" id="panel-dms">
           <div class="dm-panel-header">
             <span class="section-title" style="font-size:0.88rem">Conversations</span>
             <button class="btn btn-outline btn-sm" onclick="showScreen('directory')" style="font-size:0.72rem;padding:5px 12px">
@@ -2366,7 +2378,7 @@ service cloud.firestore {
   let currentDMUid       = null;
   let currentDMName      = null;
   let chatInitialized    = false;
-  let currentChatPanel   = 'global';   // which chat tab is visible
+  let currentChatPanel   = 'dms';      // which chat tab is visible (was 'global' — Group Chat tab disabled)
   let dmConversations    = [];         // metadata for each DM thread
   let globalUnread       = 0;          // unread group chat messages
   let prayerUnread       = 0;          // unread prayer messages
