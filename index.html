@@ -2520,15 +2520,103 @@ service cloud.firestore {
   ══════════════════════════════════════════ */
   const BLOCKED = (function () {
     const raw = [
-      'fuck','fck','shit','bitch','ass','a55','asshole','bastard','crap',
-      'piss','cock','dick','d1ck','pussy','cunt','whore','wh0re','slut',
-      'jackass','motherfucker','bullshit',
-      'nigger','nigga','n1gga','n1gg3r','chink','ch1nk','spic','sp1c',
-      'kike','k1ke','wetback','gook','g00k','raghead','cracker',
-      'beaner','towelhead','coon','c00n','zipperhead','redskin',
-      'greaseball','honky','h0nky','kraut','polack','p0lack',
-      'hymie','injun','porchmonkey','sambo','s4mbo','squaw','whitey',
-      'faggot','f4ggot','dyke','tranny','tr4nny'
+      // General profanity
+      'fuck','fucking','fucker','motherfucker','mf','mfer','fck','fuk','fucc',
+      'shit','shitty','bullshit','horseshit','dipshit',
+      'bitch','bitches','biatch',
+      'ass','a55','asshole','asshat','dumbass','jackass','badass',
+      'bastard','crap','damn','goddamn','goddammit',
+      'hell','piss','pissed','prick','twat',
+    
+      // Sexual terms
+      'cock','cocksucker','dick','d1ck','dildo',
+      'penis','vagina','pussy','cunt',
+      'whore','wh0re','slut','skank','hoe','h0e',
+      'cum','cumming','jizz','semen',
+      'blowjob','bj','handjob',
+      'porn','porno','pornography',
+      'masturbate','masturbation',
+    
+      // Derogatory insults
+      'idiot','moron','retard','r3tard',
+      'loser','stupid','douche','douchebag',
+      'scumbag','pieceofshit',
+      'trash','garbagehuman',
+    
+      // Racist slurs
+      'nigger','nigga','n1gga','n1gg3r',
+      'chink','ch1nk',
+      'spic','sp1c',
+      'kike','k1ke',
+      'gook','g00k',
+      'wetback',
+      'beaner',
+      'coon','c00n',
+      'porchmonkey',
+      'sambo','s4mbo',
+      'raghead',
+      'towelhead',
+      'cameljockey',
+      'sandnigger',
+      'zipperhead',
+      'redskin',
+      'injun',
+      'squaw',
+      'hymie',
+      'kraut',
+      'polack','p0lack',
+      'honky','h0nky',
+      'cracker',
+      'whitey',
+      'greaseball',
+    
+      // Anti-LGBTQ slurs
+      'faggot','f4ggot','fag',
+      'dyke',
+      'tranny','tr4nny',
+      'queerboy',
+    
+      // Religious slurs
+      'christkiller',
+      'kafir',
+      'infidel',
+      'papist',
+      'heathen',
+      'cultist',
+    
+      // Threats / violence
+      'killyourself',
+      'kys',
+      'diebitch',
+      'hangyourself',
+      'goanddie',
+      'iwillkillyou',
+      'murderyou',
+      'shootyou',
+      'stabyou',
+    
+      // Harassment
+      'worthless',
+      'nobodylikesyou',
+      'everyonehat esyou',
+      'yourescum',
+      'youaretrash',
+      'goaway',
+      'dropdead',
+    
+      // Common obfuscations
+      'f*ck','f**k','f***',
+      'sh*t','s**t',
+      'b*tch',
+      'n*gger',
+      'n****r',
+      '@ss',
+      '@sshole',
+      'phuck',
+      'phuk',
+      'fuq',
+      'fuqq',
+      'fuqer'
     ];
     return raw.map(w => w.replace(/\s+/g,''));
   })();
