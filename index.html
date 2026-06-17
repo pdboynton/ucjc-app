@@ -992,6 +992,15 @@
     }
     .tab-unread-badge.hidden { display: none; }
 
+    
+    .countdown-card{margin:14px 16px;padding:18px;border-radius:var(--radius);background:linear-gradient(135deg,rgba(201,168,76,.14),rgba(201,168,76,.04));border:1px solid var(--border);text-align:center}
+    .countdown-label{font-family:var(--font-display);font-size:1rem;color:var(--gold);margin-bottom:14px}
+    .countdown-timer{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+    .countdown-unit{min-width:60px}
+    .countdown-unit span{display:block;font-size:1.8rem;font-weight:700;color:var(--text-primary)}
+    .countdown-unit small{color:var(--text-muted);text-transform:uppercase;font-size:.65rem;letter-spacing:.08em}
+
+
     /* ══════════════════════════════════════════════
        PROFILE / SETTINGS
     ══════════════════════════════════════════════ */
@@ -1408,6 +1417,16 @@ service cloud.firestore {
       <div class="home-hero">
         <div class="home-greeting">Welcome back,<br/><em id="home-greeting-name">Friend</em></div>
         <div class="home-subgreeting" id="home-subgreeting">UCJC Holy Convocation</div>
+      </div>
+
+      <div id="convocation-countdown-card" class="countdown-card">
+        <div class="countdown-label">Convocation Begins In</div>
+        <div class="countdown-timer">
+          <div class="countdown-unit"><span id="cd-days">0</span><small>Days</small></div>
+          <div class="countdown-unit"><span id="cd-hours">0</span><small>Hours</small></div>
+          <div class="countdown-unit"><span id="cd-minutes">0</span><small>Minutes</small></div>
+          <div class="countdown-unit"><span id="cd-seconds">0</span><small>Seconds</small></div>
+        </div>
       </div>
 
       <!-- Venue Map Banner -->
@@ -2208,6 +2227,7 @@ service cloud.firestore {
   ══════════════════════════════════════════ */
   firebase.initializeApp(FIREBASE_CONFIG);
   const auth = firebase.auth();
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(console.error);
   const db   = firebase.firestore();
   const FSV  = firebase.firestore.FieldValue;
 
@@ -2958,6 +2978,32 @@ window.handleRegister = async function (e) {
     applyTheme(localStorage.getItem('ucjc-theme') === 'light');
   }
 
+  
+  function initializeConvocationCountdown(events){
+    const card=$('convocation-countdown-card');
+    if(!card||!events||!events.length) return;
+    const now=new Date();
+    const upcoming=events.filter(e=>new Date(e.start)>now).sort((a,b)=>new Date(a.start)-new Date(b.start))[0];
+    if(!upcoming){card.style.display='none';return;}
+    const target=new Date(upcoming.start);
+    if(window.convocationCountdownTimer) clearInterval(window.convocationCountdownTimer);
+    function tick(){
+      const diff=target-new Date();
+      if(diff<=0){
+        clearInterval(window.convocationCountdownTimer);
+        card.innerHTML='<div class="countdown-label">Convocation Is Underway</div>';
+        return;
+      }
+      const d=Math.floor(diff/86400000);
+      const h=Math.floor((diff%86400000)/3600000);
+      const m=Math.floor((diff%3600000)/60000);
+      const s=Math.floor((diff%60000)/1000);
+      $('cd-days').textContent=d;$('cd-hours').textContent=h;$('cd-minutes').textContent=m;$('cd-seconds').textContent=s;
+    }
+    tick();
+    window.convocationCountdownTimer=setInterval(tick,1000);
+  }
+
   /* ══════════════════════════════════════════
      GOOGLE CALENDAR
   ══════════════════════════════════════════ */
@@ -2972,6 +3018,7 @@ window.handleRegister = async function (e) {
         if (bannerMeta)  $('banner-meta').textContent  = bannerMeta;
         loadVenueMap(venueLocation || '', bannerTitle || '');
         buildDateTabs();
+        initializeConvocationCountdown(allEvents);
         // Refresh in background — don't show spinner for cached load
         _fetchCalendarBackground();
         return;
@@ -3032,6 +3079,7 @@ window.handleRegister = async function (e) {
           events: freshEvents.map(e => ({ ...e, start: e.start.toISOString(), end: e.end.toISOString() }))
         }, currentUser?.uid);
         buildDateTabs();
+        initializeConvocationCountdown(allEvents);
       } else if (!allEvents.length) {
         loadDemoEvents();
       }
@@ -3759,9 +3807,7 @@ window.handleRegister = async function (e) {
         .orderBy('displayName')
         .get();
 
-      allAttendees = snap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(u => !u.hiddenFromDirectory);
+      allAttendees = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       Cache.set('directory', allAttendees, currentUser.uid);
 
       $('attendee-count').textContent = allAttendees.length + ' registered';
