@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -1658,7 +1659,6 @@ service cloud.firestore {
               <line x1="12" y1="10" x2="12" y2="22.5"/>
             </svg>
             Prayer Requests
-            <span class="tab-unread-badge hidden" id="prayer-tab-badge"></span>
           </button>
           <!-- Dynamic group tabs injected here by loadUserGroups() -->
           <div id="groups-loading-tab" style="display:none;align-items:center;gap:6px;padding:0 10px;color:var(--text-dim);font-size:0.75rem;flex-shrink:0">
@@ -1705,16 +1705,80 @@ service cloud.firestore {
           <div id="dm-conv-list" class="dm-conv-list"></div>
         </div>
 
+        <!-- PRAYER REQUESTS PANEL — two inner states:
+             submit-view (all users) and chat-view (intercessors only) -->
         <div class="chat-panel" id="panel-prayer">
-          <div class="chat-messages" id="prayer-messages"></div>
-          <div class="chat-input-bar">
-            <input type="text" id="prayer-msg-input" placeholder="Share a prayer request…"
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPrayerMessage();}"/>
-            <button class="send-btn" onclick="sendPrayerMessage()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
+
+          <!-- ── Submit view (non-intercessor users) ── -->
+          <div id="prayer-submit-view" class="contact-admin-wrap">
+            <div class="contact-admin-header">
+              <div class="contact-admin-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2 C5 2 4 3 4 4 L3 10 L2 16 C2 18 3.5 19.5 5 20 L7 21 L9 22 C10 22.5 11 22.5 12 22.5 C13 22.5 14 22.5 15 22 L17 21 L19 20 C20.5 19.5 22 18 22 16 L21 10 L20 4 C20 3 19 2 18 2 C17 2 16 3 16 4 L16 11 C15.3 10.4 14 10 12 10 C10 10 8.7 10.4 8 11 L8 4 C8 3 7 2 6 2 Z"/>
+                  <line x1="12" y1="10" x2="12" y2="22.5"/>
+                </svg>
+              </div>
+              <div>
+                <div class="contact-admin-title">Prayer Requests</div>
+                <div class="contact-admin-sub">Share a prayer request with our intercessory prayer team. Your request is confidential and will be lifted up in prayer.</div>
+              </div>
+            </div>
+
+            <!-- Form state -->
+            <div id="prayer-form-area" class="contact-admin-form-area">
+              <textarea id="prayer-request-input" placeholder="Type your prayer request…" rows="5"
+                onkeydown="if(event.key==='Enter'&&event.ctrlKey){submitPrayerRequest();}"></textarea>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <span class="muted-text small-text" style="font-size:0.72rem">Ctrl+Enter to send</span>
+                <button class="btn btn-primary btn-sm" onclick="submitPrayerRequest()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  Send Prayer Request
+                </button>
+              </div>
+              <div id="prayer-error" class="hidden" style="font-size:0.82rem;color:var(--crimson);padding:4px 2px"></div>
+            </div>
+
+            <!-- Success state (shown after send) -->
+            <div id="prayer-success" class="contact-admin-success hidden">
+              <div class="contact-admin-success-icon">✓</div>
+              <div class="contact-admin-success-title">Prayer Request Sent</div>
+              <div class="contact-admin-success-sub">Your request has been delivered to our intercessory prayer team.</div>
+              <button class="btn btn-outline btn-sm" onclick="resetPrayerForm()" style="margin-top:8px">Send Another</button>
+            </div>
+
+            <!-- No prayer group configured -->
+            <div id="prayer-unavailable" class="contact-admin-success hidden">
+              <div class="contact-admin-icon" style="width:56px;height:56px;margin:0 auto">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2 C5 2 4 3 4 4 L3 10 L2 16 C2 18 3.5 19.5 5 20 L7 21 L9 22 C10 22.5 11 22.5 12 22.5 C13 22.5 14 22.5 15 22 L17 21 L19 20 C20.5 19.5 22 18 22 16 L21 10 L20 4 C20 3 19 2 18 2 C17 2 16 3 16 4 L16 11 C15.3 10.4 14 10 12 10 C10 10 8.7 10.4 8 11 L8 4 C8 3 7 2 6 2 Z"/>
+                  <line x1="12" y1="10" x2="12" y2="22.5"/>
+                </svg>
+              </div>
+              <div class="contact-admin-success-title">Not Yet Available</div>
+              <div class="contact-admin-success-sub">The prayer request channel hasn't been configured yet. Please check back later.</div>
+            </div>
           </div>
-        </div>
+
+          <!-- ── Intercessor chat view (members only — hidden by default) ── -->
+          <div id="prayer-chat-view" class="hidden" style="flex-direction:column;flex:1;overflow:hidden">
+            <div class="admin-chat-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2 C5 2 4 3 4 4 L3 10 L2 16 C2 18 3.5 19.5 5 20 L7 21 L9 22 C10 22.5 11 22.5 12 22.5 C13 22.5 14 22.5 15 22 L17 21 L19 20 C20.5 19.5 22 18 22 16 L21 10 L20 4 C20 3 19 2 18 2 C17 2 16 3 16 4 L16 11 C15.3 10.4 14 10 12 10 C10 10 8.7 10.4 8 11 L8 4 C8 3 7 2 6 2 Z"/>
+                <line x1="12" y1="10" x2="12" y2="22.5"/>
+              </svg>
+              <span><strong style="color:var(--gold)">Intercessory Prayer Team</strong> · Visible to intercessors only</span>
+            </div>
+            <div class="chat-messages" id="prayer-group-messages" style="flex:1;background:var(--bg-deep)"></div>
+            <div class="chat-input-bar">
+              <input type="text" id="prayer-group-msg-input" placeholder="Message the prayer team…"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPrayerGroupMessage();}"/>
+              <button class="send-btn" onclick="sendPrayerGroupMessage()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+
+        </div><!-- end panel-prayer -->
 
         <!-- CONTACT ADMIN PANEL — two inner states:
              submit-view (all users) and chat-view (admin members only) -->
@@ -1954,17 +2018,17 @@ service cloud.firestore {
       <div class="drawer-divider"></div>
       <div class="drawer-section-label">Tools</div>
 
-      <button class="drawer-nav-item" id="drawer-registration" onclick="window.open('https://www.eventbrite.com/o/12370207526?aff=ebdsshandroid', '_blank');closeDrawer()">
-        <span class="drawer-nav-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-            <circle cx="8.5" cy="7" r="4"></circle>
-            <line x1="20" y1="8" x2="20" y2="14"></line>
-            <line x1="23" y1="11" x2="17" y2="11"></line>
-          </svg>
-        </span>
-        <span class="drawer-nav-label">Registration</span>
-      </button>
+<button class="drawer-nav-item" id="drawer-registration" onclick="window.open('https://www.eventbrite.com/o/12370207526?aff=ebdsshandroid', '_blank');closeDrawer()">
+  <span class="drawer-nav-icon">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+      <circle cx="8.5" cy="7" r="4"></circle>
+      <line x1="20" y1="8" x2="20" y2="14"></line>
+      <line x1="23" y1="11" x2="17" y2="11"></line>
+    </svg>
+  </span>
+  <span class="drawer-nav-label">Registration</span>
+</button>
       
       <button class="drawer-nav-item" id="drawer-map" onclick="openMap();closeDrawer()">
         <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
@@ -2384,8 +2448,7 @@ service cloud.firestore {
   let currentChatPanel   = 'dms';      // which chat tab is visible (was 'global' — Group Chat tab disabled)
   let dmConversations    = [];         // metadata for each DM thread
   let globalUnread       = 0;          // unread group chat messages
-  let prayerUnread       = 0;          // unread prayer messages
-  let msgCounts          = { global: -1, prayer: -1 }; // -1 = not yet initialised
+  let msgCounts          = { global: -1 }; // -1 = not yet initialised
   // Dynamic chat groups
   let userGroups         = [];         // { id, name, description } — groups user belongs to
   let groupUnsubs        = {};         // groupId → unsubscribe function
@@ -2395,6 +2458,10 @@ service cloud.firestore {
   let adminGroupId       = null;       // Firestore ID of the group with isAdminGroup:true
   let isAdminMember      = false;      // whether current user is a member of the admin group
   let adminUnsub         = null;       // message listener for admin group (members only)
+  // Prayer / intercessor group
+  let prayerGroupId      = null;       // Firestore ID of the group with isPrayerGroup:true
+  let isIntercessor      = false;      // whether current user is a member of the prayer group
+  let prayerUnsub        = null;       // message listener for prayer group (intercessors only)
   let deferredInstall    = null;
   let scheduledReminders = {};
   let notificationUnsubscribe = null;
@@ -3058,11 +3125,13 @@ window.handleRegister = async function (e) {
     groupUnsubs = {}; groupMsgCounts = {}; groupUnread = {}; userGroups = [];
     if (adminUnsub) { adminUnsub(); adminUnsub = null; }
     adminGroupId = null; isAdminMember = false;
+    if (prayerUnsub) { prayerUnsub(); prayerUnsub = null; }
+    prayerGroupId = null; isIntercessor = false;
     chatInitialized = false;
     directoryLoaded = false;
     directoryLoading = false;
-    dmConversations = []; globalUnread = 0; prayerUnread = 0;
-    msgCounts = { global: -1, prayer: -1 };
+    dmConversations = []; globalUnread = 0;
+    msgCounts = { global: -1 };
     allEvents = []; bookmarks = {}; notesByEvent = {}; allAttendees = [];
   }
 
@@ -4034,7 +4103,6 @@ window.handleRegister = async function (e) {
   function initChat() {
     if (chatInitialized) return; chatInitialized = true;
     subscribeChannel('global', 'global-messages');
-    subscribeChannel('prayer', 'prayer-messages');
     subscribeDMList();
     loadUserGroups();
   }
@@ -4051,13 +4119,13 @@ window.handleRegister = async function (e) {
         el.innerHTML = snap.docs.map(d => renderMsg(d.data())).join('');
         el.scrollTop = el.scrollHeight;
 
-        // After initial load, track new messages for unread
+        // After initial load, track new messages for unread (global channel only —
+        // prayer now runs through the chatGroups/isPrayerGroup pipeline instead)
         if (prevCount >= 0 && newCount > prevCount) {
           const added = newCount - prevCount;
           const isVisible = $('screen-chat').classList.contains('active') && currentChatPanel === ch;
-          if (!isVisible) {
-            if (ch === 'global') globalUnread += added;
-            else prayerUnread += added;
+          if (!isVisible && ch === 'global') {
+            globalUnread += added;
             updateAllUnreadBadges();
           }
         }
@@ -4095,7 +4163,8 @@ window.handleRegister = async function (e) {
   }
 
   window.sendGlobalMessage = () => sendMsg('global-msg-input', 'global');
-  window.sendPrayerMessage = () => sendMsg('prayer-msg-input', 'prayer');
+  // sendPrayerMessage removed — prayer now uses submitPrayerRequest() / sendPrayerGroupMessage()
+  // via the chatGroups/isPrayerGroup pipeline (see PRAYER REQUESTS PANEL section below)
 
   /* ══════════════════════════════════════════
      DYNAMIC CHAT GROUPS
@@ -4115,15 +4184,18 @@ window.handleRegister = async function (e) {
       .where('active', '==', true)
       .onSnapshot(async snap => {
         try {
-          // Reset admin tracking on each snapshot (group config may change)
+          // Reset admin/prayer tracking on each snapshot (group config may change)
           let foundAdminId = null;
           let foundAdminMember = false;
+          let foundPrayerId = null;
+          let foundPrayerMember = false;
 
           // Check membership for every active group in parallel
           const checks = snap.docs.map(async doc => {
             const data = doc.data();
-            // Identify the admin group by its flag (regardless of membership)
-            if (data.isAdminGroup) foundAdminId = doc.id;
+            // Identify the admin/prayer groups by their flags (regardless of membership)
+            if (data.isAdminGroup)  foundAdminId  = doc.id;
+            if (data.isPrayerGroup) foundPrayerId = doc.id;
 
             try {
               const memberSnap = await db
@@ -4132,12 +4204,14 @@ window.handleRegister = async function (e) {
                 .get();
               if (!memberSnap.exists) return null;
 
-              if (data.isAdminGroup) foundAdminMember = true;
+              if (data.isAdminGroup)  foundAdminMember  = true;
+              if (data.isPrayerGroup) foundPrayerMember = true;
               return {
-                id:           doc.id,
-                name:         data.name        || 'Group',
-                description:  data.description || '',
-                isAdminGroup: !!data.isAdminGroup
+                id:            doc.id,
+                name:          data.name        || 'Group',
+                description:   data.description || '',
+                isAdminGroup:  !!data.isAdminGroup,
+                isPrayerGroup: !!data.isPrayerGroup
               };
             } catch (_) { return null; }
           });
@@ -4147,14 +4221,18 @@ window.handleRegister = async function (e) {
           // Update admin state
           adminGroupId   = foundAdminId;
           isAdminMember  = foundAdminMember;
+          // Update prayer/intercessor state
+          prayerGroupId  = foundPrayerId;
+          isIntercessor  = foundPrayerMember;
 
           userGroups = results
             .filter(Boolean)
             .sort((a, b) => a.name.localeCompare(b.name));
 
           renderGroupTabs();
-          // Always refresh the contact-admin panel after groups load
+          // Always refresh the contact-admin and prayer panels after groups load
           updateContactAdminPanel();
+          updatePrayerPanel();
         } catch (err) {
           console.warn('loadUserGroups error:', err);
         } finally {
@@ -4200,6 +4278,8 @@ window.handleRegister = async function (e) {
 
       // Admin group has its own fixed "Contact Admin" tab — skip here
       if (group.isAdminGroup) return;
+      // Prayer group has its own fixed "Prayer Requests" tab — skip here
+      if (group.isPrayerGroup) return;
 
       // ── Tab button ──────────────────────────────────
       const tabBtn = document.createElement('button');
@@ -4461,6 +4541,179 @@ window.handleRegister = async function (e) {
     if (formArea) formArea.classList.remove('hidden');
   };
 
+  /* ══════════════════════════════════════════
+     PRAYER REQUESTS PANEL
+     - All users: write-only prayer request submission
+     - Intercessors: full bidirectional chat
+     Mirrors the Contact Admin pattern exactly, using
+     a chatGroups document flagged isPrayerGroup:true.
+     The distinction is enforced both client-side
+     (no subscription for non-members) and by the
+     same Firestore rules already covering chatGroups
+     (read restricted to members; create open to any
+     signed-in user) — no rule changes required.
+  ══════════════════════════════════════════ */
+
+  /* Called by loadUserGroups() after every snapshot.
+     Switches the panel between submit-form and full-chat views. */
+  function updatePrayerPanel() {
+    const submitView    = $('prayer-submit-view');
+    const chatView       = $('prayer-chat-view');
+    const unavailableEl  = $('prayer-unavailable');
+    const formAreaEl     = $('prayer-form-area');
+
+    if (isIntercessor && prayerGroupId) {
+      // Intercessor — show full bidirectional chat, hide submit form
+      if (submitView) submitView.classList.add('hidden');
+      if (chatView) {
+        chatView.classList.remove('hidden');
+        chatView.classList.add('flex');   // display:flex !important overrides any lingering state
+      }
+      // Subscribe to messages if not already subscribed
+      if (!prayerUnsub) subscribePrayerGroupChat(prayerGroupId);
+    } else {
+      // Regular user — show the submit form
+      if (chatView)   { chatView.classList.add('hidden'); chatView.classList.remove('flex'); }
+      if (submitView) submitView.classList.remove('hidden');
+      if (!prayerGroupId) {
+        // No prayer group configured in Firestore yet
+        if (formAreaEl)    formAreaEl.classList.add('hidden');
+        if (unavailableEl) unavailableEl.classList.remove('hidden');
+      } else {
+        if (formAreaEl)    formAreaEl.classList.remove('hidden');
+        if (unavailableEl) unavailableEl.classList.add('hidden');
+      }
+    }
+  }
+
+  /* Subscribe to the prayer group's message thread (intercessors only) */
+  function subscribePrayerGroupChat(groupId) {
+    if (prayerUnsub) return; // already subscribed
+
+    prayerUnsub = db.collection('chatGroups').doc(groupId).collection('messages')
+      .orderBy('createdAt', 'asc')
+      .onSnapshot(snap => {
+        const el = $('prayer-group-messages'); if (!el) return;
+        el.innerHTML = snap.docs.map(d => renderPrayerMsg(d.data())).join('');
+        el.scrollTop = el.scrollHeight;
+      }, err => console.warn('Prayer group chat error:', err));
+  }
+
+  /* Render a message in the intercessor chat view.
+     Public prayer requests (type:'prayer_request') get a gold badge
+     so intercessors can distinguish them from internal messages. */
+  function renderPrayerMsg(data) {
+    const uid    = data.uid || data.senderId || '';
+    const name   = data.displayName || data.senderName || 'Anonymous';
+    const church = data.homeChurch ? ` · ${escHtml(data.homeChurch)}` : '';
+    const isOwn  = uid === currentUser?.uid;
+    const time   = data.createdAt?.toDate ? fmt(data.createdAt.toDate()) : '';
+    const isReq  = data.type === 'prayer_request';
+
+    const badge  = isReq
+      ? `<span class="msg-public-badge">Prayer Request</span>`
+      : '';
+
+    return `<div class="msg-row${isOwn && !isReq ? ' own' : ''}">
+      ${(!isOwn || isReq) ? `<div class="msg-avatar" style="${isReq ? 'background:rgba(201,168,76,0.15);color:var(--gold)' : ''}">${initials(name)}</div>` : ''}
+      <div class="msg-bubble-wrap">
+        ${(!isOwn || isReq) ? `<div class="msg-sender">${escHtml(name)}${church}${badge}</div>` : ''}
+        <div class="msg-bubble${isReq ? ' public-submission' : ''}">${escHtml(data.text || '')}</div>
+        <div class="msg-time">${time}</div>
+      </div>
+    </div>`;
+  }
+
+  /* Intercessors send internal messages (intercessor ↔ intercessor) */
+  window.sendPrayerGroupMessage = async function () {
+    if (!isIntercessor || !prayerGroupId || !currentUser) return;
+    const inp  = $('prayer-group-msg-input');
+    if (!inp) return;
+    const text = inp.value.trim(); if (!text) return;
+    if (hasProfanity(text)) {
+      toast('Your message contains prohibited language and was not sent.', 'error'); return;
+    }
+    inp.value = '';
+    try {
+      await db.collection('chatGroups').doc(prayerGroupId).collection('messages').add({
+        senderId:   currentUser.uid,
+        senderName: userProfile?.displayName || 'Anonymous',
+        homeChurch: userProfile?.homeChurch  || '',
+        text,
+        createdAt:  FSV.serverTimestamp()
+        // No type field = internal intercessor message
+      });
+    } catch (e) {
+      console.error('sendPrayerGroupMessage error:', e);
+      toast('Could not send message.', 'error');
+      inp.value = text;
+    }
+  };
+
+  /* Any authenticated user submits a prayer request to the prayer group.
+     Writes with type:'prayer_request' so intercessors can distinguish it.
+     The user cannot read any messages — write-only by design. */
+  window.submitPrayerRequest = async function () {
+    if (!currentUser) return;
+    const inp    = $('prayer-request-input');
+    const errEl  = $('prayer-error');
+    if (!inp) return;
+
+    const text = inp.value.trim();
+    if (!text) {
+      if (errEl) { errEl.textContent = 'Please enter a prayer request before sending.'; errEl.classList.remove('hidden'); }
+      return;
+    }
+    if (hasProfanity(text)) {
+      if (errEl) { errEl.textContent = 'Your message contains prohibited language.'; errEl.classList.remove('hidden'); }
+      return;
+    }
+    if (!prayerGroupId) {
+      if (errEl) { errEl.textContent = 'Prayer requests are not yet configured. Please try again later.'; errEl.classList.remove('hidden'); }
+      return;
+    }
+    if (errEl) errEl.classList.add('hidden');
+
+    const btn = document.querySelector('#prayer-form-area .btn-primary');
+    if (btn) { btn.textContent = 'Sending…'; btn.disabled = true; }
+
+    try {
+      await db.collection('chatGroups').doc(prayerGroupId).collection('messages').add({
+        senderId:   currentUser.uid,
+        senderName: userProfile?.displayName || 'Anonymous',
+        homeChurch: userProfile?.homeChurch  || '',
+        text,
+        type:       'prayer_request',   // flag so intercessors see the badge
+        createdAt:  FSV.serverTimestamp()
+      });
+
+      // Show success state
+      $('prayer-form-area').classList.add('hidden');
+      $('prayer-success').classList.remove('hidden');
+      inp.value = '';
+    } catch (e) {
+      console.error('submitPrayerRequest error:', e);
+      if (errEl) {
+        errEl.textContent = 'Could not send your prayer request. Check your connection and try again.';
+        errEl.classList.remove('hidden');
+      }
+    } finally {
+      if (btn) { btn.textContent = 'Send Prayer Request'; btn.disabled = false; }
+    }
+  };
+
+  /* Reset the prayer request form so the user can send another request */
+  window.resetPrayerForm = function () {
+    const formArea = $('prayer-form-area');
+    const success  = $('prayer-success');
+    const errEl    = $('prayer-error');
+    const inp      = $('prayer-request-input');
+    if (success)  success.classList.add('hidden');
+    if (errEl)    errEl.classList.add('hidden');
+    if (inp)      inp.value = '';
+    if (formArea) formArea.classList.remove('hidden');
+  };
+
   /* Step 4 — send a message to a group channel.
      Uses senderId/senderName per the spec schema. */
   window.sendGroupMessage = async function (groupId) {
@@ -4500,8 +4753,11 @@ window.handleRegister = async function (e) {
       globalUnread = 0;
       const m = $('global-messages'); setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
     } else if (panel === 'prayer') {
-      prayerUnread = 0;
-      const m = $('prayer-messages'); setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
+      // If intercessor, scroll to bottom of intercessory team chat
+      if (isIntercessor) {
+        const m = $('prayer-group-messages');
+        setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
+      }
     } else if (panel === 'contact-admin') {
       // If admin member, scroll to bottom of admin chat
       if (isAdminMember) {
@@ -4529,11 +4785,9 @@ window.handleRegister = async function (e) {
     const dmBadge = $('dm-tab-badge');
     if (dmBadge) { dmBadge.textContent = totalDMUnread; dmBadge.classList.toggle('hidden', !totalDMUnread); }
 
-    // Global + Prayer tab badges
+    // Global tab badge
     const gBadge = $('global-tab-badge');
     if (gBadge) { gBadge.textContent = globalUnread; gBadge.classList.toggle('hidden', !globalUnread); }
-    const pBadge = $('prayer-tab-badge');
-    if (pBadge) { pBadge.textContent = prayerUnread; pBadge.classList.toggle('hidden', !prayerUnread); }
 
     // Per-group tab badges
     let totalGroupUnread = 0;
@@ -4545,7 +4799,7 @@ window.handleRegister = async function (e) {
     });
 
     // Total across everything
-    const total = totalDMUnread + globalUnread + prayerUnread + totalGroupUnread;
+    const total = totalDMUnread + globalUnread + totalGroupUnread;
     const totalStr = total > 99 ? '99+' : String(total);
 
     // Drawer chat badge
