@@ -2897,7 +2897,6 @@ service cloud.firestore {
   let scheduledReminders = {};
   // Notification bridge state (OneSignal + Median) — see NOTIFICATIONS module
   let notificationsInitialized = false;
-  let isMedianApp = typeof window.median !== 'undefined';
   let unsub = { bookmarks:null, notes:null, globalChat:null, prayerChat:null, dmChat:null, dmList:null, directory:null, groupsList:null };
 
   /* ══════════════════════════════════════════
@@ -3270,11 +3269,35 @@ service cloud.firestore {
      owned by OneSignal, not Firebase Cloud Messaging.
   ══════════════════════════════════════════ */
 
+  /* Returns the active Median (or legacy GoNative) bridge object if its
+     OneSignal sub-namespace is actually available, otherwise null.
+
+     This is intentionally a FUNCTION re-evaluated at every call site,
+     NOT a value cached once at script-parse time. Median's bridge object
+     is injected into the page by the native wrapper, and that injection
+     can happen asynchronously — especially on iOS WKWebView, where
+     injected JavaScript runs via evaluateJavaScript calls that aren't
+     guaranteed to complete before this page's own inline <script> blocks
+     start executing. Caching `typeof window.median !== 'undefined'`
+     once, early, risks permanently missing the bridge even though it
+     arrives a moment later — silently forcing every native install onto
+     the Web SDK path instead of the native one. Re-checking live (here,
+     and at every other call site below) avoids that race entirely.
+
+     median.co was formerly branded gonative.io; window.gonative is
+     checked as a legacy fallback for apps still built on that SDK. */
+  function _medianBridge() {
+    if (typeof window.median   !== 'undefined' && window.median?.onesignal)   return window.median;
+    if (typeof window.gonative !== 'undefined' && window.gonative?.onesignal) return window.gonative;
+    return null;
+  }
+  function isMedian() { return !!_medianBridge(); }
+
   function initNotifications() {
     if (notificationsInitialized) return;
     notificationsInitialized = true;
 
-    if (isMedianApp) {
+    if (isMedian()) {
       initMedianNotifications();
     } else {
       initOneSignalWeb();
@@ -3333,37 +3356,53 @@ service cloud.firestore {
 
   /* ── Path 2: Median JS Bridge (native wrapped app) ── */
   function initMedianNotifications() {
+    const bridge = _medianBridge();
+    if (!bridge) {
+      // Defensive fallback: initNotifications() thought this might be a
+      // Median wrapper, but by the time we actually got here the bridge's
+      // OneSignal sub-namespace still isn't available (e.g. Median's
+      // OneSignal integration isn't configured in the dashboard for this
+      // app, or the bridge object hasn't injected at all). Don't leave
+      // push silently broken — fall back to the Web SDK path so it still
+      // works inside the wrapper's webview.
+      initOneSignalWeb();
+      return;
+    }
+
     try {
-      // Median's native shell auto-configures OneSignal natively once an
-      // App ID is set in the Median dashboard (Settings → Push Notifications
-      // → OneSignal). We just register the device and link identity here —
-      // the native layer renders OS notifications itself.
-      if (window.median?.onesignal?.register) {
-        window.median.onesignal.register();
+      if (typeof bridge.onesignal.register === 'function') {
+        bridge.onesignal.register();
       }
-      if (currentUser && window.median?.onesignal?.setExternalUserId) {
-        window.median.onesignal.setExternalUserId(currentUser.uid);
+      if (currentUser && typeof bridge.onesignal.setExternalUserId === 'function') {
+        bridge.onesignal.setExternalUserId(currentUser.uid);
       }
     } catch (err) {
       console.warn('Median OneSignal register error:', err);
     }
 
-    // Median calls this global callback when a push is received while the
-    // native app is in the foreground. (Verify this callback name against
-    // your current Median dashboard docs — their bridge API has changed
-    // across SDK versions; this covers the commonly documented pattern.
-    // The handler is intentionally defensive: if Median's payload shape
-    // differs, we fall back to generic title/body fields.)
-    window.medianOneSignalInfoCallback = function (info) {
+    // Median (and legacy GoNative) invoke a global callback when a push
+    // is received while the native app is in the foreground. The exact
+    // callback name has varied across SDK versions/branding, so several
+    // known aliases are registered here pointing to the same handler for
+    // maximum compatibility.
+    // ⚠️ SETUP NOTE: verify the actual callback name against your
+    // currently-installed Median SDK version's dashboard/docs and test
+    // on a real device — bridge contracts like this can change between
+    // SDK releases and aren't something that can be guaranteed from code
+    // alone. The handler itself is intentionally defensive about payload
+    // shape for the same reason.
+    const handlePushInfo = function (info) {
       try {
         const title = info?.title || info?.notification?.title || 'UCJC Holy Convocation';
         const body  = info?.body  || info?.notification?.body  || info?.message || '';
         const data  = info?.additionalData || info?.data || null;
         showInAppNotification(title, body, data);
       } catch (err) {
-        console.warn('medianOneSignalInfoCallback parse error:', err);
+        console.warn('Median push callback parse error:', err);
       }
     };
+    window.medianOneSignalInfoCallback   = handlePushInfo;
+    window.gonativeOneSignalInfoCallback = handlePushInfo; // legacy alias
   }
 
   /* Link (or re-link) notification identity after sign-in.
@@ -3371,10 +3410,11 @@ service cloud.firestore {
      so re-login with a different account always re-syncs the external id. */
   function linkNotificationIdentity(uid) {
     if (!uid) return;
-    if (isMedianApp) {
+    const bridge = _medianBridge();
+    if (bridge) {
       try {
-        if (window.median?.onesignal?.setExternalUserId) {
-          window.median.onesignal.setExternalUserId(uid);
+        if (typeof bridge.onesignal.setExternalUserId === 'function') {
+          bridge.onesignal.setExternalUserId(uid);
         }
       } catch (_) {}
     } else {
@@ -3386,8 +3426,9 @@ service cloud.firestore {
   /* Unlink notification identity on sign-out so the device stops being
      associated with the previous user's external id. */
   function unlinkNotificationIdentity() {
-    if (isMedianApp) {
-      try { window.median?.onesignal?.removeExternalUserId?.(); } catch (_) {}
+    const bridge = _medianBridge();
+    if (bridge) {
+      try { bridge.onesignal.removeExternalUserId?.(); } catch (_) {}
     } else {
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(OneSignal => OneSignal.logout().catch(() => {}));
@@ -5817,12 +5858,13 @@ window.handleRegister = async function (e) {
     if (enabled) {
       try {
         let granted = false;
+        const bridge = _medianBridge();
 
-        if (isMedianApp) {
+        if (bridge) {
           // Native shell — Median's OneSignal integration handles the OS-level
           // permission prompt itself when register() is called.
-          if (window.median?.onesignal?.register) {
-            window.median.onesignal.register();
+          if (typeof bridge.onesignal.register === 'function') {
+            bridge.onesignal.register();
           }
           granted = true; // Median doesn't expose a synchronous permission result here
         } else {
@@ -6019,6 +6061,11 @@ window.handleRegister = async function (e) {
 
     function onMouseDown(e) {
       if (e.button !== 0) return;
+      // Let clicks on the zoom/close buttons through untouched — without this
+      // check, the bubbled mousedown sets dragging=true for ANY mousedown
+      // inside the viewport (including on these buttons), which can cause
+      // an unwanted micro-pan alongside the click.
+      if (e.target.closest('.map-zoom-controls, .map-toolbar')) return;
       dragging = true; dragStartX = e.clientX; dragStartY = e.clientY;
       dragOriginX = originX; dragOriginY = originY;
       vp().classList.add('dragging');
@@ -6041,6 +6088,12 @@ window.handleRegister = async function (e) {
     }
 
     function onTouchStart(e) {
+      // CRITICAL: must check this BEFORE calling preventDefault(). Calling
+      // preventDefault() on touchstart suppresses the browser's synthesized
+      // click event entirely — that's exactly why the +/−/FIT/close buttons
+      // (which rely on onclick) appeared unresponsive on touch devices: every
+      // tap on them bubbled up to this handler and silently ate the click.
+      if (e.target.closest('.map-zoom-controls, .map-toolbar')) return;
       e.preventDefault();
       const touches = e.touches, rect = vp().getBoundingClientRect();
       if (touches.length === 1) {
@@ -6208,6 +6261,10 @@ window.handleRegister = async function (e) {
     /* ── Mouse drag ──────────────────────────── */
     function onMouseDown(e) {
       if (e.button !== 0) return;
+      // Let clicks on the zoom/close/directions buttons through untouched —
+      // without this check, the bubbled mousedown sets dragging=true for ANY
+      // mousedown inside the viewport, including on these controls.
+      if (e.target.closest('.map-zoom-controls, .map-toolbar')) return;
       dragging = true; dragStartX = e.clientX; dragStartY = e.clientY;
       dragOriginX = originX; dragOriginY = originY;
       vp().classList.add('dragging');
@@ -6236,6 +6293,12 @@ window.handleRegister = async function (e) {
     }
 
     function onTouchStart(e) {
+      // CRITICAL: must check this BEFORE calling preventDefault(). Calling
+      // preventDefault() on touchstart suppresses the browser's synthesized
+      // click event entirely — that's why the +/−/FIT/directions buttons
+      // could appear unresponsive on touch devices: every tap on them
+      // bubbled up to this handler and silently ate the click.
+      if (e.target.closest('.map-zoom-controls, .map-toolbar')) return;
       e.preventDefault();
       const touches = e.touches;
       const rect    = vp().getBoundingClientRect();
