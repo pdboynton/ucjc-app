@@ -1085,17 +1085,6 @@
     @keyframes toast-in  { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:none; } }
     @keyframes toast-out { to   { opacity:0; transform:translateX(20px); } }
 
-    
-/* Notice Gallery */
-.notice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;padding:0 16px 16px}
-.notice-thumb{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:.2s}
-.notice-thumb:hover{transform:translateY(-2px);border-color:var(--gold)}
-.notice-thumb img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
-.notice-thumb span{display:block;padding:8px;font-size:.75rem;color:var(--text-muted);text-align:center}
-#notice-modal .modal-sheet{background:transparent;max-height:100vh;box-shadow:none}
-.notice-full{max-width:96vw;max-height:90vh;object-fit:contain;border-radius:12px}
-
-
     /* ══════════════════════════════════════════════
        MISC
     ══════════════════════════════════════════════ */
@@ -1196,6 +1185,41 @@
     }
 
     /* ══════════════════════════════════════════════
+       NOTICES & FLYERS
+    ══════════════════════════════════════════════ */
+    .notices-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 10px; padding: 0 16px;
+    }
+    .notice-thumb {
+      position: relative; aspect-ratio: 1 / 1; overflow: hidden;
+      border-radius: var(--radius-sm); border: 1px solid var(--border-soft);
+      cursor: pointer; background: var(--bg-card);
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .notice-thumb:hover  { border-color: var(--border); transform: translateY(-2px); }
+    .notice-thumb:active { transform: scale(0.97); }
+    .notice-thumb img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+
+    /* Lightbox modal — mirrors #map-modal's overlay + zoom mechanics,
+       but with NO toolbar title and NO caption (per design requirement:
+       the image is shown with zero labels on or under it). */
+    #notice-modal {
+      position: fixed; inset: 0; z-index: 600;
+      background: #000;
+      display: none; flex-direction: column;
+      animation: fade-in 0.2s ease;
+    }
+    #notice-modal.open { display: flex; }
+    #notice-image {
+      position: absolute; transform-origin: 0 0;
+      transition: none; max-width: none; max-height: none;
+      display: block; pointer-events: none;
+    }
+
+    /* ══════════════════════════════════════════════
        CONTACT ADMIN PANEL
     ══════════════════════════════════════════════ */
     .contact-admin-wrap {
@@ -1256,6 +1280,26 @@
       display: flex; align-items: center; gap: 10px;
       font-size: 0.78rem; color: var(--text-muted);
     }
+
+    /* ══════════════════════════════════════════════
+       MESSAGE DEPARTMENTS — sub-tab strip within
+       the Departments chat panel (Men/Women/Youth/
+       Young Adult), each behaving like Prayer Requests
+    ══════════════════════════════════════════════ */
+    .dept-tabs {
+      display: flex; gap: 4px; padding: 10px 10px 0; flex-shrink: 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .dept-tab {
+      flex: 1; padding: 9px 4px; border: none; background: transparent;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      color: var(--text-dim); font-family: var(--font-body); font-size: 0.76rem;
+      font-weight: 700; cursor: pointer; transition: all 0.18s;
+      border-bottom: 2px solid transparent; text-align: center;
+    }
+    .dept-tab:hover  { color: var(--text-primary); }
+    .dept-tab.active { color: var(--gold); border-bottom-color: var(--gold); background: rgba(201,168,76,0.06); }
+    .dept-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -1565,17 +1609,23 @@ service cloud.firestore {
         Loading updates…
       </div>
       <div id="notif-list" style="padding:0 16px;display:flex;flex-direction:column;gap:8px"></div>
-      
-      <div class="section-header" style="margin-top:18px">
-        <span class="section-title">Notices & Flyers</span>
-      </div>
-      <div class="notice-grid" id="notice-grid"></div>
-
-<div id="notif-empty" class="hidden" style="padding:0 16px 4px">
+      <div id="notif-empty" class="hidden" style="padding:0 16px 4px">
         <div style="background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;gap:12px;color:var(--text-muted)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span style="font-size:0.84rem">No updates in the last 24 hours</span>
         </div>
+      </div>
+
+      <!-- ── NOTICES & FLYERS ──
+           Probes /notices/Notice1.jpg through Notice6.jpg; any file that
+           doesn't exist is skipped entirely (no broken-image icon, no gap,
+           no indication it was ever expected). Whole section is hidden if
+           none exist. -->
+      <div id="notices-section" style="display:none">
+        <div class="section-header" style="margin-top:18px">
+          <span class="section-title">Notices &amp; Flyers</span>
+        </div>
+        <div id="notices-grid" class="notices-grid"></div>
       </div>
 
       <!-- ── VIDEOS ── -->
@@ -1685,6 +1735,10 @@ service cloud.firestore {
               <line x1="12" y1="10" x2="12" y2="22.5"/>
             </svg>
             Prayer Requests
+          </button>
+          <button class="chat-tab-btn" data-panel="departments" onclick="switchChatTab('departments')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Departments
           </button>
           <!-- Dynamic group tabs injected here by loadUserGroups() -->
           <div id="groups-loading-tab" style="display:none;align-items:center;gap:6px;padding:0 10px;color:var(--text-dim);font-size:0.75rem;flex-shrink:0">
@@ -1805,6 +1859,237 @@ service cloud.firestore {
           </div>
 
         </div><!-- end panel-prayer -->
+
+        <!-- MESSAGE DEPARTMENTS PANEL — four subsections (Men/Women/Youth/
+             Young Adult), each behaving exactly like Prayer Requests:
+             any user may submit a message; only members of that specific
+             department's group can see all messages and chat together. -->
+        <div class="chat-panel" id="panel-departments">
+
+          <div class="dept-tabs">
+            <button class="dept-tab active" data-dept="men"        onclick="switchDepartment('men')">Men</button>
+            <button class="dept-tab"        data-dept="women"      onclick="switchDepartment('women')">Women</button>
+            <button class="dept-tab"        data-dept="youth"      onclick="switchDepartment('youth')">Youth</button>
+            <button class="dept-tab"        data-dept="youngadult" onclick="switchDepartment('youngadult')">Young Adult</button>
+          </div>
+
+          <!-- ── MEN ── -->
+          <div class="dept-content" data-dept-content="men">
+            <div id="dept-men-submit-view" class="contact-admin-wrap">
+              <div class="contact-admin-header">
+                <div class="contact-admin-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                  <div class="contact-admin-title">Men's Ministry</div>
+                  <div class="contact-admin-sub">Share a message with our Men's Ministry team. Your message is confidential and will be reviewed by team members.</div>
+                </div>
+              </div>
+              <div id="dept-men-form-area" class="contact-admin-form-area">
+                <textarea id="dept-men-input" placeholder="Type your message…" rows="5"
+                  onkeydown="if(event.key==='Enter'&&event.ctrlKey){submitDepartmentRequest('men');}"></textarea>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                  <span class="muted-text small-text" style="font-size:0.72rem">Ctrl+Enter to send</span>
+                  <button class="btn btn-primary btn-sm" onclick="submitDepartmentRequest('men')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Send Message
+                  </button>
+                </div>
+                <div id="dept-men-error" class="hidden" style="font-size:0.82rem;color:var(--crimson);padding:4px 2px"></div>
+              </div>
+              <div id="dept-men-success" class="contact-admin-success hidden">
+                <div class="contact-admin-success-icon">✓</div>
+                <div class="contact-admin-success-title">Message Sent</div>
+                <div class="contact-admin-success-sub">Your message has been delivered to the Men's Ministry team.</div>
+                <button class="btn btn-outline btn-sm" onclick="resetDepartmentForm('men')" style="margin-top:8px">Send Another</button>
+              </div>
+              <div id="dept-men-unavailable" class="contact-admin-success hidden">
+                <div class="contact-admin-icon" style="width:56px;height:56px;margin:0 auto">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="contact-admin-success-title">Not Yet Available</div>
+                <div class="contact-admin-success-sub">The Men's Ministry channel hasn't been configured yet. Please check back later.</div>
+              </div>
+            </div>
+            <div id="dept-men-chat-view" class="hidden" style="flex-direction:column;flex:1;overflow:hidden">
+              <div class="admin-chat-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span><strong style="color:var(--gold)">Men's Ministry Team</strong> · Visible to members only</span>
+              </div>
+              <div class="chat-messages" id="dept-men-messages" style="flex:1;background:var(--bg-deep)"></div>
+              <div class="chat-input-bar">
+                <input type="text" id="dept-men-msg-input" placeholder="Message the team…"
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDepartmentGroupMessage('men');}"/>
+                <button class="send-btn" onclick="sendDepartmentGroupMessage('men')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── WOMEN ── -->
+          <div class="dept-content hidden" data-dept-content="women">
+            <div id="dept-women-submit-view" class="contact-admin-wrap">
+              <div class="contact-admin-header">
+                <div class="contact-admin-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                  <div class="contact-admin-title">Women's Ministry</div>
+                  <div class="contact-admin-sub">Share a message with our Women's Ministry team. Your message is confidential and will be reviewed by team members.</div>
+                </div>
+              </div>
+              <div id="dept-women-form-area" class="contact-admin-form-area">
+                <textarea id="dept-women-input" placeholder="Type your message…" rows="5"
+                  onkeydown="if(event.key==='Enter'&&event.ctrlKey){submitDepartmentRequest('women');}"></textarea>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                  <span class="muted-text small-text" style="font-size:0.72rem">Ctrl+Enter to send</span>
+                  <button class="btn btn-primary btn-sm" onclick="submitDepartmentRequest('women')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Send Message
+                  </button>
+                </div>
+                <div id="dept-women-error" class="hidden" style="font-size:0.82rem;color:var(--crimson);padding:4px 2px"></div>
+              </div>
+              <div id="dept-women-success" class="contact-admin-success hidden">
+                <div class="contact-admin-success-icon">✓</div>
+                <div class="contact-admin-success-title">Message Sent</div>
+                <div class="contact-admin-success-sub">Your message has been delivered to the Women's Ministry team.</div>
+                <button class="btn btn-outline btn-sm" onclick="resetDepartmentForm('women')" style="margin-top:8px">Send Another</button>
+              </div>
+              <div id="dept-women-unavailable" class="contact-admin-success hidden">
+                <div class="contact-admin-icon" style="width:56px;height:56px;margin:0 auto">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="contact-admin-success-title">Not Yet Available</div>
+                <div class="contact-admin-success-sub">The Women's Ministry channel hasn't been configured yet. Please check back later.</div>
+              </div>
+            </div>
+            <div id="dept-women-chat-view" class="hidden" style="flex-direction:column;flex:1;overflow:hidden">
+              <div class="admin-chat-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span><strong style="color:var(--gold)">Women's Ministry Team</strong> · Visible to members only</span>
+              </div>
+              <div class="chat-messages" id="dept-women-messages" style="flex:1;background:var(--bg-deep)"></div>
+              <div class="chat-input-bar">
+                <input type="text" id="dept-women-msg-input" placeholder="Message the team…"
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDepartmentGroupMessage('women');}"/>
+                <button class="send-btn" onclick="sendDepartmentGroupMessage('women')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── YOUTH ── -->
+          <div class="dept-content hidden" data-dept-content="youth">
+            <div id="dept-youth-submit-view" class="contact-admin-wrap">
+              <div class="contact-admin-header">
+                <div class="contact-admin-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                  <div class="contact-admin-title">Youth Ministry</div>
+                  <div class="contact-admin-sub">Share a message with our Youth Ministry team. Your message is confidential and will be reviewed by team members.</div>
+                </div>
+              </div>
+              <div id="dept-youth-form-area" class="contact-admin-form-area">
+                <textarea id="dept-youth-input" placeholder="Type your message…" rows="5"
+                  onkeydown="if(event.key==='Enter'&&event.ctrlKey){submitDepartmentRequest('youth');}"></textarea>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                  <span class="muted-text small-text" style="font-size:0.72rem">Ctrl+Enter to send</span>
+                  <button class="btn btn-primary btn-sm" onclick="submitDepartmentRequest('youth')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Send Message
+                  </button>
+                </div>
+                <div id="dept-youth-error" class="hidden" style="font-size:0.82rem;color:var(--crimson);padding:4px 2px"></div>
+              </div>
+              <div id="dept-youth-success" class="contact-admin-success hidden">
+                <div class="contact-admin-success-icon">✓</div>
+                <div class="contact-admin-success-title">Message Sent</div>
+                <div class="contact-admin-success-sub">Your message has been delivered to the Youth Ministry team.</div>
+                <button class="btn btn-outline btn-sm" onclick="resetDepartmentForm('youth')" style="margin-top:8px">Send Another</button>
+              </div>
+              <div id="dept-youth-unavailable" class="contact-admin-success hidden">
+                <div class="contact-admin-icon" style="width:56px;height:56px;margin:0 auto">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="contact-admin-success-title">Not Yet Available</div>
+                <div class="contact-admin-success-sub">The Youth Ministry channel hasn't been configured yet. Please check back later.</div>
+              </div>
+            </div>
+            <div id="dept-youth-chat-view" class="hidden" style="flex-direction:column;flex:1;overflow:hidden">
+              <div class="admin-chat-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span><strong style="color:var(--gold)">Youth Ministry Team</strong> · Visible to members only</span>
+              </div>
+              <div class="chat-messages" id="dept-youth-messages" style="flex:1;background:var(--bg-deep)"></div>
+              <div class="chat-input-bar">
+                <input type="text" id="dept-youth-msg-input" placeholder="Message the team…"
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDepartmentGroupMessage('youth');}"/>
+                <button class="send-btn" onclick="sendDepartmentGroupMessage('youth')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── YOUNG ADULT ── -->
+          <div class="dept-content hidden" data-dept-content="youngadult">
+            <div id="dept-youngadult-submit-view" class="contact-admin-wrap">
+              <div class="contact-admin-header">
+                <div class="contact-admin-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                  <div class="contact-admin-title">Young Adult Ministry</div>
+                  <div class="contact-admin-sub">Share a message with our Young Adult Ministry team. Your message is confidential and will be reviewed by team members.</div>
+                </div>
+              </div>
+              <div id="dept-youngadult-form-area" class="contact-admin-form-area">
+                <textarea id="dept-youngadult-input" placeholder="Type your message…" rows="5"
+                  onkeydown="if(event.key==='Enter'&&event.ctrlKey){submitDepartmentRequest('youngadult');}"></textarea>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                  <span class="muted-text small-text" style="font-size:0.72rem">Ctrl+Enter to send</span>
+                  <button class="btn btn-primary btn-sm" onclick="submitDepartmentRequest('youngadult')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Send Message
+                  </button>
+                </div>
+                <div id="dept-youngadult-error" class="hidden" style="font-size:0.82rem;color:var(--crimson);padding:4px 2px"></div>
+              </div>
+              <div id="dept-youngadult-success" class="contact-admin-success hidden">
+                <div class="contact-admin-success-icon">✓</div>
+                <div class="contact-admin-success-title">Message Sent</div>
+                <div class="contact-admin-success-sub">Your message has been delivered to the Young Adult Ministry team.</div>
+                <button class="btn btn-outline btn-sm" onclick="resetDepartmentForm('youngadult')" style="margin-top:8px">Send Another</button>
+              </div>
+              <div id="dept-youngadult-unavailable" class="contact-admin-success hidden">
+                <div class="contact-admin-icon" style="width:56px;height:56px;margin:0 auto">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="contact-admin-success-title">Not Yet Available</div>
+                <div class="contact-admin-success-sub">The Young Adult Ministry channel hasn't been configured yet. Please check back later.</div>
+              </div>
+            </div>
+            <div id="dept-youngadult-chat-view" class="hidden" style="flex-direction:column;flex:1;overflow:hidden">
+              <div class="admin-chat-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span><strong style="color:var(--gold)">Young Adult Ministry Team</strong> · Visible to members only</span>
+              </div>
+              <div class="chat-messages" id="dept-youngadult-messages" style="flex:1;background:var(--bg-deep)"></div>
+              <div class="chat-input-bar">
+                <input type="text" id="dept-youngadult-msg-input" placeholder="Message the team…"
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDepartmentGroupMessage('youngadult');}"/>
+                <button class="send-btn" onclick="sendDepartmentGroupMessage('youngadult')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end panel-departments -->
 
         <!-- CONTACT ADMIN PANEL — two inner states:
              submit-view (all users) and chat-view (admin members only) -->
@@ -2263,13 +2548,6 @@ service cloud.firestore {
   </div>
 </div>
 
-
-<div class="modal-overlay hidden" id="notice-modal" onclick="closeModalOnOverlay(event,'notice-modal')">
-<div class="modal-sheet" style="align-items:center;justify-content:center;">
-<button class="modal-close" onclick="closeNoticeModal()" style="position:absolute;top:20px;right:20px;z-index:5">✕</button>
-<img id="notice-full-img" class="notice-full" src="">
-</div></div>
-
 <!-- YOUTUBE VIDEO PLAYER -->
 <div class="modal-overlay hidden" id="yt-player-modal" onclick="closeModalOnOverlay(event,'yt-player-modal')">
   <div class="modal-sheet" style="max-height:95vh">
@@ -2317,6 +2595,35 @@ service cloud.firestore {
   </div>
 </div>
 
+<!-- NOTICE / FLYER LIGHTBOX
+     Intentionally has NO title text in the toolbar and NO caption under
+     the image — per design requirement, the image is shown with zero
+     labels anywhere in this view. Only a close button and zoom controls. -->
+<div id="notice-modal" role="dialog" aria-label="Notice" aria-modal="true">
+  <div class="map-toolbar" style="justify-content:flex-end">
+    <button class="map-close-btn" onclick="closeNotice()" aria-label="Close">✕</button>
+  </div>
+  <div class="map-viewport" id="notice-viewport">
+    <img id="notice-image" src="" alt=""/>
+    <div class="map-zoom-controls">
+      <button class="map-zoom-btn" onclick="noticeZoom(1.3)"  title="Zoom in">+</button>
+      <button class="map-zoom-btn" onclick="noticeZoom(0.77)" title="Zoom out">−</button>
+      <button class="map-zoom-btn map-reset-btn" onclick="noticeReset()" title="Reset view">FIT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     ONESIGNAL WEB PUSH SDK v5 (Web SDK v16)
+     Used for browser / installed-PWA push + in-app
+     notification display. When the app is running
+     inside a Median.co native wrapper, the Median
+     JS Bridge is used instead (see NOTIFICATIONS
+     module in the main script) — this tag is simply
+     inert/no-op in that context.
+════════════════════════════════════════════ -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+
 <!-- ════════════════════════════════════════════
      FIREBASE COMPAT SDK
 ════════════════════════════════════════════ -->
@@ -2340,7 +2647,9 @@ service cloud.firestore {
     appId:             '1:698752970791:web:0ae1b0094858609579de02',
     measurementId:     'G-0M5WBTR83N'
   };
-  const VAPID_KEY  = 'BBrSRxtM6M6j_FQoWdGPpjf2QodXhGyevf-5ng_MqXhdHV6OJQVcQful0X1wKWYxUpt3Gc_6IN-sfyDTbHGXGO8';
+  // OneSignal Web Push — App ID and Safari Web ID from the OneSignal dashboard.
+  const ONESIGNAL_APP_ID        = 'a1acf09d-ff98-49ba-927b-c726d8d28753';
+  const ONESIGNAL_SAFARI_WEB_ID = 'web.onesignal.auto.44daf2d6-544c-403f-a3b6-3ab51abe3e37';
   const GCAL_KEY    = 'AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg';
   const YT_KEY      = 'AIzaSyDV34G66jQ58MBPBJq3MfmhZF8mOdifVqg'; // same Google Cloud project
   const YT_PLAYLIST = 'PLCvn5cgZDiQeejDd5FJd8Xv9YgcUUx1SC';
@@ -2465,6 +2774,89 @@ service cloud.firestore {
   };
 
   /* ══════════════════════════════════════════
+     PushLogDB — IndexedDB store for locally-captured
+     OneSignal push notifications.
+     ────────────────────────────────────────────
+     IMPORTANT ARCHITECTURAL NOTE:
+     OneSignal does NOT provide a secure client-side way to
+     query "list of notifications sent to this app." Their
+     REST API endpoint for that requires a secret REST API
+     Key which must never be embedded in browser JavaScript —
+     doing so would let anyone extract it from page source and
+     use it to send push to your entire audience.
+
+     Instead, this store builds a LOCAL, on-device history by
+     capturing each notification at the moment it's received:
+       - Foreground (app open): OneSignal's 'foregroundWillDisplay'
+         event / Median's medianOneSignalInfoCallback (see
+         showInAppNotification() in the NOTIFICATIONS module)
+       - Background (app closed/backgrounded): sw.js's own
+         'push' listener writes directly to this same IndexedDB
+         database (origin-scoped storage, shared between the SW
+         and this page automatically)
+
+     This means the "Recent Updates" / "Latest Update" sections
+     show notifications THIS DEVICE has actually received since
+     this feature was deployed — not a server-authoritative,
+     cross-device history. A true cross-device history would
+     require a backend proxy holding the OneSignal REST API key
+     server-side (e.g. a Firebase Cloud Function).
+  ══════════════════════════════════════════ */
+  const PushLogDB = {
+    _db:     null,
+    NAME:    'ucjc-onesignal-log',
+    VERSION: 1,
+    STORE:   'notifications',
+
+    open() {
+      if (this._db) return Promise.resolve(this._db);
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(this.NAME, this.VERSION);
+        req.onupgradeneeded = e => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(this.STORE)) {
+            const store = db.createObjectStore(this.STORE, { keyPath: 'id', autoIncrement: true });
+            store.createIndex('receivedAt', 'receivedAt');
+          }
+        };
+        req.onsuccess = e => { this._db = e.target.result; resolve(this._db); };
+        req.onerror   = e => reject(e.target.error);
+      });
+    },
+
+    async add(entry) {
+      const db = await this.open();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(this.STORE, 'readwrite');
+        tx.objectStore(this.STORE).add({ ...entry, receivedAt: entry.receivedAt || Date.now() });
+        tx.oncomplete = () => resolve();
+        tx.onerror    = e => reject(e.target.error);
+      });
+    },
+
+    /* Returns up to `limit` most-recent entries, newest first */
+    async getRecent(limit = 50) {
+      const db = await this.open();
+      return new Promise((resolve, reject) => {
+        const results = [];
+        const tx    = db.transaction(this.STORE, 'readonly');
+        const index = tx.objectStore(this.STORE).index('receivedAt');
+        const req   = index.openCursor(null, 'prev'); // newest first
+        req.onsuccess = e => {
+          const cursor = e.target.result;
+          if (cursor && results.length < limit) {
+            results.push(cursor.value);
+            cursor.continue();
+          } else {
+            resolve(results);
+          }
+        };
+        req.onerror = e => reject(e.target.error);
+      });
+    }
+  };
+
+  /* ══════════════════════════════════════════
      APP STATE
   ══════════════════════════════════════════ */
   let currentUser        = null;
@@ -2495,10 +2887,17 @@ service cloud.firestore {
   let prayerGroupId      = null;       // Firestore ID of the group with isPrayerGroup:true
   let isIntercessor      = false;      // whether current user is a member of the prayer group
   let prayerUnsub        = null;       // message listener for prayer group (intercessors only)
+  // Message Departments (Men / Women / Youth / Young Adult) — same pattern as Prayer
+  const DEPARTMENTS = ['men', 'women', 'youth', 'youngadult'];
+  let departmentGroupId   = { men: null,  women: null,  youth: null,  youngadult: null };
+  let isDepartmentMember  = { men: false, women: false, youth: false, youngadult: false };
+  let departmentUnsub     = { men: null,  women: null,  youth: null,  youngadult: null };
+  let currentDepartment   = 'men';     // which department sub-tab is selected
   let deferredInstall    = null;
   let scheduledReminders = {};
-  let notificationUnsubscribe = null;
-  let lastNotificationSeen    = null;
+  // Notification bridge state (OneSignal + Median) — see NOTIFICATIONS module
+  let notificationsInitialized = false;
+  let isMedianApp = typeof window.median !== 'undefined';
   let unsub = { bookmarks:null, notes:null, globalChat:null, prayerChat:null, dmChat:null, dmList:null, directory:null, groupsList:null };
 
   /* ══════════════════════════════════════════
@@ -2646,7 +3045,105 @@ service cloud.firestore {
      PROFANITY FILTER
   ══════════════════════════════════════════ */
   const BLOCKED = (function () {
-    const raw = [ 'fuck','fck','shit','bitch','ass','a55','asshole','bastard','crap', 'piss','cock','dick','d1ck','pussy','cunt','whore','wh0re','slut', 'jackass','motherfucker','bullshit', 'nigger','nigga','n1gga','n1gg3r','chink','ch1nk','spic','sp1c', 'kike','k1ke','wetback','gook','g00k','raghead','cracker', 'beaner','towelhead','coon','c00n','zipperhead','redskin', 'greaseball','honky','h0nky','kraut','polack','p0lack', 'hymie','injun','porchmonkey','sambo','s4mbo','squaw','whitey', 'faggot','f4ggot','dyke','tranny','tr4nny' ];
+    const raw = [
+      // General profanity
+      'fuck','fucking','fucker','motherfucker','mf','mfer','fck','fuk','fucc',
+      'shit','shitty','bullshit','horseshit','dipshit',
+      'bitch','bitches','biatch',
+      'ass','a55','asshole','asshat','dumbass','jackass','badass',
+      'bastard','crap','damn','goddamn','goddammit',
+      'hell','piss','pissed','prick','twat',
+    
+      // Sexual terms
+      'cock','cocksucker','dick','d1ck','dildo',
+      'penis','vagina','pussy','cunt',
+      'whore','wh0re','slut','skank','hoe','h0e',
+      'cum','cumming','jizz','semen',
+      'blowjob','bj','handjob',
+      'porn','porno','pornography',
+      'masturbate','masturbation',
+    
+      // Derogatory insults
+      'idiot','moron','retard','r3tard',
+      'loser','stupid','douche','douchebag',
+      'scumbag','pieceofshit',
+      'trash','garbagehuman',
+    
+      // Racist slurs
+      'nigger','nigga','n1gga','n1gg3r',
+      'chink','ch1nk',
+      'spic','sp1c',
+      'kike','k1ke',
+      'gook','g00k',
+      'wetback',
+      'beaner',
+      'coon','c00n',
+      'porchmonkey',
+      'sambo','s4mbo',
+      'raghead',
+      'towelhead',
+      'cameljockey',
+      'sandnigger',
+      'zipperhead',
+      'redskin',
+      'injun',
+      'squaw',
+      'hymie',
+      'kraut',
+      'polack','p0lack',
+      'honky','h0nky',
+      'cracker',
+      'whitey',
+      'greaseball',
+    
+      // Anti-LGBTQ slurs
+      'faggot','f4ggot','fag',
+      'dyke',
+      'tranny','tr4nny',
+      'queerboy',
+    
+      // Religious slurs
+      'christkiller',
+      'kafir',
+      'infidel',
+      'papist',
+      'heathen',
+      'cultist',
+    
+      // Threats / violence
+      'killyourself',
+      'kys',
+      'diebitch',
+      'hangyourself',
+      'goanddie',
+      'iwillkillyou',
+      'murderyou',
+      'shootyou',
+      'stabyou',
+    
+      // Harassment
+      'worthless',
+      'nobodylikesyou',
+      'everyonehat esyou',
+      'yourescum',
+      'youaretrash',
+      'goaway',
+      'dropdead',
+    
+      // Common obfuscations
+      'f*ck','f**k','f***',
+      'sh*t','s**t',
+      'b*tch',
+      'n*gger',
+      'n****r',
+      '@ss',
+      '@sshole',
+      'phuck',
+      'phuk',
+      'fuq',
+      'fuqq',
+      'fuqer'
+    ];
     return raw.map(w => w.replace(/\s+/g,''));
   })();
   function normText(s) {
@@ -2745,61 +3242,178 @@ service cloud.firestore {
        { title, body, type, createdAt }
      type: 'announcement' | 'calendar' | 'urgent' | 'prayer'
   ══════════════════════════════════════════ */
-  function startNotificationListener() {
-    if (notificationUnsubscribe) return;
+  /* ══════════════════════════════════════════
+     NOTIFICATIONS — OneSignal SDK v5 + Median JS Bridge
+     ────────────────────────────────────────────
+     Two delivery paths, chosen automatically:
 
-    notificationUnsubscribe = db.collection('notifications')
-      .orderBy('createdAt', 'desc')
-      .limit(1)
-      .onSnapshot(snapshot => {
-        if (snapshot.empty) return;
+     1. MEDIAN (native wrapped app) — detected via the
+        global `window.median` object that Median.co
+        injects into the wrapped native shell. Median has
+        a built-in native OneSignal integration; we simply
+        register the device and link the Firebase UID as
+        the external user id so the SAME OneSignal app/
+        audience can target both the web PWA and the
+        native-wrapped installs together.
 
-        const doc  = snapshot.docs[0];
-        const data = doc.data();
+     2. WEB / PWA (no Median present) — uses the OneSignal
+        Web SDK v5 (the "v16" web package) directly via the
+        OneSignalDeferred queue pattern. We intercept
+        foreground pushes and render them with the app's
+        own toast UI for a consistent in-app notification
+        experience, instead of relying solely on the OS
+        banner.
 
-        // Skip on first load — just record the current latest doc
-        if (!lastNotificationSeen) {
-          lastNotificationSeen = doc.id;
-          return;
-        }
+     In both paths, `pushEnabled` is still written to the
+     user's Firestore profile purely for this app's own
+     Settings UI state — actual delivery is now 100%
+     owned by OneSignal, not Firebase Cloud Messaging.
+  ══════════════════════════════════════════ */
 
-        // Skip if it's the same doc we already handled
-        if (lastNotificationSeen === doc.id) return;
-        lastNotificationSeen = doc.id;
+  function initNotifications() {
+    if (notificationsInitialized) return;
+    notificationsInitialized = true;
 
-        const icons = {
-          announcement: '📢',
-          calendar:     '📅',
-          urgent:       '🚨',
-          prayer:       '🙏'
-        };
-        const icon  = icons[data.type] || '📢';
-        const title = `${icon} ${data.title || 'New Announcement'}`;
-        const body  = data.body || '';
-
-        // Browser / OS notification (only if permission already granted)
-        if (Notification.permission === 'granted') {
-          new Notification(title, {
-            body,
-            icon: '/icon-192.png',
-            badge: '/icon-192.png',
-            tag:  'ucjc-' + doc.id    // prevents duplicate stacking
-          });
-        }
-
-        // In-app toast regardless of OS permission state
-        toast(`${title}: ${body}`, 'success');
-      }, err => {
-        console.warn('Notification listener error:', err);
-      });
+    if (isMedianApp) {
+      initMedianNotifications();
+    } else {
+      initOneSignalWeb();
+    }
   }
 
-  function stopNotificationListener() {
-    if (notificationUnsubscribe) {
-      notificationUnsubscribe();
-      notificationUnsubscribe = null;
+  /* ── Path 1: OneSignal Web SDK v5 (browser / installed PWA) ── */
+  function initOneSignalWeb() {
+    if (!ONESIGNAL_APP_ID) {
+      console.warn('OneSignal: ONESIGNAL_APP_ID not configured — push notifications disabled until set.');
+      return;
     }
-    lastNotificationSeen = null;
+
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function (OneSignal) {
+      try {
+        await OneSignal.init({
+          appId: ONESIGNAL_APP_ID,
+          safari_web_id: ONESIGNAL_SAFARI_WEB_ID,
+          serviceWorkerPath: 'sw.js',         // merged into our existing SW via importScripts
+          serviceWorkerParam: { scope: '/' },
+          notifyButton: { enable: false },     // we use our own UI for permission prompts
+          allowLocalhostAsSecureOrigin: true   // harmless in production; helps local testing
+        });
+
+        // Foreground push received while the app/tab is open —
+        // show it as an in-app toast instead of only the OS banner.
+        OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
+          const n = event?.notification;
+          if (!n) return;
+          showInAppNotification(n.title || 'UCJC Holy Convocation', n.body || '', n.additionalData);
+          // Note: the native OS banner still shows by default alongside this toast.
+          // To suppress it and rely on the in-app toast only, call:
+          //   event.preventDefault();
+        });
+
+        // User tapped a OneSignal notification (app was backgrounded/closed)
+        OneSignal.Notifications.addEventListener('click', event => {
+          const url = event?.notification?.additionalData?.url;
+          if (url) window.location.href = url;
+        });
+
+        // Link this browser's push subscription to the signed-in user
+        // so targeted sends can use OneSignal's external_id targeting.
+        if (currentUser) await OneSignal.login(currentUser.uid).catch(() => {});
+
+        // Reflect actual current permission state into our Settings toggle
+        const granted = OneSignal.Notifications.permission === true;
+        const pt = $('push-toggle');
+        if (pt) pt.checked = granted;
+      } catch (err) {
+        console.warn('OneSignal init error:', err);
+      }
+    });
+  }
+
+  /* ── Path 2: Median JS Bridge (native wrapped app) ── */
+  function initMedianNotifications() {
+    try {
+      // Median's native shell auto-configures OneSignal natively once an
+      // App ID is set in the Median dashboard (Settings → Push Notifications
+      // → OneSignal). We just register the device and link identity here —
+      // the native layer renders OS notifications itself.
+      if (window.median?.onesignal?.register) {
+        window.median.onesignal.register();
+      }
+      if (currentUser && window.median?.onesignal?.setExternalUserId) {
+        window.median.onesignal.setExternalUserId(currentUser.uid);
+      }
+    } catch (err) {
+      console.warn('Median OneSignal register error:', err);
+    }
+
+    // Median calls this global callback when a push is received while the
+    // native app is in the foreground. (Verify this callback name against
+    // your current Median dashboard docs — their bridge API has changed
+    // across SDK versions; this covers the commonly documented pattern.
+    // The handler is intentionally defensive: if Median's payload shape
+    // differs, we fall back to generic title/body fields.)
+    window.medianOneSignalInfoCallback = function (info) {
+      try {
+        const title = info?.title || info?.notification?.title || 'UCJC Holy Convocation';
+        const body  = info?.body  || info?.notification?.body  || info?.message || '';
+        const data  = info?.additionalData || info?.data || null;
+        showInAppNotification(title, body, data);
+      } catch (err) {
+        console.warn('medianOneSignalInfoCallback parse error:', err);
+      }
+    };
+  }
+
+  /* Link (or re-link) notification identity after sign-in.
+     Called once currentUser is confirmed, separate from initNotifications()
+     so re-login with a different account always re-syncs the external id. */
+  function linkNotificationIdentity(uid) {
+    if (!uid) return;
+    if (isMedianApp) {
+      try {
+        if (window.median?.onesignal?.setExternalUserId) {
+          window.median.onesignal.setExternalUserId(uid);
+        }
+      } catch (_) {}
+    } else {
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(OneSignal => OneSignal.login(uid).catch(() => {}));
+    }
+  }
+
+  /* Unlink notification identity on sign-out so the device stops being
+     associated with the previous user's external id. */
+  function unlinkNotificationIdentity() {
+    if (isMedianApp) {
+      try { window.median?.onesignal?.removeExternalUserId?.(); } catch (_) {}
+    } else {
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(OneSignal => OneSignal.logout().catch(() => {}));
+    }
+  }
+
+  /* Unified in-app notification display — used by both delivery paths so
+     the visual experience is identical whether running in a browser tab,
+     an installed PWA, or the Median-wrapped native app. Also logs the
+     notification into PushLogDB so it appears in the Home "Latest Update"
+     and Updates screen "Recent Updates" sections (see PushLogDB module
+     above for why this local-capture approach is necessary). */
+  function showInAppNotification(title, body, data) {
+    toast(`${title}: ${body}`, 'success');
+
+    PushLogDB.add({
+      title: title || 'UCJC Holy Convocation',
+      body:  body  || '',
+      type:  data?.type || 'announcement',
+      data:  data || null
+    }).catch(err => console.warn('PushLogDB write error:', err));
+
+    // Refresh whichever sections are currently visible so the new
+    // notification appears immediately without requiring a manual reload
+    if ($('screen-home')?.classList.contains('active'))          loadHomeLatestNotif();
+    if ($('screen-announcements')?.classList.contains('active')) loadRecentNotifications();
   }
 
   /* ══════════════════════════════════════════
@@ -2960,8 +3574,9 @@ window.handleRegister = async function (e) {
         applyTheme(localStorage.getItem('ucjc-theme') === 'light');
         // Start on the Home screen
         showScreen('home');
-        // Start the notifications listener right away
-        startNotificationListener();
+        // Start notification bridge (OneSignal or Median) right away
+        initNotifications();
+        linkNotificationIdentity(currentUser.uid);
         // Background: fetch profile, then update avatar + subscribe data
         loadUserProfile().then(() => {
           updateAvatarUI();
@@ -2976,7 +3591,7 @@ window.handleRegister = async function (e) {
         });
       } else {
         currentUser = null; userProfile = null;
-        stopNotificationListener();
+        unlinkNotificationIdentity();
         cleanupListeners();
         directoryLoaded = false;
         directoryLoading = false;
@@ -3062,6 +3677,11 @@ window.handleRegister = async function (e) {
     adminGroupId = null; isAdminMember = false;
     if (prayerUnsub) { prayerUnsub(); prayerUnsub = null; }
     prayerGroupId = null; isIntercessor = false;
+    DEPARTMENTS.forEach(key => {
+      if (departmentUnsub[key]) { departmentUnsub[key](); departmentUnsub[key] = null; }
+      departmentGroupId[key]  = null;
+      isDepartmentMember[key] = false;
+    });
     chatInitialized = false;
     directoryLoaded = false;
     directoryLoading = false;
@@ -3276,6 +3896,7 @@ window.handleRegister = async function (e) {
   function loadAnnouncements() {
     // Always refresh notifications (they change frequently)
     loadRecentNotifications();
+    loadNoticesGrid();
 
     if (ytLoaded) return;
 
@@ -3318,46 +3939,35 @@ window.handleRegister = async function (e) {
     if (countEl) countEl.textContent = '';
 
     try {
-      const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 h ago
-      const snap   = await db.collection('notifications')
-        .orderBy('createdAt', 'desc')
-        .limit(50)
-        .get();
-
-      // Filter to last 24 h client-side (Firestore Timestamp comparison)
-      const docs = snap.docs.filter(d => {
-        const ts = d.data().createdAt;
-        if (!ts) return false;
-        const date = ts.toDate ? ts.toDate() : new Date(ts);
-        return date >= cutoff;
-      });
+      const cutoff  = Date.now() - 24 * 60 * 60 * 1000; // 24 h ago
+      const all     = await PushLogDB.getRecent(50);
+      const entries = all.filter(e => (e.receivedAt || 0) >= cutoff);
 
       loadEl.classList.add('hidden');
 
-      if (!docs.length) {
+      if (!entries.length) {
         emptyEl.classList.remove('hidden');
         return;
       }
 
-      if (countEl) countEl.textContent = docs.length + (docs.length === 1 ? ' update' : ' updates');
+      if (countEl) countEl.textContent = entries.length + (entries.length === 1 ? ' update' : ' updates');
 
-      listEl.innerHTML = docs.map(d => {
-        const data  = d.data();
-        const type  = data.type || 'announcement';
-        const ts    = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
-        const diff  = Date.now() - ts.getTime();
-        const mins  = Math.floor(diff / 60000);
+      listEl.innerHTML = entries.map(entry => {
+        const type = entry.type || 'announcement';
+        const ts   = new Date(entry.receivedAt);
+        const diff = Date.now() - ts.getTime();
+        const mins = Math.floor(diff / 60000);
         const timeStr = mins < 1   ? 'Just now'
                       : mins < 60  ? `${mins}m ago`
                       : mins < 1440? `${Math.floor(mins/60)}h ago`
                       : ts.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) +
                         ' · ' + ts.toLocaleDateString([], { month: 'short', day: 'numeric' });
-        const icon  = NOTIF_ICONS[type] || NOTIF_ICONS.announcement;
+        const icon = NOTIF_ICONS[type] || NOTIF_ICONS.announcement;
         return `<div class="notif-card ${escHtml(type)}">
           <div class="notif-icon ${escHtml(type)}">${icon}</div>
           <div class="notif-body">
-            <div class="notif-title">${escHtml(data.title || 'Announcement')}</div>
-            ${data.body ? `<div class="notif-message">${escHtml(data.body)}</div>` : ''}
+            <div class="notif-title">${escHtml(entry.title || 'Announcement')}</div>
+            ${entry.body ? `<div class="notif-message">${escHtml(entry.body)}</div>` : ''}
             <div class="notif-time">${timeStr}</div>
           </div>
         </div>`;
@@ -3366,13 +3976,7 @@ window.handleRegister = async function (e) {
     } catch (err) {
       console.error('loadRecentNotifications error:', err);
       loadEl.classList.add('hidden');
-      if (err.code === 'permission-denied') {
-        listEl.innerHTML = `<div class="notif-card announcement" style="color:var(--text-muted);font-size:0.82rem">
-          Notifications require Firestore rules — see the banner at top of screen.
-        </div>`;
-      } else {
-        emptyEl.classList.remove('hidden');
-      }
+      emptyEl.classList.remove('hidden');
     }
   }
 
@@ -4159,18 +4763,22 @@ window.handleRegister = async function (e) {
       .where('active', '==', true)
       .onSnapshot(async snap => {
         try {
-          // Reset admin/prayer tracking on each snapshot (group config may change)
+          // Reset admin/prayer/department tracking on each snapshot (group config may change)
           let foundAdminId = null;
           let foundAdminMember = false;
           let foundPrayerId = null;
           let foundPrayerMember = false;
+          const foundDeptId     = { men: null,  women: null,  youth: null,  youngadult: null };
+          const foundDeptMember = { men: false, women: false, youth: false, youngadult: false };
 
           // Check membership for every active group in parallel
           const checks = snap.docs.map(async doc => {
             const data = doc.data();
-            // Identify the admin/prayer groups by their flags (regardless of membership)
+            // Identify the admin/prayer/department groups by their flags (regardless of membership)
             if (data.isAdminGroup)  foundAdminId  = doc.id;
             if (data.isPrayerGroup) foundPrayerId = doc.id;
+            const deptKey = data.isDepartmentGroup ? data.departmentKey : null;
+            if (deptKey && DEPARTMENTS.includes(deptKey)) foundDeptId[deptKey] = doc.id;
 
             try {
               const memberSnap = await db
@@ -4181,12 +4789,14 @@ window.handleRegister = async function (e) {
 
               if (data.isAdminGroup)  foundAdminMember  = true;
               if (data.isPrayerGroup) foundPrayerMember = true;
+              if (deptKey && DEPARTMENTS.includes(deptKey)) foundDeptMember[deptKey] = true;
               return {
-                id:            doc.id,
-                name:          data.name        || 'Group',
-                description:   data.description || '',
-                isAdminGroup:  !!data.isAdminGroup,
-                isPrayerGroup: !!data.isPrayerGroup
+                id:               doc.id,
+                name:             data.name        || 'Group',
+                description:      data.description || '',
+                isAdminGroup:     !!data.isAdminGroup,
+                isPrayerGroup:    !!data.isPrayerGroup,
+                isDepartmentGroup:!!data.isDepartmentGroup
               };
             } catch (_) { return null; }
           });
@@ -4199,15 +4809,21 @@ window.handleRegister = async function (e) {
           // Update prayer/intercessor state
           prayerGroupId  = foundPrayerId;
           isIntercessor  = foundPrayerMember;
+          // Update department state
+          DEPARTMENTS.forEach(key => {
+            departmentGroupId[key]  = foundDeptId[key];
+            isDepartmentMember[key] = foundDeptMember[key];
+          });
 
           userGroups = results
             .filter(Boolean)
             .sort((a, b) => a.name.localeCompare(b.name));
 
           renderGroupTabs();
-          // Always refresh the contact-admin and prayer panels after groups load
+          // Always refresh the contact-admin, prayer, and departments panels after groups load
           updateContactAdminPanel();
           updatePrayerPanel();
+          updateDepartmentsPanel();
         } catch (err) {
           console.warn('loadUserGroups error:', err);
         } finally {
@@ -4234,13 +4850,15 @@ window.handleRegister = async function (e) {
 
     if (!userGroups.length) return; // user belongs to no groups
 
-    // 4. Find anchor elements to insert after
-    const prayerTabBtn = document.querySelector('.chat-tab-btn[data-panel="prayer"]');
-    const prayerPanel  = $('panel-prayer');
-    if (!prayerTabBtn || !prayerPanel) return;
+    // 4. Find anchor elements to insert after — use the LAST fixed/static
+    //    tab (Contact Admin) so dynamic user-created groups always trail
+    //    at the very end, after Prayer/Departments/Contact Admin.
+    const anchorTabBtn = document.querySelector('.chat-tab-btn[data-panel="contact-admin"]');
+    const anchorPanel  = $('panel-contact-admin');
+    if (!anchorTabBtn || !anchorPanel) return;
 
-    let lastTab   = prayerTabBtn;
-    let lastPanel = prayerPanel;
+    let lastTab   = anchorTabBtn;
+    let lastPanel = anchorPanel;
 
     // Send button SVG (shared markup)
     const sendSVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
@@ -4255,6 +4873,8 @@ window.handleRegister = async function (e) {
       if (group.isAdminGroup) return;
       // Prayer group has its own fixed "Prayer Requests" tab — skip here
       if (group.isPrayerGroup) return;
+      // Department groups have their own fixed "Departments" tab — skip here
+      if (group.isDepartmentGroup) return;
 
       // ── Tab button ──────────────────────────────────
       const tabBtn = document.createElement('button');
@@ -4689,6 +5309,191 @@ window.handleRegister = async function (e) {
     if (formArea) formArea.classList.remove('hidden');
   };
 
+  /* ══════════════════════════════════════════
+     MESSAGE DEPARTMENTS  (Men / Women / Youth / Young Adult)
+     Exact same pattern as Prayer Requests, parameterized by
+     department key so all four subsections share one set of
+     functions instead of four duplicated copies.
+     - All users: write-only message submission per department
+     - Department members: full bidirectional chat for that
+       specific department only
+  ══════════════════════════════════════════ */
+
+  /* Called by loadUserGroups() after every snapshot. Updates the
+     submit-form/chat-view visibility for all four departments — not
+     just the currently-selected sub-tab — so membership in multiple
+     departments keeps every relevant chat listener alive in the
+     background, exactly like Prayer/Contact Admin already do. */
+  function updateDepartmentsPanel() {
+    DEPARTMENTS.forEach(key => {
+      const submitView    = $('dept-' + key + '-submit-view');
+      const chatView       = $('dept-' + key + '-chat-view');
+      const unavailableEl  = $('dept-' + key + '-unavailable');
+      const formAreaEl     = $('dept-' + key + '-form-area');
+      const groupId        = departmentGroupId[key];
+      const member          = isDepartmentMember[key];
+
+      if (member && groupId) {
+        if (submitView) submitView.classList.add('hidden');
+        if (chatView) {
+          chatView.classList.remove('hidden');
+          chatView.classList.add('flex');
+        }
+        if (!departmentUnsub[key]) subscribeDepartmentChat(key, groupId);
+      } else {
+        if (chatView)   { chatView.classList.add('hidden'); chatView.classList.remove('flex'); }
+        if (submitView) submitView.classList.remove('hidden');
+        if (!groupId) {
+          if (formAreaEl)    formAreaEl.classList.add('hidden');
+          if (unavailableEl) unavailableEl.classList.remove('hidden');
+        } else {
+          if (formAreaEl)    formAreaEl.classList.remove('hidden');
+          if (unavailableEl) unavailableEl.classList.add('hidden');
+        }
+      }
+    });
+  }
+
+  /* Subscribe to one department's message thread (members only) */
+  function subscribeDepartmentChat(key, groupId) {
+    if (departmentUnsub[key]) return; // already subscribed
+
+    departmentUnsub[key] = db.collection('chatGroups').doc(groupId).collection('messages')
+      .orderBy('createdAt', 'asc')
+      .onSnapshot(snap => {
+        const el = $('dept-' + key + '-messages'); if (!el) return;
+        el.innerHTML = snap.docs.map(d => renderDepartmentMsg(d.data())).join('');
+        el.scrollTop = el.scrollHeight;
+      }, err => console.warn('Department chat error (' + key + '):', err));
+  }
+
+  /* Render a message in a department's chat view. Public submissions
+     (type:'department_request') get a gold badge so members can
+     distinguish them from internal team messages. */
+  function renderDepartmentMsg(data) {
+    const uid    = data.uid || data.senderId || '';
+    const name   = data.displayName || data.senderName || 'Anonymous';
+    const church = data.homeChurch ? ` · ${escHtml(data.homeChurch)}` : '';
+    const isOwn  = uid === currentUser?.uid;
+    const time   = data.createdAt?.toDate ? fmt(data.createdAt.toDate()) : '';
+    const isReq  = data.type === 'department_request';
+
+    const badge  = isReq
+      ? `<span class="msg-public-badge">Submission</span>`
+      : '';
+
+    return `<div class="msg-row${isOwn && !isReq ? ' own' : ''}">
+      ${(!isOwn || isReq) ? `<div class="msg-avatar" style="${isReq ? 'background:rgba(201,168,76,0.15);color:var(--gold)' : ''}">${initials(name)}</div>` : ''}
+      <div class="msg-bubble-wrap">
+        ${(!isOwn || isReq) ? `<div class="msg-sender">${escHtml(name)}${church}${badge}</div>` : ''}
+        <div class="msg-bubble${isReq ? ' public-submission' : ''}">${escHtml(data.text || '')}</div>
+        <div class="msg-time">${time}</div>
+      </div>
+    </div>`;
+  }
+
+  /* Department members send internal messages (member ↔ member) */
+  window.sendDepartmentGroupMessage = async function (key) {
+    const groupId = departmentGroupId[key];
+    if (!isDepartmentMember[key] || !groupId || !currentUser) return;
+    const inp  = $('dept-' + key + '-msg-input');
+    if (!inp) return;
+    const text = inp.value.trim(); if (!text) return;
+    if (hasProfanity(text)) {
+      toast('Your message contains prohibited language and was not sent.', 'error'); return;
+    }
+    inp.value = '';
+    try {
+      await db.collection('chatGroups').doc(groupId).collection('messages').add({
+        senderId:   currentUser.uid,
+        senderName: userProfile?.displayName || 'Anonymous',
+        homeChurch: userProfile?.homeChurch  || '',
+        text,
+        createdAt:  FSV.serverTimestamp()
+        // No type field = internal department-team message
+      });
+    } catch (e) {
+      console.error('sendDepartmentGroupMessage error:', e);
+      toast('Could not send message.', 'error');
+      inp.value = text;
+    }
+  };
+
+  /* Any authenticated user submits a message to a department group.
+     Writes with type:'department_request' so members can distinguish
+     it. The user cannot read any messages — write-only by design. */
+  window.submitDepartmentRequest = async function (key) {
+    if (!currentUser) return;
+    const inp    = $('dept-' + key + '-input');
+    const errEl  = $('dept-' + key + '-error');
+    if (!inp) return;
+
+    const text = inp.value.trim();
+    if (!text) {
+      if (errEl) { errEl.textContent = 'Please enter a message before sending.'; errEl.classList.remove('hidden'); }
+      return;
+    }
+    if (hasProfanity(text)) {
+      if (errEl) { errEl.textContent = 'Your message contains prohibited language.'; errEl.classList.remove('hidden'); }
+      return;
+    }
+    const groupId = departmentGroupId[key];
+    if (!groupId) {
+      if (errEl) { errEl.textContent = 'This department is not yet configured. Please try again later.'; errEl.classList.remove('hidden'); }
+      return;
+    }
+    if (errEl) errEl.classList.add('hidden');
+
+    const btn = document.querySelector('#dept-' + key + '-form-area .btn-primary');
+    if (btn) { btn.textContent = 'Sending…'; btn.disabled = true; }
+
+    try {
+      await db.collection('chatGroups').doc(groupId).collection('messages').add({
+        senderId:   currentUser.uid,
+        senderName: userProfile?.displayName || 'Anonymous',
+        homeChurch: userProfile?.homeChurch  || '',
+        text,
+        type:       'department_request',
+        createdAt:  FSV.serverTimestamp()
+      });
+
+      $('dept-' + key + '-form-area').classList.add('hidden');
+      $('dept-' + key + '-success').classList.remove('hidden');
+      inp.value = '';
+    } catch (e) {
+      console.error('submitDepartmentRequest error:', e);
+      if (errEl) {
+        errEl.textContent = 'Could not send your message. Check your connection and try again.';
+        errEl.classList.remove('hidden');
+      }
+    } finally {
+      if (btn) { btn.textContent = 'Send Message'; btn.disabled = false; }
+    }
+  };
+
+  /* Reset a department's form so the user can send another message */
+  window.resetDepartmentForm = function (key) {
+    const formArea = $('dept-' + key + '-form-area');
+    const success  = $('dept-' + key + '-success');
+    const errEl    = $('dept-' + key + '-error');
+    const inp      = $('dept-' + key + '-input');
+    if (success)  success.classList.add('hidden');
+    if (errEl)    errEl.classList.add('hidden');
+    if (inp)      inp.value = '';
+    if (formArea) formArea.classList.remove('hidden');
+  };
+
+  /* Switch the active sub-tab within the Departments panel */
+  window.switchDepartment = function (key) {
+    currentDepartment = key;
+    document.querySelectorAll('.dept-tab').forEach(b => b.classList.toggle('active', b.dataset.dept === key));
+    document.querySelectorAll('.dept-content').forEach(c => c.classList.toggle('hidden', c.dataset.deptContent !== key));
+    if (isDepartmentMember[key]) {
+      const m = $('dept-' + key + '-messages');
+      setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
+    }
+  };
+
   /* Step 4 — send a message to a group channel.
      Uses senderId/senderName per the spec schema. */
   window.sendGroupMessage = async function (groupId) {
@@ -4737,6 +5542,12 @@ window.handleRegister = async function (e) {
       // If admin member, scroll to bottom of admin chat
       if (isAdminMember) {
         const m = $('admin-group-messages');
+        setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
+      }
+    } else if (panel === 'departments') {
+      // Scroll the currently-selected department's chat if member
+      if (isDepartmentMember[currentDepartment]) {
+        const m = $('dept-' + currentDepartment + '-messages');
         setTimeout(() => m && (m.scrollTop = m.scrollHeight), 60);
       }
     } else if (panel.startsWith('group-')) {
@@ -5004,12 +5815,45 @@ window.handleRegister = async function (e) {
 
   window.togglePushNotifications = async function (enabled) {
     if (enabled) {
-      const perm = await Notification.requestPermission().catch(() => 'denied');
-      if (perm !== 'granted') { $('push-toggle').checked=false; toast('Notification permission denied.','error'); return; }
-      toast('Notifications enabled!', 'success');
-      try { await db.collection('users').doc(currentUser.uid).set({ pushEnabled:true },{ merge:true }); } catch(e){}
+      try {
+        let granted = false;
+
+        if (isMedianApp) {
+          // Native shell — Median's OneSignal integration handles the OS-level
+          // permission prompt itself when register() is called.
+          if (window.median?.onesignal?.register) {
+            window.median.onesignal.register();
+          }
+          granted = true; // Median doesn't expose a synchronous permission result here
+        } else {
+          window.OneSignalDeferred = window.OneSignalDeferred || [];
+          granted = await new Promise(resolve => {
+            OneSignalDeferred.push(async OneSignal => {
+              try {
+                await OneSignal.Notifications.requestPermission();
+                resolve(OneSignal.Notifications.permission === true);
+              } catch (e) { resolve(false); }
+            });
+          });
+        }
+
+        if (!granted) {
+          $('push-toggle').checked = false;
+          toast('Notification permission denied.', 'error');
+          return;
+        }
+        toast('Notifications enabled!', 'success');
+        try { await db.collection('users').doc(currentUser.uid).set({ pushEnabled: true }, { merge: true }); } catch (e) {}
+      } catch (err) {
+        console.warn('togglePushNotifications enable error:', err);
+        $('push-toggle').checked = false;
+        toast('Could not enable notifications.', 'error');
+      }
     } else {
-      try { await db.collection('users').doc(currentUser.uid).set({ pushEnabled:false },{ merge:true }); } catch(e){}
+      try { await db.collection('users').doc(currentUser.uid).set({ pushEnabled: false }, { merge: true }); } catch (e) {}
+      // Note: OneSignal Web SDK doesn't offer a clean "revoke permission"
+      // call (that's a browser-level OS setting), so we only update our own
+      // app-side preference flag here, consistent with prior behavior.
       toast('Notifications disabled.', 'info');
     }
   };
@@ -5040,6 +5884,220 @@ window.handleRegister = async function (e) {
       '_blank', 'noopener,noreferrer'
     );
   };
+
+  /* ══════════════════════════════════════════
+     NOTICES & FLYERS
+     Probes /notices/Notice1.jpg through Notice6.jpg via Image()
+     preload. Files that don't exist are silently skipped — no broken
+     image icon, no empty placeholder, no indication a file was ever
+     expected at that slot. The whole section is hidden if none of
+     the six files exist.
+  ══════════════════════════════════════════ */
+  let noticesLoaded = false;
+
+  async function loadNoticesGrid() {
+    if (noticesLoaded) return;
+    noticesLoaded = true;
+
+    const grid    = $('notices-grid');
+    const section = $('notices-section');
+    if (!grid) return;
+
+    const files = ['Notice1.jpg', 'Notice2.jpg', 'Notice3.jpg', 'Notice4.jpg', 'Notice5.jpg', 'Notice6.jpg'];
+
+    // Probe each file in parallel; resolve to its path on success,
+    // null on failure (404 / load error) — never rejects, so one
+    // missing file can never block the others from showing.
+    const checks = files.map(name => new Promise(resolve => {
+      const img = new Image();
+      img.onload  = () => resolve('notices/' + name);
+      img.onerror = () => resolve(null);
+      img.src = 'notices/' + name;
+    }));
+
+    const results = (await Promise.all(checks)).filter(Boolean);
+
+    if (!results.length) {
+      if (section) section.style.display = 'none';
+      return;
+    }
+
+    if (section) section.style.display = '';
+    // No alt text, no caption, no filename shown anywhere — per design.
+    grid.innerHTML = results.map(path =>
+      `<div class="notice-thumb" onclick="openNotice('${escHtml(path)}')">
+        <img src="${escHtml(path)}" alt="" loading="lazy"/>
+      </div>`
+    ).join('');
+  }
+
+  /* ══════════════════════════════════════════
+     NOTICE LIGHTBOX — pinch / scroll / drag
+     Same zoom/pan mechanics as the venue map viewer below, as a
+     separate self-contained instance bound to its own modal/image
+     so the two never interfere with each other's state.
+  ══════════════════════════════════════════ */
+  (function () {
+    const MIN_SCALE = 0.5, MAX_SCALE = 8;
+    let scale = 1, originX = 0, originY = 0;
+    let vpW = 0, vpH = 0, imgW = 0, imgH = 0;
+
+    let dragging = false, dragStartX = 0, dragStartY = 0, dragOriginX = 0, dragOriginY = 0;
+    let pinching = false, pinchStartDist = 0, pinchStartScale = 1,
+        pinchMidX = 0, pinchMidY = 0, pinchOriginXAtStart = 0, pinchOriginYAtStart = 0;
+
+    const modal = () => $('notice-modal');
+    const vp    = () => $('notice-viewport');
+    const img   = () => $('notice-image');
+
+    window.openNotice = function (src) {
+      const image = img();
+      image.src = src;
+      modal().classList.add('open');
+      document.body.style.overflow = 'hidden';
+      if (image.complete && image.naturalWidth) fitAndReset();
+      else image.onload = fitAndReset;
+    };
+    window.closeNotice = function () {
+      modal().classList.remove('open');
+      document.body.style.overflow = '';
+    };
+
+    function fitAndReset() {
+      const image = img(), viewport = vp();
+      vpW = viewport.clientWidth  || window.innerWidth;
+      vpH = viewport.clientHeight || window.innerHeight - 52;
+      imgW = image.naturalWidth  || image.offsetWidth  || 800;
+      imgH = image.naturalHeight || image.offsetHeight || 600;
+      const scaleX = vpW / imgW, scaleY = vpH / imgH;
+      const fitScale = Math.min(scaleX, scaleY, 1);
+      scale   = fitScale;
+      originX = (vpW - imgW * scale) / 2;
+      originY = (vpH - imgH * scale) / 2;
+      applyTransform(false);
+    }
+    window.noticeReset = fitAndReset;
+
+    window.noticeZoom = function (factor) {
+      const viewport = vp();
+      vpW = viewport.clientWidth;
+      vpH = viewport.clientHeight;
+      zoomAround(vpW / 2, vpH / 2, factor);
+    };
+
+    function clamp() {
+      const scaledW = imgW * scale, scaledH = imgH * scale;
+      const padX = Math.min(vpW * 0.4, 20), padY = Math.min(vpH * 0.4, 20);
+      if (scaledW <= vpW) originX = Math.max(-padX, Math.min(vpW - scaledW + padX, originX));
+      else originX = Math.max(vpW - scaledW - padX, Math.min(padX, originX));
+      if (scaledH <= vpH) originY = Math.max(-padY, Math.min(vpH - scaledH + padY, originY));
+      else originY = Math.max(vpH - scaledH - padY, Math.min(padY, originY));
+    }
+
+    function applyTransform(animate) {
+      const image = img(); if (!image) return;
+      image.style.transition = animate ? 'transform 0.25s ease' : 'none';
+      image.style.transform  = `translate(${originX}px, ${originY}px) scale(${scale})`;
+    }
+
+    function zoomAround(focalX, focalY, factor) {
+      const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * factor));
+      const ratio    = newScale / scale;
+      originX = focalX - ratio * (focalX - originX);
+      originY = focalY - ratio * (focalY - originY);
+      scale   = newScale;
+      clamp();
+      applyTransform(true);
+    }
+
+    function onWheel(e) {
+      e.preventDefault();
+      const rect   = vp().getBoundingClientRect();
+      const factor = e.deltaY < 0 ? 1.18 : 0.847;
+      zoomAround(e.clientX - rect.left, e.clientY - rect.top, factor);
+    }
+
+    function onMouseDown(e) {
+      if (e.button !== 0) return;
+      dragging = true; dragStartX = e.clientX; dragStartY = e.clientY;
+      dragOriginX = originX; dragOriginY = originY;
+      vp().classList.add('dragging');
+      e.preventDefault();
+    }
+    function onMouseMove(e) {
+      if (!dragging) return;
+      originX = dragOriginX + (e.clientX - dragStartX);
+      originY = dragOriginY + (e.clientY - dragStartY);
+      clamp(); applyTransform(false);
+    }
+    function onMouseUp() { dragging = false; vp().classList.remove('dragging'); }
+
+    function getTouchDist(t) {
+      const dx = t[1].clientX - t[0].clientX, dy = t[1].clientY - t[0].clientY;
+      return Math.hypot(dx, dy);
+    }
+    function getTouchMid(t, rect) {
+      return { x: ((t[0].clientX + t[1].clientX) / 2) - rect.left, y: ((t[0].clientY + t[1].clientY) / 2) - rect.top };
+    }
+
+    function onTouchStart(e) {
+      e.preventDefault();
+      const touches = e.touches, rect = vp().getBoundingClientRect();
+      if (touches.length === 1) {
+        pinching = false; dragging = true;
+        dragStartX = touches[0].clientX; dragStartY = touches[0].clientY;
+        dragOriginX = originX; dragOriginY = originY;
+      } else if (touches.length === 2) {
+        dragging = false; pinching = true;
+        pinchStartDist  = getTouchDist(touches);
+        pinchStartScale = scale;
+        const mid = getTouchMid(touches, rect);
+        pinchMidX = mid.x; pinchMidY = mid.y;
+        pinchOriginXAtStart = originX; pinchOriginYAtStart = originY;
+      }
+    }
+    function onTouchMove(e) {
+      e.preventDefault();
+      const touches = e.touches, rect = vp().getBoundingClientRect();
+      if (dragging && touches.length === 1) {
+        originX = dragOriginX + (touches[0].clientX - dragStartX);
+        originY = dragOriginY + (touches[0].clientY - dragStartY);
+        clamp(); applyTransform(false);
+      } else if (pinching && touches.length === 2) {
+        const dist = getTouchDist(touches);
+        const mid  = getTouchMid(touches, rect);
+        const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, pinchStartScale * (dist / pinchStartDist)));
+        const ratio = newScale / pinchStartScale;
+        originX = pinchOriginXAtStart + mid.x - pinchMidX - (pinchMidX * (ratio - 1));
+        originY = pinchOriginYAtStart + mid.y - pinchMidY - (pinchMidY * (ratio - 1));
+        scale = newScale;
+        clamp(); applyTransform(false);
+      }
+    }
+    function onTouchEnd(e) {
+      if (e.touches.length === 0) { dragging = false; pinching = false; }
+      else if (e.touches.length === 1 && pinching) {
+        pinching = false; dragging = true;
+        dragStartX = e.touches[0].clientX; dragStartY = e.touches[0].clientY;
+        dragOriginX = originX; dragOriginY = originY;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const viewport = $('notice-viewport'); if (!viewport) return;
+      viewport.addEventListener('wheel',      onWheel,      { passive: false });
+      viewport.addEventListener('mousedown',  onMouseDown);
+      window.addEventListener('mousemove',    onMouseMove);
+      window.addEventListener('mouseup',      onMouseUp);
+      viewport.addEventListener('touchstart', onTouchStart, { passive: false });
+      viewport.addEventListener('touchmove',  onTouchMove,  { passive: false });
+      viewport.addEventListener('touchend',   onTouchEnd,   { passive: false });
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && modal()?.classList.contains('open')) closeNotice();
+    });
+  })();
 
   /* ══════════════════════════════════════════
      MAP VIEWER — pinch / scroll / drag
@@ -5618,24 +6676,23 @@ window.handleRegister = async function (e) {
   async function loadHomeLatestNotif() {
     const el = $('home-latest-notif'); if (!el) return;
     try {
-      const snap = await db.collection('notifications')
-        .orderBy('createdAt', 'desc').limit(1).get();
-      if (snap.empty) {
+      const recent = await PushLogDB.getRecent(1);
+      if (!recent.length) {
         el.innerHTML = `<div class="home-notif-card">
           <span class="home-notif-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
           <div><div class="home-notif-title">No announcements yet</div><div class="home-notif-body">Check back soon for updates from leadership.</div></div>
         </div>`; return;
       }
-      const data = snap.docs[0].data();
-      const ts   = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+      const entry = recent[0];
+      const ts   = new Date(entry.receivedAt);
       const diff = Date.now() - ts.getTime();
       const mins = Math.floor(diff / 60000);
       const timeStr = mins < 1 ? 'Just now' : mins < 60 ? `${mins}m ago` : mins < 1440 ? `${Math.floor(mins/60)}h ago` : fmtDate(ts);
       el.innerHTML = `<div class="home-notif-card" onclick="showScreen('announcements')" style="cursor:pointer">
         <span class="home-notif-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
         <div>
-          <div class="home-notif-title">${escHtml(data.title || 'Announcement')}</div>
-          ${data.body ? `<div class="home-notif-body">${escHtml(data.body)}</div>` : ''}
+          <div class="home-notif-title">${escHtml(entry.title || 'Announcement')}</div>
+          ${entry.body ? `<div class="home-notif-body">${escHtml(entry.body)}</div>` : ''}
           <div class="home-notif-time">${timeStr}</div>
         </div>
       </div>`;
@@ -5644,23 +6701,7 @@ window.handleRegister = async function (e) {
     }
   }
 
-  
-  const noticeImages=['Notice1.jpg','Notice2.jpg','Notice3.jpg','Notice4.jpg','Notice5.jpg'];
-  function initNoticeGallery(){
-    const g=$('notice-grid'); if(!g) return;
-    g.innerHTML='';
-    noticeImages.forEach((src,i)=>{
-      const d=document.createElement('div');
-      d.className='notice-thumb';
-      d.innerHTML=`<img src="${src}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22260%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23192d4a%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22white%22 text-anchor=%22middle%22%3ENot Found%3C/text%3E%3C/svg%3E'"><span>Notice ${i+1}</span>`;
-      d.onclick=()=>{$('notice-full-img').src=src;$('notice-modal').classList.remove('hidden');};
-      g.appendChild(d);
-    });
-  }
-  function closeNoticeModal(){ $('notice-modal').classList.add('hidden'); $('notice-full-img').src='';}
-  initNoticeGallery();
-
-/* ══════════════════════════════════════════
+  /* ══════════════════════════════════════════
      CONNECTIVITY
   ══════════════════════════════════════════ */
   function updateConn() {
