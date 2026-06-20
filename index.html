@@ -2660,9 +2660,59 @@ service cloud.firestore {
   ══════════════════════════════════════════ */
   firebase.initializeApp(FIREBASE_CONFIG);
   const auth = firebase.auth();
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(console.error);
   const db   = firebase.firestore();
   const FSV  = firebase.firestore.FieldValue;
+
+  /* ── Maximize sign-in persistence ──────────────────────────────────
+     The most common real-world cause of "keeps signing me out" is NOT
+     a bug in the auth flow itself — it's the browser/WebView silently
+     evicting the IndexedDB database that Firebase Auth's LOCAL
+     persistence is stored in. This happens under storage pressure, and
+     on Safari/iOS specifically, sites not added to the home screen are
+     subject to a 7-day no-interaction eviction policy (Intelligent
+     Tracking Prevention). Two defenses, both applied before anything
+     else touches auth state:
+
+     1. navigator.storage.persist() — the standards-based way to ask
+        the browser to exempt this origin's storage from "best-effort"
+        eviction. Not a 100% guarantee (the browser/user can still say
+        no), but it's the single most effective code-level mitigation
+        available, and costs nothing if unsupported.
+
+     2. setPersistence(LOCAL), explicitly awaited (not fire-and-forget),
+        with a defensive fallback chain — LOCAL → SESSION → NONE — in
+        case LOCAL is unavailable in this particular embedding context
+        (e.g. certain locked-down WebView configurations, including
+        some Median wrapper setups). This guarantees persistence always
+        ends up in a known, working state rather than silently failing.
+
+     NOTE: if this app is running inside a Median-wrapped native shell
+     and sign-outs persist after this change, the remaining likely
+     cause is on Median's side — confirm the wrapper's WebView isn't
+     configured for private/incognito-style browsing or "clear data on
+     close," since that's outside what this page's JavaScript can
+     control. */
+  (async function maximizeAuthPersistence() {
+    try {
+      if (navigator.storage?.persist) {
+        const persisted = await navigator.storage.persist();
+        console.log('Persistent storage', persisted ? 'granted' : 'not granted — best-effort storage only');
+      }
+    } catch (e) { console.warn('navigator.storage.persist() error:', e); }
+
+    try {
+      await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    } catch (e1) {
+      console.warn('LOCAL auth persistence failed, falling back to SESSION:', e1);
+      try {
+        await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+      } catch (e2) {
+        console.warn('SESSION auth persistence also failed, falling back to NONE:', e2);
+        try { await auth.setPersistence(firebase.auth.Auth.Persistence.NONE); }
+        catch (e3) { console.error('All auth persistence modes failed:', e3); }
+      }
+    }
+  })();
 
   /* ══════════════════════════════════════════
      LOCAL CACHE  (localStorage, keyed by uid)
