@@ -2,7 +2,7 @@
   "name": "ucjc-convocation-functions",
   "description": "Cloud Functions for UCJC Holy Convocation — schedules OneSignal push reminders for bookmarked events",
   "engines": {
-    "node": "18"
+    "node": "24"
   },
   "main": "index.js",
   "dependencies": {
