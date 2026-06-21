@@ -4530,11 +4530,26 @@ window.handleRegister = async function (e) {
     if (!bookmarks[selectedEventId]) await quickBookmark(selectedEventId);
     try {
       await db.collection('users').doc(currentUser.uid).collection('bookmarks').doc(selectedEventId).update({ reminderMinutes:mins, reminderEnabled:enabled });
-      if (enabled) { scheduleReminder(allEvents.find(e=>e.id===selectedEventId), mins); toast(`Reminder set: ${reminderLabel(mins)} ✓`, 'success'); }
+      if (enabled) { scheduleReminder(allEvents.find(e=>e.id===selectedEventId), mins); toast(`Reminder set: ${reminderLabel(mins)} ✓ (push notification scheduled)`, 'success'); }
       else toast('Reminder disabled', 'info');
     } catch (e) { toast('Could not save reminder.', 'error'); }
   };
 
+  /* LOCAL foreground reminder — fires only while this app/tab is open and
+     running, via setTimeout. This is a fast, zero-latency fallback for
+     when the app happens to already be open at reminder time.
+     ────────────────────────────────────────────
+     RELIABLE delivery when the app is closed/backgrounded (which matters
+     most for the Median-wrapped native app, where background JS timers
+     are suspended/killed by the OS) is handled SEPARATELY and
+     automatically by a Cloud Function (functions/index.js) that triggers
+     on this same bookmark write and schedules a real OneSignal push via
+     send_after — delivered through APNs/FCM regardless of whether the
+     app is open, backgrounded, or fully closed. See functions/index.js
+     for that implementation; no further client-side wiring is required
+     here since the bookmark write below already contains everything
+     that function needs (eventId, title, start, location, reminderMinutes,
+     reminderEnabled). */
   function scheduleReminder(ev, mins) {
     if (!ev) return;
     const ms = ev.start.getTime() - mins * 60000 - Date.now();
