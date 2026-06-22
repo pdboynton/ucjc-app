@@ -3743,6 +3743,15 @@ window.handleRegister = async function (e) {
         // Start notification bridge (OneSignal or Median) right away
         initNotifications();
         linkNotificationIdentity(currentUser.uid);
+        // Start chat listeners (global, DMs, dynamic groups) immediately —
+        // NOT lazily on first visit to the Chat screen. Unread badges
+        // (hamburger button, drawer, home screen) need these listeners
+        // live from the start of the session, otherwise a new message
+        // arriving while the user is on Home/Schedule/etc. has nothing
+        // watching for it and the badge can never appear. initChat() is
+        // idempotent (guarded by chatInitialized), so this is safe even
+        // though showScreen('chat') also calls it later if visited.
+        initChat();
         // Background: fetch profile, then update avatar + subscribe data
         loadUserProfile().then(() => {
           updateAvatarUI();
@@ -5792,11 +5801,12 @@ window.handleRegister = async function (e) {
   /* ── DM Conversation List ─────────────────── */
   function subscribeDMList() {
     if (unsub.dmList) return;
-    $('dm-loading').classList.remove('hidden');
+    const loadingEl = $('dm-loading');
+    if (loadingEl) loadingEl.classList.remove('hidden');
     unsub.dmList = db.collection('chat').doc('dmMeta').collection('threads')
       .where('participants', 'array-contains', currentUser.uid)
       .onSnapshot(snap => {
-        $('dm-loading').classList.add('hidden');
+        if (loadingEl) loadingEl.classList.add('hidden');
         dmConversations = snap.docs
           .map(d => ({ id: d.id, ...d.data() }))
           .sort((a, b) => {
@@ -5807,7 +5817,7 @@ window.handleRegister = async function (e) {
         renderDMList();
         updateAllUnreadBadges();
       }, err => {
-        $('dm-loading').classList.add('hidden');
+        if (loadingEl) loadingEl.classList.add('hidden');
         console.warn('DM list error:', err);
       });
   }
