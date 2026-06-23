@@ -1,7 +1,7 @@
 {
-  "name": "United Church of Jesus Christ",
+  "name": "United Church of Jesus Christ (Apostolic)",
   "short_name": "UCJC Apostolic",
-  "description": "United Church of Jesus Christ (Apostolic) App",
+  "description": "The official United Church of Jesus Christ (Apostolic) App",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A1628",
