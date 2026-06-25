@@ -1315,6 +1315,55 @@
     .dept-tab.active { color: var(--gold); border-bottom-color: var(--gold); background: rgba(201,168,76,0.06); }
     .dept-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
+    /* ══════════════════════════════════════════════
+       RSVP — 4th of July Cookout
+    ══════════════════════════════════════════════ */
+    .rsvp-card {
+      margin: 0 16px 4px; padding: 16px 18px;
+      background: linear-gradient(135deg, rgba(180,30,30,0.10), rgba(30,60,180,0.08));
+      border: 1px solid rgba(180,30,30,0.25);
+      border-radius: var(--radius);
+      display: flex; align-items: center; gap: 14px; cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .rsvp-card:hover  { border-color: rgba(180,30,30,0.45); transform: translateY(-1px); }
+    .rsvp-card:active { transform: scale(0.98); }
+    .rsvp-card-icon   { font-size: 2rem; flex-shrink: 0; line-height: 1; }
+    .rsvp-card-body   { flex: 1; min-width: 0; }
+    .rsvp-card-title  { font-family: var(--font-display); font-size: 0.95rem; color: var(--text-primary); margin-bottom: 2px; }
+    .rsvp-card-sub    { font-size: 0.76rem; color: var(--text-muted); }
+    .rsvp-card-tally  { font-size: 0.7rem; font-weight: 700; color: #c0392b; margin-top: 4px; }
+    .rsvp-card-btn    {
+      flex-shrink: 0; padding: 7px 14px; border-radius: 20px;
+      background: #c0392b; color: #fff; font-size: 0.76rem; font-weight: 700;
+      border: none; cursor: pointer; white-space: nowrap;
+      touch-action: manipulation;
+    }
+    .rsvp-card-btn:hover { background: #a93226; }
+
+    /* RSVP Modal */
+    .rsvp-header-banner {
+      background: linear-gradient(135deg,#b22222,#1a237e);
+      padding: 20px 20px 16px; border-radius: var(--radius) var(--radius) 0 0;
+      text-align: center; color: #fff; position: relative;
+    }
+    .rsvp-header-emoji { font-size: 2.4rem; display: block; margin-bottom: 6px; }
+    .rsvp-header-title { font-family: var(--font-display); font-size: 1.25rem; }
+    .rsvp-header-date  { font-size: 0.82rem; opacity: 0.85; margin-top: 4px; }
+    .rsvp-tally-banner {
+      background: rgba(192,57,43,0.07); border: 1px solid rgba(192,57,43,0.2);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    }
+    .rsvp-tally-number { font-size: 1.6rem; font-weight: 900; color: #c0392b; line-height: 1; }
+    .rsvp-tally-label  { font-size: 0.78rem; color: var(--text-muted); }
+    .rsvp-already      {
+      background: rgba(46,125,50,0.08); border: 1px solid rgba(46,125,50,0.25);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      font-size: 0.82rem; color: #2e7d32; margin-bottom: 12px;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
@@ -1376,6 +1425,16 @@ service cloud.firestore {
           exists(/databases/$(database)/documents/chatGroups/$(groupId)/members/$(request.auth.uid));
         allow update, delete: if false;
       }
+    }
+
+    // RSVP — 4th of July Cookout
+    // Any signed-in user can read all RSVPs (needed for the live tally).
+    // Each user can only write their own RSVP document.
+    match /events/{eventId}/rsvps/{userId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null
+                           &amp;&amp; request.auth.uid == userId;
+      allow delete: if false;
     }
   }
 }</pre>
@@ -1591,6 +1650,17 @@ service cloud.firestore {
           Loading…
         </div>
       </div>
+
+      <!-- 4th of July RSVP quick-card -->
+      <div class="rsvp-card" onclick="openRSVPModal()">
+        <span class="rsvp-card-icon">🎆</span>
+        <div class="rsvp-card-body">
+          <div class="rsvp-card-title">4th of July Cookout!</div>
+          <div class="rsvp-card-sub">Friday July 4 · RSVP to let us know you're coming</div>
+          <div class="rsvp-card-tally" id="home-rsvp-tally">Loading…</div>
+        </div>
+        <button class="rsvp-card-btn" onclick="event.stopPropagation();openRSVPModal()">RSVP</button>
+      </div>
     </div>
 
     <!-- SCHEDULE -->
@@ -1613,6 +1683,19 @@ service cloud.firestore {
 
     <!-- ANNOUNCEMENTS -->
     <div class="screen" id="screen-announcements">
+
+      <!-- ── 4th of July RSVP Card ── -->
+      <div style="padding:14px 0 6px">
+        <div class="rsvp-card" onclick="openRSVPModal()">
+          <span class="rsvp-card-icon">🎆</span>
+          <div class="rsvp-card-body">
+            <div class="rsvp-card-title">4th of July Cookout!</div>
+            <div class="rsvp-card-sub">Friday July 4 · RSVP to let us know you're coming</div>
+            <div class="rsvp-card-tally" id="annc-rsvp-tally">Loading…</div>
+          </div>
+          <button class="rsvp-card-btn" onclick="event.stopPropagation();openRSVPModal()">RSVP</button>
+        </div>
+      </div>
 
       <!-- ── RECENT NOTIFICATIONS (last 24 h from Firestore) ── -->
       <div class="section-header" style="margin-top:14px">
@@ -2607,6 +2690,72 @@ service cloud.firestore {
       <button class="map-zoom-btn map-reset-btn" onclick="mapReset()" title="Reset view">FIT</button>
     </div>
     <div class="map-hint" id="map-hint">Pinch or scroll to zoom · Drag to pan</div>
+  </div>
+</div>
+
+<!-- RSVP MODAL — 4th of July Cookout -->
+<div id="rsvp-modal" class="modal-overlay hidden" onclick="closeModalOnOverlay(event,'rsvp-modal')">
+  <div class="modal-card" style="max-width:400px;padding:0;overflow:hidden">
+
+    <div class="rsvp-header-banner">
+      <button class="modal-close" onclick="closeRSVPModal()" style="position:absolute;top:10px;right:12px;background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+      <span class="rsvp-header-emoji">🎆🎇🎉</span>
+      <div class="rsvp-header-title">4th of July Cookout!</div>
+      <div class="rsvp-header-date">Friday, July 4, 2025</div>
+    </div>
+
+    <div style="padding:20px">
+
+      <!-- Running tally -->
+      <div class="rsvp-tally-banner">
+        <div class="rsvp-tally-number" id="rsvp-modal-total">…</div>
+        <div>
+          <div class="rsvp-tally-label" style="font-weight:700;color:var(--text-primary)">people attending</div>
+          <div class="rsvp-tally-label" id="rsvp-modal-rsvp-count"></div>
+        </div>
+      </div>
+
+      <!-- Already RSVPed — attending -->
+      <div id="rsvp-already-attending" class="rsvp-already hidden">
+        ✓ You're already RSVPed as attending! Update your count below if plans change.
+      </div>
+      <!-- Already RSVPed — not attending -->
+      <div id="rsvp-already-not-attending" class="rsvp-already hidden"
+           style="background:rgba(139,38,53,0.08);border-color:rgba(139,38,53,0.25);color:var(--crimson)">
+        ✗ You've indicated you're not attending. Update below if your plans change.
+      </div>
+
+      <!-- Form -->
+      <div id="rsvp-form">
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label" style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:5px">Your Name</label>
+          <input type="text" id="rsvp-name" class="form-input" placeholder="Your name" style="width:100%"/>
+        </div>
+        <div class="form-group" id="rsvp-guest-count-group" style="margin-bottom:18px">
+          <label class="form-label" style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:5px">How many people will be attending? <span style="font-size:0.7rem">(including yourself)</span></label>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button class="map-zoom-btn" style="font-size:1.2rem;width:36px;height:36px" onclick="adjustGuests(-1)">−</button>
+            <input type="number" id="rsvp-guest-count" class="form-input" min="1" max="20" value="1"
+              style="width:70px;text-align:center;font-size:1.1rem;font-weight:700"/>
+            <button class="map-zoom-btn" style="font-size:1.2rem;width:36px;height:36px" onclick="adjustGuests(1)">+</button>
+          </div>
+        </div>
+        <div id="rsvp-error" class="hidden" style="font-size:0.82rem;color:var(--crimson);margin-bottom:10px"></div>
+        <div style="display:flex;gap:10px;flex-direction:column">
+          <button class="btn btn-primary" id="rsvp-submit-btn" onclick="submitRSVP()">
+            🎆 Submit RSVP
+          </button>
+          <button class="btn btn-outline" id="rsvp-not-attending-btn"
+                  style="border-color:var(--crimson);color:var(--crimson)"
+                  onclick="submitNotAttending()">
+            ✕ Not Attending
+          </button>
+          <button class="btn btn-ghost" style="font-size:0.8rem;color:var(--text-dim)"
+                  onclick="closeRSVPModal()">Cancel</button>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -3752,6 +3901,7 @@ window.handleRegister = async function (e) {
         // idempotent (guarded by chatInitialized), so this is safe even
         // though showScreen('chat') also calls it later if visited.
         initChat();
+        initRSVP(); // Start live RSVP tally listener
         // Background: fetch profile, then update avatar + subscribe data
         loadUserProfile().then(() => {
           updateAvatarUI();
@@ -6826,6 +6976,200 @@ window.handleRegister = async function (e) {
   /* ══════════════════════════════════════════
      HOME DASHBOARD
   ══════════════════════════════════════════ */
+  /* ══════════════════════════════════════════
+     RSVP — 4th of July Cookout
+     ─────────────────────────────────────────
+     Each user's RSVP is stored as one document:
+       events/july4cookout/rsvps/{uid}
+         name:        string   (user's display name)
+         guestCount:  number   (total people incl. themselves)
+         uid:         string
+         submittedAt: timestamp
+
+     Any signed-in user may read/write their own
+     RSVP. Anyone signed in can read the full
+     collection for the tally. See the Firestore
+     rules banner for the exact rules to publish.
+
+     A real-time listener keeps the tally live on
+     both the home card and the announcements card
+     so the count updates instantly as people RSVP
+     without any manual refresh.
+  ══════════════════════════════════════════ */
+  const RSVP_DOC   = 'july4cookout';   // document id under /events/
+  const RSVP_PATH  = () => db.collection('events').doc(RSVP_DOC).collection('rsvps');
+  let   rsvpUnsub  = null;             // live-tally listener
+  let   myRSVP     = null;             // current user's own RSVP doc data
+
+  /* Start a real-time listener on the rsvp collection.
+     Called once at sign-in from initRSVP(). */
+  function initRSVP() {
+    if (rsvpUnsub) return;
+    rsvpUnsub = RSVP_PATH().onSnapshot(snap => {
+      let totalGuests = 0, totalAttending = 0, totalNotAttending = 0;
+      myRSVP = null;
+      snap.forEach(d => {
+        const data = d.data();
+        if (data.attending === false) {
+          totalNotAttending++;
+        } else {
+          // attending:true or legacy docs without the field
+          totalGuests += (data.guestCount || 0);
+          totalAttending++;
+        }
+        if (d.id === currentUser?.uid) myRSVP = data;
+      });
+      renderRSVPTally(totalGuests, totalAttending, totalNotAttending);
+    }, err => console.warn('RSVP listener error:', err));
+  }
+
+  /* Update every tally display in the app */
+  function renderRSVPTally(totalGuests, totalAttending, totalNotAttending) {
+    const noRSVPs = totalAttending === 0 && totalNotAttending === 0;
+    let guestStr;
+    if (noRSVPs) {
+      guestStr = 'Be the first to RSVP!';
+    } else if (totalAttending === 0) {
+      guestStr = `${totalNotAttending} not attending`;
+    } else {
+      guestStr = `🎉 ${totalGuests} guest${totalGuests !== 1 ? 's' : ''} attending`;
+      if (totalNotAttending > 0) guestStr += ` · ${totalNotAttending} not attending`;
+    }
+
+    [$('home-rsvp-tally'), $('annc-rsvp-tally')].forEach(el => {
+      if (el) el.textContent = guestStr;
+    });
+
+    const mt = $('rsvp-modal-total');
+    const mc = $('rsvp-modal-rsvp-count');
+    if (mt) mt.textContent = totalGuests;
+    if (mc) {
+      mc.textContent = totalNotAttending > 0
+        ? `across ${totalAttending} RSVP${totalAttending !== 1 ? 's' : ''} · ${totalNotAttending} not attending`
+        : `across ${totalAttending} RSVP${totalAttending !== 1 ? 's' : ''}`;
+    }
+  }
+
+  /* Open the RSVP modal, pre-populate with user data */
+  window.openRSVPModal = function () {
+    const modal = $('rsvp-modal'); if (!modal) return;
+
+    // Pre-fill name from profile
+    const nameInput = $('rsvp-name');
+    if (nameInput) nameInput.value = userProfile?.displayName || currentUser?.displayName || '';
+
+    // Pre-fill guest count: only relevant when previously attending
+    const countInput = $('rsvp-guest-count');
+    const guestGroup = $('rsvp-guest-count-group');
+    const isNotAttending = myRSVP?.attending === false;
+    if (countInput) countInput.value = (!isNotAttending && myRSVP?.guestCount) ? myRSVP.guestCount : 1;
+    // Show guest count section only when user is/was attending
+    if (guestGroup) guestGroup.classList.toggle('hidden', isNotAttending);
+
+    // Already-RSVPed banners — show the correct one based on current status
+    const attendingBanner    = $('rsvp-already-attending');
+    const notAttendingBanner = $('rsvp-already-not-attending');
+    if (attendingBanner)    attendingBanner.classList.toggle('hidden',    !myRSVP || isNotAttending);
+    if (notAttendingBanner) notAttendingBanner.classList.toggle('hidden', !myRSVP || !isNotAttending);
+
+    // Button labels
+    const submitBtn     = $('rsvp-submit-btn');
+    const notAttendBtn  = $('rsvp-not-attending-btn');
+    if (submitBtn)    submitBtn.textContent   = myRSVP && !isNotAttending ? '✏️ Update RSVP' : '🎆 Submit RSVP';
+    if (notAttendBtn) notAttendBtn.textContent = isNotAttending ? '✏️ Still Not Attending' : '✕ Not Attending';
+
+    // Clear error
+    const errEl = $('rsvp-error'); if (errEl) errEl.classList.add('hidden');
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => nameInput?.focus(), 100);
+  };
+
+  window.closeRSVPModal = function () {
+    const modal = $('rsvp-modal'); if (!modal) return;
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  };
+
+  /* ± buttons for guest count */
+  window.adjustGuests = function (delta) {
+    const inp = $('rsvp-guest-count'); if (!inp) return;
+    const val = Math.min(20, Math.max(1, parseInt(inp.value || 1) + delta));
+    inp.value = val;
+  };
+
+  /* Write attending RSVP to Firestore */
+  window.submitRSVP = async function () {
+    const nameInput  = $('rsvp-name');
+    const countInput = $('rsvp-guest-count');
+    const btn        = $('rsvp-submit-btn');
+    const errEl      = $('rsvp-error');
+    if (!currentUser) return;
+
+    const name       = (nameInput?.value || '').trim();
+    const guestCount = Math.min(20, Math.max(1, parseInt(countInput?.value || 1)));
+
+    if (!name) {
+      if (errEl) { errEl.textContent = 'Please enter your name.'; errEl.classList.remove('hidden'); }
+      nameInput?.focus(); return;
+    }
+    if (errEl) errEl.classList.add('hidden');
+    if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+
+    try {
+      await RSVP_PATH().doc(currentUser.uid).set({
+        uid:         currentUser.uid,
+        name,
+        guestCount,
+        attending:   true,
+        submittedAt: FSV.serverTimestamp()
+      }, { merge: true });
+
+      toast(`🎆 RSVP saved! See you there${guestCount > 1 ? ' with your crew' : ''}!`, 'success');
+      closeRSVPModal();
+    } catch (e) {
+      console.error('submitRSVP error:', e);
+      if (errEl) { errEl.textContent = 'Could not save your RSVP. Check your connection and try again.'; errEl.classList.remove('hidden'); }
+    } finally {
+      if (btn) { btn.textContent = myRSVP && myRSVP.attending !== false ? '✏️ Update RSVP' : '🎆 Submit RSVP'; btn.disabled = false; }
+    }
+  };
+
+  /* Record that the user is not attending */
+  window.submitNotAttending = async function () {
+    const nameInput = $('rsvp-name');
+    const btn       = $('rsvp-not-attending-btn');
+    const errEl     = $('rsvp-error');
+    if (!currentUser) return;
+
+    const name = (nameInput?.value || '').trim();
+    if (!name) {
+      if (errEl) { errEl.textContent = 'Please enter your name.'; errEl.classList.remove('hidden'); }
+      nameInput?.focus(); return;
+    }
+    if (errEl) errEl.classList.add('hidden');
+    if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+
+    try {
+      await RSVP_PATH().doc(currentUser.uid).set({
+        uid:         currentUser.uid,
+        name,
+        guestCount:  0,
+        attending:   false,
+        submittedAt: FSV.serverTimestamp()
+      }, { merge: true });
+
+      toast('Thanks for letting us know — we\'ll miss you!', 'info');
+      closeRSVPModal();
+    } catch (e) {
+      console.error('submitNotAttending error:', e);
+      if (errEl) { errEl.textContent = 'Could not save your response. Check your connection and try again.'; errEl.classList.remove('hidden'); }
+    } finally {
+      if (btn) { btn.textContent = '✕ Not Attending'; btn.disabled = false; }
+    }
+  };
+
   function loadHomeDashboard() {
     // Greeting with time of day
     const hour = new Date().getHours();
