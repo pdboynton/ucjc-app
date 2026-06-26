@@ -274,6 +274,17 @@
     .auth-tab.active { background: var(--gold); color: #fff; }
     .auth-form { display: none; }
     .auth-form.active { display: block; animation: fade-in 0.2s ease; }
+    .remember-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 16px; font-size: 0.82rem; color: var(--text-muted);
+      cursor: pointer; user-select: none; -webkit-user-select: none;
+    }
+    .remember-row input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--gold); flex-shrink: 0; }
+    /* Shown during auto-sign-in attempt — keeps loader context, adds friendly text */
+    #auth-autosign-msg {
+      text-align: center; padding: 24px 0 8px;
+      font-size: 0.88rem; color: var(--text-muted); animation: fade-in 0.3s ease;
+    }
 
     /* Inline auth error box */
     .auth-error-box {
@@ -1488,6 +1499,11 @@ service cloud.firestore {
       <div class="field"><label>Password</label>
         <input type="password" id="login-password" placeholder="Your password" required autocomplete="current-password"
           oninput="clearLoginError()"/></div>
+      <label class="remember-row">
+        <input type="checkbox" id="login-remember-me" checked/>
+        Keep me signed in
+      </label>
+      <div id="login-welcome-back" class="hidden" style="font-size:0.82rem;color:var(--gold);margin-bottom:10px;text-align:center"></div>
       <button type="submit" class="btn btn-primary" style="width:100%;margin-bottom:12px" id="login-btn">Sign In</button>
       <button type="button" class="btn btn-ghost" style="width:100%;font-size:0.82rem" onclick="handleForgotPassword()">Forgot Password?</button>
     </form>
@@ -1567,7 +1583,7 @@ service cloud.firestore {
           <div class="countdown-unit"><span id="cd-seconds">0</span><small>Seconds</small></div>
         </div>
         <button class="drawer-nav-item" onclick="window.open('https://www.eventbrite.com/o/12370207526?aff=ebdsshandroid', '_blank')" style="text-align: center; justify-content: center; align-items: center; margin-top: 14px; width: 100%; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--gold), #8a5c18); color: #fff; font-weight: 700; letter-spacing: 0.04em;">
-          Click Here to Register
+          Click Here to Subscribe
         </button>
       </div>
 
@@ -1776,7 +1792,7 @@ service cloud.firestore {
         </div>
       </div>
       <div class="section-header">
-        <span class="section-title">Attendees</span>
+        <span class="section-title">Subscribers</span>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="muted-text small-text" id="attendee-count"></span>
           <span class="muted-text small-text" id="directory-sync-label" style="font-size:0.68rem;opacity:0.7"></span>
@@ -1790,14 +1806,14 @@ service cloud.firestore {
       <!-- Loading state -->
       <div id="directory-loading" class="empty-state hidden">
         <div class="loader-ring" style="margin:0 auto 12px"></div>
-        <p class="muted-text">Loading attendees…</p>
+        <p class="muted-text">Loading subscribers…</p>
       </div>
       <!-- Error / retry state -->
       <div id="directory-error" class="empty-state hidden">
         <div class="empty-icon" style="color:var(--crimson);opacity:0.6">
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </div>
-        <div class="empty-title">Could not load attendees</div>
+        <div class="empty-title">Could not load subscribers</div>
         <p class="muted-text small-text" id="directory-error-msg" style="margin-bottom:16px">Check your connection and try again.</p>
         <button class="btn btn-outline btn-sm" onclick="retryDirectory()">Retry</button>
       </div>
@@ -1822,12 +1838,21 @@ service cloud.firestore {
             <span class="tab-unread-badge hidden" id="global-tab-badge"></span>
           </button>
           ══════════════════════════════════════════════════════════ -->
+          <!-- ══════════════════════════════════════════════════════════
+               DIRECT MESSAGES TAB — DISABLED
+               Commented out per request. The underlying infrastructure
+               (subscribeDMList, startDM, renderDMList, DM Firestore
+               listeners, unread tracking) is fully intact in the JS
+               so this can be re-enabled at any time by simply
+               uncommenting this block and the matching panel below,
+               and reverting currentChatPanel default to 'dms'.
           <button class="chat-tab-btn active" data-panel="dms" onclick="switchChatTab('dms')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             Direct Messages
             <span class="tab-unread-badge hidden" id="dm-tab-badge"></span>
           </button>
-          <button class="chat-tab-btn" data-panel="prayer" onclick="switchChatTab('prayer')">
+          ══════════════════════════════════════════════════════════ -->
+          <button class="chat-tab-btn active" data-panel="prayer" onclick="switchChatTab('prayer')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M6 2 C5 2 4 3 4 4 L3 10 L2 16 C2 18 3.5 19.5 5 20 L7 21 L9 22 C10 22.5 11 22.5 12 22.5 C13 22.5 14 22.5 15 22 L17 21 L19 20 C20.5 19.5 22 18 22 16 L21 10 L20 4 C20 3 19 2 18 2 C17 2 16 3 16 4 L16 11 C15.3 10.4 14 10 12 10 C10 10 8.7 10.4 8 11 L8 4 C8 3 7 2 6 2 Z"/>
               <line x1="12" y1="10" x2="12" y2="22.5"/>
@@ -1864,6 +1889,8 @@ service cloud.firestore {
         </div>
         ══════════════════════════════════════════════════════════ -->
 
+        <!-- ══════════════════════════════════════════════════════════
+             DIRECT MESSAGES PANEL — DISABLED (see matching tab comment above)
         <div class="dm-panel active" id="panel-dms">
           <div class="dm-panel-header">
             <span class="section-title" style="font-size:0.88rem">Conversations</span>
@@ -1874,7 +1901,7 @@ service cloud.firestore {
           <div id="no-dms" class="empty-state hidden">
             <div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
             <div class="empty-title">No conversations yet</div>
-            <p class="muted-text small-text">Tap "+ New Message" or start a chat<br>from the Attendees directory</p>
+            <p class="muted-text small-text">Tap "+ New Message" or start a chat<br>from the Subscribers directory</p>
           </div>
           <div id="dm-loading" class="empty-state hidden">
             <div class="loader-ring" style="margin:0 auto 12px"></div>
@@ -1882,10 +1909,11 @@ service cloud.firestore {
           </div>
           <div id="dm-conv-list" class="dm-conv-list"></div>
         </div>
+        ══════════════════════════════════════════════════════════ -->
 
         <!-- PRAYER REQUESTS PANEL — two inner states:
              submit-view (all users) and chat-view (intercessors only) -->
-        <div class="chat-panel" id="panel-prayer">
+        <div class="chat-panel active" id="panel-prayer">
 
           <!-- ── Submit view (non-intercessor users) ── -->
           <div id="prayer-submit-view" class="contact-admin-wrap">
@@ -2263,7 +2291,7 @@ service cloud.firestore {
         <div class="profile-big-avatar" id="profile-avatar">?</div>
         <div class="profile-name"   id="profile-name">Loading…</div>
         <div class="profile-church" id="profile-church"></div>
-        <div style="margin-top:12px"><span class="badge badge-gold">Attendee</span></div>
+        <div style="margin-top:12px"><span class="badge badge-gold">Subscriber</span></div>
       </div>
 
       <div class="settings-section">
@@ -2640,7 +2668,7 @@ service cloud.firestore {
       <div class="muted-text" style="font-size:0.85rem;line-height:1.75">
         Built for the United Church of Jesus Christ to provide a seamless, spirit-filled conference experience.
         Features include a live schedule from Google Calendar, personalized bookmarks, push reminders,
-        attendee directory, group and private chat, session notes, and session feedback.
+        subscriber directory, group and private chat, session notes, and session feedback.
       </div>
     </div>
   </div>
@@ -3084,7 +3112,7 @@ service cloud.firestore {
   let currentDMUid       = null;
   let currentDMName      = null;
   let chatInitialized    = false;
-  let currentChatPanel   = 'dms';      // which chat tab is visible (was 'global' — Group Chat tab disabled)
+  let currentChatPanel   = 'prayer';   // default tab (DMs disabled — see chat tabs HTML)
   let dmConversations    = [];         // metadata for each DM thread
   let globalUnread       = 0;          // unread group chat messages
   let msgCounts          = { global: -1 }; // -1 = not yet initialised
@@ -3767,15 +3795,127 @@ service cloud.firestore {
     $('login-error-box').classList.add('hidden');
   };
 
+  /* ══════════════════════════════════════════
+     CREDENTIAL MANAGEMENT — "Remember Me"
+     ─────────────────────────────────────────
+     Two complementary layers:
+
+     1. localStorage: stores the user's email (not sensitive) so the
+        sign-in form can be pre-filled on every visit.
+
+     2. Credential Management API (navigator.credentials): stores the
+        full credential (email + password) in the browser's native
+        secure password store — the same place the browser's own
+        password manager uses. On Android Chrome, this integrates with
+        fingerprint/biometric unlock. On iOS (both Safari and WKWebView)
+        PasswordCredential is not supported, so this layer gracefully
+        no-ops and the login form pre-fill + browser autocomplete acts
+        as the fallback.
+
+     On cold start with no Firebase session (the "signed out" state),
+     the app tries navigator.credentials.get() BEFORE showing the
+     sign-in form. If credentials are returned, it silently re-authenticates
+     via Firebase — the user never sees the sign-in screen.
+  ══════════════════════════════════════════ */
+  const CRED_EMAIL_KEY   = 'ucjc-saved-email';
+  const CRED_REMEMBER_KEY = 'ucjc-remember-me';
+
+  /* After successful sign-in, persist credentials if Remember Me is on */
+  function saveCredentials(email, password, remember) {
+    if (!remember) {
+      localStorage.removeItem(CRED_REMEMBER_KEY);
+      // Keep the email so the form still pre-fills even when not remembering
+      return;
+    }
+    localStorage.setItem(CRED_REMEMBER_KEY, 'true');
+    localStorage.setItem(CRED_EMAIL_KEY, email);
+
+    // Credential Management API — Chrome/Android; no-ops safely on iOS
+    if (navigator.credentials?.store && typeof PasswordCredential !== 'undefined') {
+      try {
+        const cred = new PasswordCredential({ id: email, password });
+        navigator.credentials.store(cred).catch(() => {});
+      } catch (_) {}
+    }
+  }
+
+  /* Prevent silent auto-sign-in after an explicit user-initiated sign-out.
+     Keeps the credential in the browser's password manager for manual use,
+     but stops it from being returned automatically next time. */
+  function revokeAutoSignIn() {
+    localStorage.removeItem(CRED_REMEMBER_KEY);
+    if (navigator.credentials?.preventSilentAccess) {
+      navigator.credentials.preventSilentAccess().catch(() => {});
+    }
+  }
+
+  /* Pre-fill the email field (and tick Remember Me) from localStorage.
+     Called when the sign-in form is about to be shown. */
+  function preFillLoginForm() {
+    const savedEmail = localStorage.getItem(CRED_EMAIL_KEY);
+    const remember   = localStorage.getItem(CRED_REMEMBER_KEY) === 'true';
+
+    const emailEl    = $('login-email');
+    const rememberEl = $('login-remember-me');
+    const welcomeEl  = $('login-welcome-back');
+
+    if (emailEl && savedEmail && !emailEl.value) {
+      emailEl.value = savedEmail;
+    }
+    if (rememberEl) rememberEl.checked = remember;
+    if (welcomeEl && savedEmail) {
+      welcomeEl.textContent = '👋 Welcome back! Please enter your password to continue.';
+      welcomeEl.classList.remove('hidden');
+    }
+  }
+
+  /* Attempt silent auto-sign-in using stored Credential Management credentials.
+     Returns true if a sign-in was started (onAuthStateChanged will handle the
+     result), false if unavailable or no stored credential found. */
+  async function tryAutoSignIn() {
+    if (localStorage.getItem(CRED_REMEMBER_KEY) !== 'true') return false;
+    if (!navigator.credentials?.get) return false;
+    if (typeof PasswordCredential === 'undefined') return false; // Safari
+
+    try {
+      const cred = await navigator.credentials.get({
+        password: true,
+        mediation: 'optional' // returns stored cred silently if unambiguous;
+                               // shows a chooser only if multiple are saved
+      });
+      if (cred?.password && cred?.id) {
+        await auth.signInWithEmailAndPassword(cred.id, cred.password);
+        return true; // onAuthStateChanged (user branch) will take it from here
+      }
+    } catch (err) {
+      // Auto-sign-in failed (bad stored password, network error, etc.)
+      // Fall through — the sign-in form will be shown with email pre-filled
+      console.warn('Auto-sign-in attempt failed:', err.code || err.message);
+    }
+    return false;
+  }
+
+  /* Show the sign-in screen (called when auto-sign-in is unavailable/failed) */
+  function showAuthScreen() {
+    $('app').classList.add('hidden');
+    $('auth-screen').classList.remove('hidden');
+    preFillLoginForm();
+    hideLoader();
+  }
+
   window.handleLogin = async function (e) {
     e.preventDefault();
     clearLoginError();
-    const email = $('login-email').value.trim();
-    const pw    = $('login-password').value;
-    const btn   = $('login-btn');
+    const email    = $('login-email').value.trim();
+    const pw       = $('login-password').value;
+    const remember = $('login-remember-me')?.checked ?? true;
+    const btn      = $('login-btn');
     btn.textContent = 'Signing in…'; btn.disabled = true;
     try {
       await auth.signInWithEmailAndPassword(email, pw);
+      // Save credentials AFTER successful sign-in so a bad password
+      // never overwrites a previously-good stored credential.
+      saveCredentials(email, pw, remember);
     } catch (err) {
       btn.textContent = 'Sign In'; btn.disabled = false;
       const code = err.code || '';
@@ -3862,6 +4002,10 @@ window.handleRegister = async function (e) {
 
   window.handleSignOut = async function () {
     if (!confirm('Are you sure you want to sign out?')) return;
+    // Revoke silent auto-sign-in so the user is not immediately signed
+    // back in automatically — keeps the credential in the browser's own
+    // password manager for manual use but stops the auto-return.
+    revokeAutoSignIn();
     cleanupListeners();
     await auth.signOut();
   };
@@ -3920,9 +4064,20 @@ window.handleRegister = async function (e) {
         cleanupListeners();
         directoryLoaded = false;
         directoryLoading = false;
-        $('app').classList.add('hidden');
-        $('auth-screen').classList.remove('hidden');
-        hideLoader();
+
+        // Attempt silent auto-sign-in before showing the form.
+        // If Remember Me was set and a Credential Management credential
+        // exists, this re-authenticates transparently and onAuthStateChanged
+        // fires again with the user — the loader stays up, the user never
+        // sees the sign-in screen.
+        // If unavailable (iOS/Safari, no stored cred, or cred expired),
+        // showAuthScreen() shows the form with email pre-filled.
+        const didAutoSignIn = await tryAutoSignIn().catch(() => false);
+        if (!didAutoSignIn) {
+          showAuthScreen();
+        }
+        // If didAutoSignIn === true, onAuthStateChanged will fire again with
+        // the user; hideLoader() is called from the user=true branch above.
       }
     } catch (err) {
       console.error('Auth state error:', err);
@@ -4883,7 +5038,7 @@ window.handleRegister = async function (e) {
 
     if (cached && cached.data && cached.data.length) {
       allAttendees = cached.data;
-      $('attendee-count').textContent = allAttendees.length + ' registered';
+      $('attendee-count').textContent = allAttendees.length + ' subscribers';
       renderDirectory(allAttendees);
       updateSyncLabel(cached.ts);
       $('directory-loading').classList.add('hidden');
@@ -4915,7 +5070,7 @@ window.handleRegister = async function (e) {
   .filter(u => !u.hiddenFromDirectory);
       Cache.set('directory', allAttendees, currentUser.uid);
 
-      $('attendee-count').textContent = allAttendees.length + ' registered';
+      $('attendee-count').textContent = allAttendees.length + ' subscribers';
       renderDirectory(allAttendees);
       updateSyncLabel(Date.now());
       $('directory-error').classList.add('hidden');
@@ -4998,9 +5153,9 @@ window.handleRegister = async function (e) {
 
   function renderDirectory(list) {
     const ct = $('attendee-list');
-    if (!list.length) { ct.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="empty-title">No attendees yet</div></div>'; return; }
+    if (!list.length) { ct.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="empty-title">No subscribers yet</div></div>'; return; }
     ct.innerHTML = list.map(u => `
-      <div class="attendee-card" onclick="startDM('${u.id}','${escHtml(u.displayName||'Attendee')}')">
+      <div class="attendee-card">
         <div class="attendee-avatar">${initials(u.displayName)}</div>
         <div class="attendee-info">
           <div class="attendee-name">${escHtml(u.displayName||'—')}</div>
