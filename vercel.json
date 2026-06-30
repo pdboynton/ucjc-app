@@ -4,7 +4,6 @@
   "outputDirectory": ".",
   "functions": {
     "api/live.js": {
-      "runtime": "nodejs20.x",
       "maxDuration": 15
     }
   },
