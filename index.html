@@ -4289,6 +4289,12 @@ function initializeConvocationCountdown(allDayEvents) {
 
         const diff = start - now;
 
+        if (diff <= 0) {
+          card.style.display = "none";
+          if (window.convocationCountdownTimer) clearInterval(window.convocationCountdownTimer);
+          return;
+        }
+
         const d = Math.floor(diff / 86400000);
         const h = Math.floor((diff % 86400000) / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
@@ -4318,7 +4324,8 @@ function initializeConvocationCountdown(allDayEvents) {
         if (bannerMeta)  $('banner-meta').textContent  = bannerMeta;
         loadVenueMap(venueLocation || '', bannerTitle || '');
         buildDateTabs();
-        initializeConvocationCountdown(allDay);
+        const allDayEvents = (typeof allDay!=="undefined" && allDay) ? allDay : events.filter(e=>e.start && e.start.date);
+initializeConvocationCountdown(allDayEvents);
         // Refresh in background — don't show spinner for cached load
         _fetchCalendarBackground();
         return;
@@ -4379,7 +4386,8 @@ function initializeConvocationCountdown(allDayEvents) {
           events: freshEvents.map(e => ({ ...e, start: e.start.toISOString(), end: e.end.toISOString() }))
         }, currentUser?.uid);
         buildDateTabs();
-        initializeConvocationCountdown(allDay);
+        const allDayEvents = (typeof allDay!=="undefined" && allDay) ? allDay : events.filter(e=>e.start && e.start.date);
+initializeConvocationCountdown(allDayEvents);
       } else if (!allEvents.length) {
         loadDemoEvents();
       }
