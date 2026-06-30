@@ -881,6 +881,35 @@
     .tag-pill-clear:hover { color: var(--crimson); border-color: rgba(139,38,53,0.4); background: rgba(139,38,53,0.07); }
 
     /* ══════════════════════════════════════════════
+       LIVE STREAM BANNER
+    ══════════════════════════════════════════════ */
+    @keyframes live-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
+      50%       { opacity: 0.85; transform: scale(0.9); box-shadow: 0 0 0 5px rgba(220,38,38,0); }
+    }
+    .live-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+      background: #dc2626; animation: live-pulse 1.5s ease-in-out infinite;
+    }
+    .live-banner-card {
+      margin: 6px 16px 6px; border-radius: var(--radius);
+      background: linear-gradient(135deg,rgba(220,38,38,0.12),rgba(220,38,38,0.04));
+      border: 1px solid rgba(220,38,38,0.35);
+      display: flex; align-items: center; gap: 12px; padding: 13px 15px;
+      cursor: pointer; text-decoration: none; color: inherit;
+      transition: border-color 0.15s, background 0.15s;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .live-banner-card:hover { border-color: rgba(220,38,38,0.6); background: rgba(220,38,38,0.15); }
+    .live-banner-body       { flex: 1; min-width: 0; }
+    .live-banner-eyebrow    { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #dc2626; }
+    .live-banner-title      { font-size: 0.88rem; font-weight: 700; color: var(--text-primary); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .live-banner-cta        { font-size: 0.72rem; color: #dc2626; font-weight: 700; flex-shrink: 0; }
+    /* Drawer live button — red tint when live */
+    #drawer-live-btn        { color: #dc2626 !important; }
+    #drawer-live-btn .drawer-nav-icon { color: #dc2626; }
+
+    /* ══════════════════════════════════════════════
        MY SCHEDULE
     ══════════════════════════════════════════════ */
     .my-schedule-stats {
@@ -1583,7 +1612,7 @@ service cloud.firestore {
           <div class="countdown-unit"><span id="cd-seconds">0</span><small>Seconds</small></div>
         </div>
         <button class="drawer-nav-item" onclick="window.open('https://www.eventbrite.com/o/12370207526?aff=ebdsshandroid', '_blank')" style="text-align: center; justify-content: center; align-items: center; margin-top: 14px; width: 100%; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--gold), #8a5c18); color: #fff; font-weight: 700; letter-spacing: 0.04em;">
-          Click Here to Register 
+          Click Here to Register
         </button>
       </div>
 
@@ -1665,6 +1694,20 @@ service cloud.firestore {
           <div class="loader-ring" style="width:18px;height:18px;border-width:2px;flex-shrink:0"></div>
           Loading…
         </div>
+      </div>
+
+      <!-- 🔴 LIVE STREAM BANNER — hidden by default, shown by renderLiveStreamUI() -->
+      <div id="home-live-banner" class="hidden">
+        <a id="home-live-link" href="https://www.youtube.com/@ucjcapostolic/live"
+           target="_blank" rel="noopener noreferrer" class="live-banner-card"
+           onclick="event.stopPropagation()">
+          <span class="live-dot"></span>
+          <span class="live-banner-body">
+            <div class="live-banner-eyebrow">🔴 Live Now</div>
+            <div class="live-banner-title" id="home-live-title">UCJC is streaming live</div>
+          </span>
+          <span class="live-banner-cta">Watch →</span>
+        </a>
       </div>
 
       <!-- 4th of July RSVP quick-card -->
@@ -2470,6 +2513,11 @@ service cloud.firestore {
       <button class="drawer-nav-item" id="drawer-map" onclick="openMap();closeDrawer()">
         <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
         <span class="drawer-nav-label">Venue Map</span>
+      </button>
+      <!-- Live Stream button — hidden by default; shown only when channel is live -->
+      <button class="drawer-nav-item hidden" id="drawer-live-btn" onclick="openLiveStream();closeDrawer()">
+        <span class="drawer-nav-icon">🔴</span>
+        <span class="drawer-nav-label">Watch Live Stream</span>
       </button>
     </nav>
 
@@ -4006,6 +4054,7 @@ window.handleRegister = async function (e) {
     // back in automatically — keeps the credential in the browser's own
     // password manager for manual use but stops the auto-return.
     revokeAutoSignIn();
+    stopLiveCheck();
     cleanupListeners();
     await auth.signOut();
   };
@@ -4046,6 +4095,7 @@ window.handleRegister = async function (e) {
         // though showScreen('chat') also calls it later if visited.
         initChat();
         initRSVP(); // Start live RSVP tally listener
+        startLiveCheck(); // Start YouTube live stream polling
         // Background: fetch profile, then update avatar + subscribe data
         loadUserProfile().then(() => {
           updateAvatarUI();
@@ -7324,6 +7374,122 @@ window.handleRegister = async function (e) {
       if (btn) { btn.textContent = '✕ Not Attending'; btn.disabled = false; }
     }
   };
+
+  /* ══════════════════════════════════════════
+     YOUTUBE LIVE STREAM DETECTION
+     via Vercel Serverless Function /api/live
+     ─────────────────────────────────────────
+     The client calls our own /api/live endpoint
+     (no YouTube API key required, no quota).
+     The serverless function fetches the channel's
+     /live page, follows HTTP redirects, and returns
+     { live: true, url: "..." } or { live: false }.
+
+     Polling: every 60 seconds while the app is
+     in the foreground. Checks are paused when the
+     tab/app is backgrounded (document.hidden) so
+     no requests fire while the device is idle.
+     All errors are handled gracefully — a failed
+     check leaves the previous state unchanged and
+     never crashes the app.
+  ══════════════════════════════════════════ */
+  const LIVE_CHECK_MS  = 60 * 1000;              // 60 seconds
+  const LIVE_API_URL   = '/api/live';             // Vercel serverless endpoint
+  const LIVE_FALLBACK  = 'https://www.youtube.com/@ucjcapostolic/live';
+  let   liveStreamInfo = null;                    // null = not live, object = live
+  let   liveCheckTimer = null;
+
+  /* Fetch live status from the Vercel serverless function.
+     On success updates liveStreamInfo and refreshes the UI.
+     On any failure (network error, non-200, bad JSON) silently
+     preserves the previous state so the UI doesn't flicker. */
+  async function checkLiveStream() {
+    if (document.hidden) return; // don't fetch while app is backgrounded
+
+    try {
+      const controller = new AbortController();
+      const timeout    = setTimeout(() => controller.abort(), 8000); // 8-second timeout
+
+      const resp = await fetch(LIVE_API_URL, {
+        method:  'GET',
+        headers: { 'Accept': 'application/json' },
+        signal:  controller.signal
+      });
+      clearTimeout(timeout);
+
+      if (!resp.ok) return; // non-200 — keep previous state
+
+      const data = await resp.json();
+
+      if (data.live === true && data.url) {
+        liveStreamInfo = {
+          url:   data.url,
+          title: data.title || 'UCJC Live Stream'
+        };
+      } else {
+        liveStreamInfo = null;
+      }
+    } catch (err) {
+      // Network failure, abort, JSON parse error — leave previous state intact
+      if (err.name !== 'AbortError') {
+        console.warn('Live check error:', err.message || err);
+      }
+      return;
+    }
+
+    renderLiveStreamUI();
+  }
+
+  /* Update all live-stream UI elements based on current liveStreamInfo */
+  function renderLiveStreamUI() {
+    const isLive = !!liveStreamInfo;
+
+    // Home screen banner
+    const banner = $('home-live-banner');
+    if (banner) banner.classList.toggle('hidden', !isLive);
+    if (isLive) {
+      const link  = $('home-live-link');
+      const title = $('home-live-title');
+      if (link)  link.href         = liveStreamInfo.url;
+      if (title) title.textContent = liveStreamInfo.title;
+    }
+
+    // Drawer button
+    const drawerBtn = $('drawer-live-btn');
+    if (drawerBtn) drawerBtn.classList.toggle('hidden', !isLive);
+  }
+
+  /* Open the live stream URL */
+  window.openLiveStream = function () {
+    const url = liveStreamInfo?.url || LIVE_FALLBACK;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  /* Start polling — called once at sign-in */
+  function startLiveCheck() {
+    if (liveCheckTimer) return;
+    checkLiveStream(); // immediate first check
+    liveCheckTimer = setInterval(checkLiveStream, LIVE_CHECK_MS);
+    document.addEventListener('visibilitychange', _onVisibilityChange);
+  }
+
+  function _onVisibilityChange() {
+    if (document.hidden) {
+      clearInterval(liveCheckTimer); liveCheckTimer = null;
+    } else {
+      // Resumed — immediate check then restart the interval
+      checkLiveStream();
+      liveCheckTimer = setInterval(checkLiveStream, LIVE_CHECK_MS);
+    }
+  }
+
+  /* Stop polling and hide UI — called on sign-out */
+  function stopLiveCheck() {
+    clearInterval(liveCheckTimer); liveCheckTimer = null;
+    document.removeEventListener('visibilitychange', _onVisibilityChange);
+    liveStreamInfo = null;
+    renderLiveStreamUI();
+  }
 
   function loadHomeDashboard() {
     // Greeting with time of day
