@@ -7423,7 +7423,7 @@ window.handleRegister = async function (e) {
 
       if (data.live === true && data.url) {
         liveStreamInfo = {
-          url:   data.url,
+          url: LIVE_FALLBACK,
           title: data.title || 'UCJC Live Stream'
         };
       } else {
@@ -7450,7 +7450,7 @@ window.handleRegister = async function (e) {
     if (isLive) {
       const link  = $('home-live-link');
       const title = $('home-live-title');
-      if (link)  link.href         = liveStreamInfo.url;
+      if (link)  link.href = LIVE_FALLBACK;
       if (title) title.textContent = liveStreamInfo.title;
     }
 
