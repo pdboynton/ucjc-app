@@ -1383,6 +1383,49 @@
     .rsvp-card-btn:hover { background: #a93226; }
 
     /* RSVP Modal */
+
+    /* ══════════════════════════════════════════════
+       FILLOUT FORM BANNER + FULLSCREEN MODAL
+    ══════════════════════════════════════════════ */
+    .form-banner-card {
+      margin: 0 16px 6px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg,rgba(25,90,160,0.12),rgba(25,90,160,0.04));
+      border: 1px solid rgba(25,90,160,0.30);
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 15px; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .form-banner-card:hover { border-color: rgba(25,90,160,0.55); background: rgba(25,90,160,0.15); }
+    .form-banner-icon  { font-size: 1.6rem; flex-shrink: 0; line-height: 1; }
+    .form-banner-body  { flex: 1; min-width: 0; }
+    .form-banner-title { font-family: var(--font-display); font-size: 0.88rem; font-weight: 700; color: var(--text-primary); }
+    .form-banner-sub   { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
+    .form-banner-cta   { font-size: 0.72rem; color: #1a6dc0; font-weight: 700; flex-shrink: 0; white-space: nowrap; }
+
+    /* Fullscreen iframe modal */
+    #form-modal {
+      position: fixed; inset: 0; z-index: 800;
+      background: #fff; display: flex; flex-direction: column;
+    }
+    #form-modal.hidden { display: none !important; }
+    #form-modal-bar {
+      display: flex; align-items: center; justify-content: flex-end;
+      padding: 10px 12px; background: #fff;
+      border-bottom: 1px solid #e0e0e0; flex-shrink: 0;
+    }
+    #form-modal-close {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: none; background: rgba(0,0,0,0.08);
+      font-size: 1.1rem; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    #form-modal-close:hover { background: rgba(0,0,0,0.16); }
+    #form-modal-iframe {
+      flex: 1; border: none; width: 100%; height: 100%;
+    }
     .rsvp-header-banner {
       background: linear-gradient(135deg,#b22222,#1a237e);
       padding: 20px 20px 16px; border-radius: var(--radius) var(--radius) 0 0;
@@ -1719,6 +1762,16 @@ service cloud.firestore {
           <div class="rsvp-card-tally" id="home-rsvp-tally">Loading…</div>
         </div>
         <button class="rsvp-card-btn" onclick="event.stopPropagation();openRSVPModal()">RSVP</button>
+      </div>
+
+      <!-- Fillout form banner — shown only during last 2 days of convocation -->
+      <div id="home-form-banner" class="form-banner-card hidden" onclick="openFormModal()">
+        <span class="form-banner-icon">📋</span>
+        <div class="form-banner-body">
+          <div class="form-banner-title">Convocation Feedback</div>
+          <div class="form-banner-sub">Share your thoughts before you go</div>
+        </div>
+        <span class="form-banner-cta">Open →</span>
       </div>
     </div>
 
@@ -2767,6 +2820,19 @@ service cloud.firestore {
     </div>
     <div class="map-hint" id="map-hint">Pinch or scroll to zoom · Drag to pan</div>
   </div>
+</div>
+
+<!-- FILLOUT FORM — fullscreen iframe modal with X close button -->
+<div id="form-modal" class="hidden" role="dialog" aria-label="Convocation Form" aria-modal="true">
+  <div id="form-modal-bar">
+    <button id="form-modal-close" onclick="closeFormModal()" aria-label="Close">✕</button>
+  </div>
+  <iframe id="form-modal-iframe"
+    src=""
+    title="Convocation Form"
+    allow="camera; microphone; geolocation"
+    allowfullscreen>
+  </iframe>
 </div>
 
 <!-- RSVP MODAL — 4th of July Cookout -->
@@ -4309,7 +4375,67 @@ function initializeConvocationCountdown(allDayEvents) {
     clearInterval(window.convocationCountdownTimer);
     tick();
     window.convocationCountdownTimer = setInterval(tick, 1000);
+
+    // Show the form banner during the last 2 days of the convocation
+    updateFormBanner(end);
 }
+
+  /* ══════════════════════════════════════════
+     FILLOUT FORM BANNER + MODAL
+     Banner appears only during the last 2 days
+     of the all-day convocation event (same end
+     date already computed in
+     initializeConvocationCountdown above).
+     The iframe src is set on open (not on load)
+     so Fillout is only fetched when the user
+     actually taps the banner.
+  ══════════════════════════════════════════ */
+  const FORM_URL = 'https://forms.fillout.com/t/esRkVqHQdkus';
+
+  function updateFormBanner(convocationEnd) {
+    const banner = $('home-form-banner');
+    if (!banner) return;
+    if (!convocationEnd) { banner.classList.add('hidden'); return; }
+
+    const now        = new Date();
+    const twoDaysBefore = new Date(convocationEnd);
+    twoDaysBefore.setDate(twoDaysBefore.getDate() - 1); // start of second-to-last day at 00:00:00
+    twoDaysBefore.setHours(0, 0, 0, 0);
+
+    // Show banner from 2 days before the final day through the end of the event
+    const visible = now >= twoDaysBefore && now <= convocationEnd;
+    banner.classList.toggle('hidden', !visible);
+  }
+
+  window.openFormModal = function () {
+    const modal  = $('form-modal');
+    const iframe = $('form-modal-iframe');
+    if (!modal || !iframe) return;
+    // Set src only when opening to avoid loading Fillout on every page load
+    if (!iframe.src || iframe.src === window.location.href) {
+      iframe.src = FORM_URL;
+    }
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeFormModal = function () {
+    const modal = $('form-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    // Clear the src so the form resets on next open
+    const iframe = $('form-modal-iframe');
+    if (iframe) iframe.src = '';
+  };
+
+  // Close on Escape key
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && $('form-modal') && !$('form-modal').classList.contains('hidden')) {
+      closeFormModal();
+    }
+  });
+
   /* ══════════════════════════════════════════
      GOOGLE CALENDAR
   ══════════════════════════════════════════ */
@@ -4993,9 +5119,19 @@ initializeConvocationCountdown(allDayEvents);
     switchDetailTab('info');
     $('session-modal').classList.remove('hidden');
   };
-  window.closeModal         = id => $(id).classList.add('hidden');
+  window.closeModal         = function (id) {
+    // Auto-save notes whenever the session modal is closed via any path
+    // (✕ button, backdrop tap, Escape key, navigating to another screen)
+    if (id === 'session-modal') autoSaveNotes();
+    $(id).classList.add('hidden');
+  };
   window.closeModalOnOverlay = (e, id) => { if (e.target.id === id) closeModal(id); };
   window.switchDetailTab    = function (tab) {
+    // Auto-save if the user is leaving the Notes tab for any other tab
+    const currentTab = document.querySelector('.detail-tab.active');
+    if (currentTab?.dataset?.tab === 'notes' && tab !== 'notes') {
+      autoSaveNotes();
+    }
     document.querySelectorAll('.detail-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
     document.querySelectorAll('#session-modal .detail-panel').forEach(p => p.classList.remove('active'));
     $('panel-' + tab).classList.add('active');
@@ -5071,6 +5207,29 @@ initializeConvocationCountdown(allDayEvents);
       toast('Notes saved!', 'success');
     } catch (e) { toast('Could not save notes.', 'error'); }
   };
+
+  /* Silent auto-save — called when the user navigates away from the Notes
+     tab or closes the modal. Skips if the content hasn't changed since the
+     last save so no unnecessary Firestore writes occur. Shows a subtle
+     indicator but no toast, to avoid interrupting navigation. */
+  async function autoSaveNotes() {
+    if (!currentUser || !selectedEventId) return;
+    const ta = $('notes-textarea'); if (!ta) return;
+    const content = ta.value;
+    // Only write if content has actually changed since last known save
+    if (content === (notesByEvent[selectedEventId] ?? '')) return;
+    const indicator = $('notes-saved-indicator');
+    if (indicator) indicator.textContent = 'Saving…';
+    try {
+      await db.collection('users').doc(currentUser.uid).collection('notes').doc(selectedEventId)
+        .set({ content, updatedAt: FSV.serverTimestamp() });
+      notesByEvent[selectedEventId] = content;
+      if (indicator) indicator.textContent = 'Auto-saved ✓';
+    } catch (e) {
+      console.warn('autoSaveNotes error:', e);
+      if (indicator) indicator.textContent = 'Save failed — try manually';
+    }
+  }
 
   /* ── FEEDBACK ───────────────────────────── */
   window.setRating = function (val) {
