@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -1386,8 +1385,69 @@
     /* RSVP Modal */
 
     /* ══════════════════════════════════════════════
-       FILLOUT FORM BANNER + FULLSCREEN MODAL
+       STREAM AVAILABILITY ALERT BANNER
     ══════════════════════════════════════════════ */
+    .stream-alert-card {
+      margin: 0 16px 8px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg,rgba(180,100,0,0.12),rgba(180,100,0,0.04));
+      border: 1px solid rgba(180,100,0,0.40);
+      padding: 13px 15px; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .stream-alert-card:hover { border-color: rgba(180,100,0,0.65); background: rgba(180,100,0,0.16); }
+    .stream-alert-header {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
+    }
+    .stream-alert-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: #b46400;
+    }
+    .stream-alert-label {
+      font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #b46400;
+    }
+    .stream-alert-title {
+      font-family: var(--font-display); font-size: 0.92rem;
+      font-weight: 700; color: var(--text-primary); margin-bottom: 4px;
+    }
+    .stream-alert-preview {
+      font-size: 0.78rem; color: var(--text-muted); line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .stream-alert-cta {
+      font-size: 0.72rem; color: #b46400; font-weight: 700;
+      margin-top: 6px; display: block;
+    }
+
+    /* Full-message modal for stream alert */
+    #stream-alert-modal .modal-card {
+      max-width: 460px; padding: 0; overflow: hidden;
+    }
+    .stream-alert-modal-header {
+      background: linear-gradient(135deg,#b46400,#7a4200);
+      padding: 16px 20px; display: flex; align-items: center;
+      justify-content: space-between; gap: 12px;
+    }
+    .stream-alert-modal-title {
+      font-family: var(--font-display); font-size: 1rem;
+      color: #fff; flex: 1;
+    }
+    .stream-alert-modal-close {
+      background: rgba(255,255,255,0.18); border: none; color: #fff;
+      border-radius: 50%; width: 30px; height: 30px;
+      font-size: 1rem; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      flex-shrink: 0; touch-action: manipulation;
+    }
+    .stream-alert-modal-close:hover { background: rgba(255,255,255,0.30); }
+    .stream-alert-modal-body {
+      padding: 20px 22px 24px;
+      font-size: 0.90rem; line-height: 1.75; color: var(--text-primary);
+      white-space: pre-line;
+    }
     .form-banner-card {
       margin: 0 16px 6px;
       border-radius: var(--radius);
@@ -1754,6 +1814,17 @@ service cloud.firestore {
         </a>
       </div>
 
+      <!-- Stream Availability alert banner -->
+      <div class="stream-alert-card" onclick="openStreamAlertModal()">
+        <div class="stream-alert-header">
+          <span class="stream-alert-dot"></span>
+          <span class="stream-alert-label">⚠ Alert</span>
+        </div>
+        <div class="stream-alert-title">Stream Availability</div>
+        <div class="stream-alert-preview">The host hotel lost internet service overnight. Tonight's livestream has been canceled. Tonight's service will be recorded and uploaded to YouTube and Facebook.</div>
+        <span class="stream-alert-cta">Read full message →</span>
+      </div>
+
       <!-- 4th of July RSVP quick-card -->
       <div class="rsvp-card" onclick="openRSVPModal()">
         <span class="rsvp-card-icon">🎆</span>
@@ -1797,6 +1868,17 @@ service cloud.firestore {
     <!-- ANNOUNCEMENTS -->
     <div class="screen" id="screen-announcements">
 
+      <!-- Stream Availability alert banner -->
+      <div class="stream-alert-card" style="margin-top:14px" onclick="openStreamAlertModal()">
+        <div class="stream-alert-header">
+          <span class="stream-alert-dot"></span>
+          <span class="stream-alert-label">⚠ Alert</span>
+        </div>
+        <div class="stream-alert-title">Stream Availability</div>
+        <div class="stream-alert-preview">The host hotel lost internet service overnight. Tonight's livestream has been canceled. Tonight's service will be recorded and uploaded to YouTube and Facebook.</div>
+        <span class="stream-alert-cta">Read full message →</span>
+      </div>
+
       <!-- ── 4th of July RSVP Card ── -->
       <div style="padding:14px 0 6px">
         <div class="rsvp-card" onclick="openRSVPModal()">
@@ -1810,8 +1892,15 @@ service cloud.firestore {
         </div>
       </div>
 
-      <div id="announcements-form-banner" class="form-banner-card hidden" onclick="openFormModal()">
-        <span class="form-banner-icon">📋</span><div class="form-banner-body"><div class="form-banner-title">Convocation Feedback</div><div class="form-banner-sub">Share your thoughts before you go</div></div><span class="form-banner-cta">Open →</span></div>
+      <!-- Fillout form banner — shown only during last 2 days of convocation -->
+      <div id="annc-form-banner" class="form-banner-card hidden" onclick="openFormModal()">
+        <span class="form-banner-icon">📋</span>
+        <div class="form-banner-body">
+          <div class="form-banner-title">Convocation Feedback</div>
+          <div class="form-banner-sub">Share your thoughts before you go</div>
+        </div>
+        <span class="form-banner-cta">Open →</span>
+      </div>
 
       <!-- ── RECENT NOTIFICATIONS (last 24 h from Firestore) ── -->
       <div class="section-header" style="margin-top:14px">
@@ -2823,6 +2912,23 @@ service cloud.firestore {
       <button class="map-zoom-btn map-reset-btn" onclick="mapReset()" title="Reset view">FIT</button>
     </div>
     <div class="map-hint" id="map-hint">Pinch or scroll to zoom · Drag to pan</div>
+  </div>
+</div>
+
+<!-- STREAM AVAILABILITY ALERT — full message modal -->
+<div id="stream-alert-modal" class="modal-overlay hidden" onclick="closeModalOnOverlay(event,'stream-alert-modal')">
+  <div class="modal-card" style="max-width:460px;padding:0;overflow:hidden">
+    <div class="stream-alert-modal-header">
+      <span class="stream-alert-modal-title">Stream Availability</span>
+      <button class="stream-alert-modal-close" onclick="closeModal('stream-alert-modal')" aria-label="Close">✕</button>
+    </div>
+    <div class="stream-alert-modal-body">Praise the Lord, Saints!
+
+The host hotel for the 60th Annual International Holy Convocation lost internet service overnight. Despite technicians working on site throughout the day, service has not yet been restored. As a result, tonight's livestream has been canceled.
+
+Tonight's service will be recorded and uploaded overnight to our YouTube and Facebook pages.
+
+Please join us in prayer that internet service is restored soon so we can resume livestreaming for the remainder of the Holy Convocation. Thank you for your patience, understanding, and your continued prayers for the success of this Holy Convocation.</div>
   </div>
 </div>
 
@@ -4397,19 +4503,22 @@ function initializeConvocationCountdown(allDayEvents) {
   const FORM_URL = 'https://forms.fillout.com/t/esRkVqHQdkus';
 
   function updateFormBanner(convocationEnd) {
-    const banners=[...document.querySelectorAll('#home-form-banner,#announcements-form-banner')];
-    if(!banners.length)return;
-    if(!convocationEnd){banners.forEach(b=>b.classList.add('hidden'));return;}
+    const banners = [$('home-form-banner'), $('annc-form-banner')];
+    if (!convocationEnd) { banners.forEach(b => b && b.classList.add('hidden')); return; }
 
-    const now        = new Date();
-    const twoDaysBefore = new Date(convocationEnd);
+    const now            = new Date();
+    const twoDaysBefore  = new Date(convocationEnd);
     twoDaysBefore.setDate(twoDaysBefore.getDate() - 1); // start of second-to-last day at 00:00:00
     twoDaysBefore.setHours(0, 0, 0, 0);
 
-    // Show banner from 2 days before the final day through the end of the event
     const visible = now >= twoDaysBefore && now <= convocationEnd;
-    banners.forEach(b=>b.classList.toggle('hidden',!visible));
+    banners.forEach(b => b && b.classList.toggle('hidden', !visible));
   }
+
+  window.openStreamAlertModal = function () {
+    $('stream-alert-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  };
 
   window.openFormModal = function () {
     const modal  = $('form-modal');
@@ -5128,6 +5237,8 @@ initializeConvocationCountdown(allDayEvents);
     // (✕ button, backdrop tap, Escape key, navigating to another screen)
     if (id === 'session-modal') autoSaveNotes();
     $(id).classList.add('hidden');
+    // Restore body scrolling (set by open handlers that lock it)
+    document.body.style.overflow = '';
   };
   window.closeModalOnOverlay = (e, id) => { if (e.target.id === id) closeModal(id); };
   window.switchDetailTab    = function (tab) {
