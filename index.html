@@ -1814,6 +1814,17 @@ service cloud.firestore {
         </a>
       </div>
 
+      <!-- Vehicle Alert banner -->
+      <div class="stream-alert-card" onclick="openVehicleAlertModal()" style="border-color:rgba(139,38,53,0.35);background:linear-gradient(135deg,rgba(139,38,53,0.10),rgba(139,38,53,0.03))">
+        <div class="stream-alert-header">
+          <span class="stream-alert-dot" style="background:var(--crimson)"></span>
+          <span class="stream-alert-label" style="color:var(--crimson)">🚨 Vehicle Alert</span>
+        </div>
+        <div class="stream-alert-title">Vehicle Alert</div>
+        <div class="stream-alert-preview">NY tag KJM 7893 — your hazard lights are on.</div>
+        <span class="stream-alert-cta" style="color:var(--crimson)">Read message →</span>
+      </div>
+
       <!-- Stream Availability alert banner -->
       <div class="stream-alert-card" onclick="openStreamAlertModal()">
         <div class="stream-alert-header">
@@ -1867,6 +1878,17 @@ service cloud.firestore {
 
     <!-- ANNOUNCEMENTS -->
     <div class="screen" id="screen-announcements">
+
+      <!-- Vehicle Alert banner -->
+      <div class="stream-alert-card" style="margin-top:14px;border-color:rgba(139,38,53,0.35);background:linear-gradient(135deg,rgba(139,38,53,0.10),rgba(139,38,53,0.03))" onclick="openVehicleAlertModal()">
+        <div class="stream-alert-header">
+          <span class="stream-alert-dot" style="background:var(--crimson)"></span>
+          <span class="stream-alert-label" style="color:var(--crimson)">🚨 Vehicle Alert</span>
+        </div>
+        <div class="stream-alert-title">Vehicle Alert</div>
+        <div class="stream-alert-preview">NY tag KJM 7893 — your hazard lights are on.</div>
+        <span class="stream-alert-cta" style="color:var(--crimson)">Read message →</span>
+      </div>
 
       <!-- Stream Availability alert banner -->
       <div class="stream-alert-card" style="margin-top:14px" onclick="openStreamAlertModal()">
@@ -2912,6 +2934,17 @@ service cloud.firestore {
       <button class="map-zoom-btn map-reset-btn" onclick="mapReset()" title="Reset view">FIT</button>
     </div>
     <div class="map-hint" id="map-hint">Pinch or scroll to zoom · Drag to pan</div>
+  </div>
+</div>
+
+<!-- VEHICLE ALERT — full message modal -->
+<div id="vehicle-alert-modal" class="modal-overlay hidden" onclick="closeModalOnOverlay(event,'vehicle-alert-modal')">
+  <div class="modal-card" style="max-width:400px;padding:0;overflow:hidden">
+    <div class="stream-alert-modal-header" style="background:linear-gradient(135deg,var(--crimson),#6b0f1a)">
+      <span class="stream-alert-modal-title">Vehicle Alert</span>
+      <button class="stream-alert-modal-close" onclick="closeModal('vehicle-alert-modal')" aria-label="Close">✕</button>
+    </div>
+    <div class="stream-alert-modal-body">NY tag KJM 7893 your hazard lights are on.</div>
   </div>
 </div>
 
@@ -4514,6 +4547,11 @@ function initializeConvocationCountdown(allDayEvents) {
     const visible = now >= twoDaysBefore && now <= convocationEnd;
     banners.forEach(b => b && b.classList.toggle('hidden', !visible));
   }
+
+  window.openVehicleAlertModal = function () {
+    $('vehicle-alert-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  };
 
   window.openStreamAlertModal = function () {
     $('stream-alert-modal').classList.remove('hidden');
