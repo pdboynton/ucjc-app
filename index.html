@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -1808,6 +1809,9 @@ service cloud.firestore {
           <button class="rsvp-card-btn" onclick="event.stopPropagation();openRSVPModal()">RSVP</button>
         </div>
       </div>
+
+      <div id="announcements-form-banner" class="form-banner-card hidden" onclick="openFormModal()">
+        <span class="form-banner-icon">📋</span><div class="form-banner-body"><div class="form-banner-title">Convocation Feedback</div><div class="form-banner-sub">Share your thoughts before you go</div></div><span class="form-banner-cta">Open →</span></div>
 
       <!-- ── RECENT NOTIFICATIONS (last 24 h from Firestore) ── -->
       <div class="section-header" style="margin-top:14px">
@@ -4393,9 +4397,9 @@ function initializeConvocationCountdown(allDayEvents) {
   const FORM_URL = 'https://forms.fillout.com/t/esRkVqHQdkus';
 
   function updateFormBanner(convocationEnd) {
-    const banner = $('home-form-banner');
-    if (!banner) return;
-    if (!convocationEnd) { banner.classList.add('hidden'); return; }
+    const banners=[...document.querySelectorAll('#home-form-banner,#announcements-form-banner')];
+    if(!banners.length)return;
+    if(!convocationEnd){banners.forEach(b=>b.classList.add('hidden'));return;}
 
     const now        = new Date();
     const twoDaysBefore = new Date(convocationEnd);
@@ -4404,7 +4408,7 @@ function initializeConvocationCountdown(allDayEvents) {
 
     // Show banner from 2 days before the final day through the end of the event
     const visible = now >= twoDaysBefore && now <= convocationEnd;
-    banner.classList.toggle('hidden', !visible);
+    banners.forEach(b=>b.classList.toggle('hidden',!visible));
   }
 
   window.openFormModal = function () {
