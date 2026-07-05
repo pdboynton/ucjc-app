@@ -1751,7 +1751,7 @@ service cloud.firestore {
         </a>
       </div>
 
-      <!-- 4th of July RSVP quick-card -->
+      <!-- 4th of July RSVP quick-card — DISABLED
       <div class="rsvp-card" onclick="openRSVPModal()">
         <span class="rsvp-card-icon">🎆</span>
         <div class="rsvp-card-body">
@@ -1761,6 +1761,7 @@ service cloud.firestore {
         </div>
         <button class="rsvp-card-btn" onclick="event.stopPropagation();openRSVPModal()">RSVP</button>
       </div>
+      DISABLED -->
 
       <!-- Fillout form banner — shown only during last 2 days of convocation -->
       <div id="home-form-banner" class="form-banner-card hidden" onclick="openFormModal()">
@@ -1794,7 +1795,7 @@ service cloud.firestore {
     <!-- ANNOUNCEMENTS -->
     <div class="screen" id="screen-announcements">
 
-      <!-- ── 4th of July RSVP Card ── -->
+      <!-- ── 4th of July RSVP Card — DISABLED
       <div style="padding:14px 0 6px">
         <div class="rsvp-card" onclick="openRSVPModal()">
           <span class="rsvp-card-icon">🎆</span>
@@ -1806,6 +1807,7 @@ service cloud.firestore {
           <button class="rsvp-card-btn" onclick="event.stopPropagation();openRSVPModal()">RSVP</button>
         </div>
       </div>
+      DISABLED ── -->
 
       <!-- Fillout form banner — shown only during last 2 days of convocation -->
       <div id="annc-form-banner" class="form-banner-card hidden" onclick="openFormModal()">
@@ -4332,17 +4334,40 @@ function initializeConvocationCountdown(allDayEvents) {
         return;
     }
 
-    // Use the first all-day conference event
-    const event = allDayEvents[0];
+    // Pick the CURRENT or NEXT UPCOMING all-day event.
+    // All-day events in Google Calendar end on the exclusive day after the
+    // last real day (e.g. a 5-day event ending "July 5" actually ends July 4).
+    // So the real end = end.date - 1 day @ 23:59:59.
+    const now = new Date();
 
-    // All-day events end on the following day, so subtract one day
-    const start = new Date(event.start.date + "T00:00:00");
-    const end   = new Date(event.end.date + "T00:00:00");
-    end.setDate(end.getDate() - 1);
-    end.setHours(23,59,59,999);
+    // Sort by start date ascending so we evaluate events in chronological order
+    const sorted = [...allDayEvents].sort((a, b) =>
+      new Date(a.start.date + 'T00:00:00') - new Date(b.start.date + 'T00:00:00')
+    );
+
+    let chosenEvent = null;
+    for (const ev of sorted) {
+      const evStart = new Date(ev.start.date + 'T00:00:00');
+      const evEnd   = new Date(ev.end.date   + 'T00:00:00');
+      evEnd.setDate(evEnd.getDate() - 1);
+      evEnd.setHours(23, 59, 59, 999);
+
+      if (evEnd >= now) {
+        // This event is either currently happening or in the future — use it
+        chosenEvent = { ev, start: evStart, end: evEnd };
+        break;
+      }
+    }
+
+    // All events are in the past — hide the card
+    if (!chosenEvent) {
+        card.style.display = 'none';
+        return;
+    }
+
+    const { ev: event, start, end } = chosenEvent;
 
     function tick() {
-
         const now = new Date();
 
         // Conference has already finished
@@ -4358,7 +4383,7 @@ function initializeConvocationCountdown(allDayEvents) {
             return;
         }
 
-        // Before conference
+        // Before conference — show countdown
         card.style.display = "";
 
         const diff = start - now;
@@ -4456,8 +4481,9 @@ function initializeConvocationCountdown(allDayEvents) {
         if (bannerMeta)  $('banner-meta').textContent  = bannerMeta;
         loadVenueMap(venueLocation || '', bannerTitle || '');
         buildDateTabs();
-        const allDayEvents = (typeof allDay!=="undefined" && allDay) ? allDay : events.filter(e=>e.start && e.start.date);
-initializeConvocationCountdown(allDayEvents);
+        // events here are cached raw Google Calendar objects with .start.date for all-day items
+        const allDayEvents = events.filter(e => e.start && e.start.date);
+        initializeConvocationCountdown(allDayEvents);
         // Refresh in background — don't show spinner for cached load
         _fetchCalendarBackground();
         return;
@@ -4518,8 +4544,8 @@ initializeConvocationCountdown(allDayEvents);
           events: freshEvents.map(e => ({ ...e, start: e.start.toISOString(), end: e.end.toISOString() }))
         }, currentUser?.uid);
         buildDateTabs();
-        const allDayEvents = (typeof allDay!=="undefined" && allDay) ? allDay : events.filter(e=>e.start && e.start.date);
-initializeConvocationCountdown(allDayEvents);
+        // allDay is the filtered array from the fresh API response above
+        initializeConvocationCountdown(allDay);
       } else if (!allEvents.length) {
         loadDemoEvents();
       }
@@ -7821,22 +7847,60 @@ initializeConvocationCountdown(allDayEvents);
   async function loadHomeLatestNotif() {
     const el = $('home-latest-notif'); if (!el) return;
     try {
-      const recent = await PushLogDB.getRecent(1);
-      if (!recent.length) {
+      // Query both sources in parallel — same merge logic as loadRecentNotifications
+      const [pushEntries, fsSnap] = await Promise.allSettled([
+        PushLogDB.getRecent(10),
+        db.collection('notifications').orderBy('createdAt', 'desc').limit(5).get()
+      ]);
+
+      const candidates = [];
+
+      // OneSignal push log entries
+      if (pushEntries.status === 'fulfilled') {
+        pushEntries.value.forEach(e => {
+          candidates.push({
+            title: e.title || 'Announcement',
+            body:  e.body  || '',
+            ts:    e.receivedAt || 0
+          });
+        });
+      }
+
+      // Firestore /notifications entries
+      if (fsSnap.status === 'fulfilled') {
+        fsSnap.value.docs.forEach(d => {
+          const data = d.data();
+          const ts   = data.createdAt?.toDate ? data.createdAt.toDate().getTime()
+                     : typeof data.createdAt === 'number' ? data.createdAt : 0;
+          candidates.push({
+            title: data.title || 'Announcement',
+            body:  data.body  || '',
+            ts
+          });
+        });
+      }
+
+      if (!candidates.length) {
         el.innerHTML = `<div class="home-notif-card">
           <span class="home-notif-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
           <div><div class="home-notif-title">No announcements yet</div><div class="home-notif-body">Check back soon for updates from leadership.</div></div>
         </div>`; return;
       }
-      const entry = recent[0];
-      const ts   = new Date(entry.receivedAt);
-      const diff = Date.now() - ts.getTime();
-      const mins = Math.floor(diff / 60000);
-      const timeStr = mins < 1 ? 'Just now' : mins < 60 ? `${mins}m ago` : mins < 1440 ? `${Math.floor(mins/60)}h ago` : fmtDate(ts);
+
+      // Pick the single most recent entry across both sources
+      const entry = candidates.sort((a, b) => b.ts - a.ts)[0];
+      const ts     = new Date(entry.ts);
+      const diff   = Date.now() - ts.getTime();
+      const mins   = Math.floor(diff / 60000);
+      const timeStr = mins < 1    ? 'Just now'
+                    : mins < 60  ? `${mins}m ago`
+                    : mins < 1440 ? `${Math.floor(mins/60)}h ago`
+                    : fmtDate(ts);
+
       el.innerHTML = `<div class="home-notif-card" onclick="showScreen('announcements')" style="cursor:pointer">
         <span class="home-notif-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
         <div>
-          <div class="home-notif-title">${escHtml(entry.title || 'Announcement')}</div>
+          <div class="home-notif-title">${escHtml(entry.title)}</div>
           ${entry.body ? `<div class="home-notif-body">${escHtml(entry.body)}</div>` : ''}
           <div class="home-notif-time">${timeStr}</div>
         </div>
