@@ -4433,18 +4433,28 @@ function initializeConvocationCountdown(allDayEvents) {
   ══════════════════════════════════════════ */
   const FORM_URL = 'https://forms.fillout.com/t/esRkVqHQdkus';
 
-  function updateFormBanner(convocationEnd) {
+function updateFormBanner(convocationEnd) {
     const banners = [$('home-form-banner'), $('annc-form-banner')];
-    if (!convocationEnd) { banners.forEach(b => b && b.classList.add('hidden')); return; }
+    if (!convocationEnd) {
+        banners.forEach(b => b && b.classList.add('hidden'));
+        return;
+    }
 
-    const now            = new Date();
-    const twoDaysBefore  = new Date(convocationEnd);
-    twoDaysBefore.setDate(twoDaysBefore.getDate() - 1); // start of second-to-last day at 00:00:00
+    const now = new Date();
+
+    // Show beginning on the second-to-last day of the event
+    const twoDaysBefore = new Date(convocationEnd);
+    twoDaysBefore.setDate(twoDaysBefore.getDate() - 1);
     twoDaysBefore.setHours(0, 0, 0, 0);
 
-    const visible = now >= twoDaysBefore && now <= convocationEnd;
+    // Keep visible for 14 days after the event ends
+    const twoWeeksAfter = new Date(convocationEnd);
+    twoWeeksAfter.setDate(twoWeeksAfter.getDate() + 14);
+    twoWeeksAfter.setHours(23, 59, 59, 999);
+
+    const visible = now >= twoDaysBefore && now <= twoWeeksAfter;
     banners.forEach(b => b && b.classList.toggle('hidden', !visible));
-  }
+}
 
   window.openFormModal = function () {
     const modal  = $('form-modal');
