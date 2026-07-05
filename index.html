@@ -3233,6 +3233,14 @@ service cloud.firestore {
   let selectedEventId    = null;
   let currentRating      = 0;
   let activeFilters      = new Set();  // hashtag filters active on schedule screen
+
+  /* The date-range of the currently active (or next upcoming) all-day event.
+     Set by applyActiveEvent() and used as the single source of truth for:
+       - banner title / meta / venue
+       - filtering timed events to only show sessions within this event
+       - filtering My Plan bookmarks to the same date range
+     null = not yet resolved. */
+  let activeEventDateRange = null;
   let currentDMUid       = null;
   let currentDMName      = null;
   let chatInitialized    = false;
@@ -4474,16 +4482,15 @@ function initializeConvocationCountdown(allDayEvents) {
     // ── Serve cache instantly ──────────────────────────────────────────────
     const cached = Cache.get('calendar', currentUser?.uid, CACHE_TTL.calendar);
     if (cached && cached.data) {
-      const { events, bannerTitle, bannerMeta, venueLocation } = cached.data;
+      const { events, bannerTitle, bannerMeta, venueLocation, allDayRaw } = cached.data;
       if (events && events.length) {
-        allEvents = events.map(e => ({ ...e, start: new Date(e.start), end: new Date(e.end) }));
-        if (bannerTitle) $('banner-title').textContent = bannerTitle;
-        if (bannerMeta)  $('banner-meta').textContent  = bannerMeta;
+        const allTimedCached = events.map(e => ({ ...e, start: new Date(e.start), end: new Date(e.end) }));
+        // Re-run pickActiveAllDayEvent on the stored raw all-day items so the
+        // active event selection is always based on today's date, not the
+        // date the cache was originally written.
+        const activeRange = allDayRaw ? pickActiveAllDayEvent(allDayRaw) : null;
         loadVenueMap(venueLocation || '', bannerTitle || '');
-        buildDateTabs();
-        // events here are cached raw Google Calendar objects with .start.date for all-day items
-        const allDayEvents = events.filter(e => e.start && e.start.date);
-        initializeConvocationCountdown(allDayEvents);
+        applyActiveEvent(activeRange, allTimedCached, bannerTitle, bannerMeta, venueLocation);
         // Refresh in background — don't show spinner for cached load
         _fetchCalendarBackground();
         return;
@@ -4493,6 +4500,54 @@ function initializeConvocationCountdown(allDayEvents) {
     // ── No cache — show spinner and fetch synchronously ────────────────────
     $('events-loading').classList.remove('hidden');
     await _fetchCalendarBackground();
+  }
+
+  /* Given raw Google Calendar all-day items, returns the current or next
+     upcoming event as { start, end, raw }. Falls back to the most recent
+     past event so the app never goes blank. Returns null if list is empty. */
+  function pickActiveAllDayEvent(allDayItems) {
+    if (!allDayItems || !allDayItems.length) return null;
+    const now = new Date();
+    const sorted = [...allDayItems].sort((a, b) =>
+      new Date(a.start.date + 'T00:00:00') - new Date(b.start.date + 'T00:00:00')
+    );
+    for (const ev of sorted) {
+      const evStart = new Date(ev.start.date + 'T00:00:00');
+      const evEnd   = new Date(ev.end.date   + 'T00:00:00');
+      evEnd.setDate(evEnd.getDate() - 1); // Google all-day end is exclusive
+      evEnd.setHours(23, 59, 59, 999);
+      if (evEnd >= now) return { start: evStart, end: evEnd, raw: ev };
+    }
+    // All events in the past — use the most recent so data isn't blank
+    const last = sorted[sorted.length - 1];
+    const ls = new Date(last.start.date + 'T00:00:00');
+    const le = new Date(last.end.date   + 'T00:00:00');
+    le.setDate(le.getDate() - 1); le.setHours(23, 59, 59, 999);
+    return { start: ls, end: le, raw: last };
+  }
+
+  /* Apply a selected all-day event as the active context:
+     - Sets banner title / meta / venue from that event
+     - Filters allEvents to only timed sessions within that event's date range
+     - Rebuilds date tabs (schedule screen)
+     - Stores the range in activeEventDateRange for My Plan filtering */
+  function applyActiveEvent(activeRange, allTimedEvents, bannerTitle, bannerMeta, venueLocation) {
+    activeEventDateRange = activeRange;
+
+    if (activeRange) {
+      // Filter timed events to those that fall within the active all-day event
+      allEvents = allTimedEvents.filter(e => {
+        const evStart = e.start instanceof Date ? e.start : new Date(e.start);
+        return evStart >= activeRange.start && evStart <= activeRange.end;
+      });
+    } else {
+      allEvents = allTimedEvents;
+    }
+
+    if (bannerTitle) $('banner-title').textContent = bannerTitle;
+    if (bannerMeta)  $('banner-meta').textContent  = bannerMeta;
+    buildDateTabs();
+    initializeConvocationCountdown(activeRange ? [activeRange.raw] : []);
   }
 
   async function _fetchCalendarBackground() {
@@ -4510,21 +4565,23 @@ function initializeConvocationCountdown(allDayEvents) {
       const allDay = items.filter(e => e.start?.date && !e.start?.dateTime);
       const timed  = items.filter(e => e.start?.dateTime);
 
+      // Pick the current/upcoming all-day event as the active context
+      const activeRange = pickActiveAllDayEvent(allDay);
+
       let bannerTitle = 'UCJC Holy Convocation', bannerMeta = '', venueLocation = '';
-      if (allDay.length) {
-        const c  = allDay[0];
-        const sd = new Date(c.start.date + 'T12:00:00');
-        const ed = new Date(c.end.date   + 'T12:00:00'); ed.setDate(ed.getDate() - 1);
+      if (activeRange) {
+        const c = activeRange.raw;
+        const sd = activeRange.start;
+        const ed = activeRange.end;
         bannerTitle   = stripHtml(c.summary || 'Holy Convocation');
         venueLocation = c.location ? stripHtml(c.location) : '';
         bannerMeta    = `${fmtDate(sd)} – ${fmtDate(ed)}` + (venueLocation ? `  ·  ${venueLocation}` : '');
       }
-      $('banner-title').textContent = bannerTitle;
-      $('banner-meta').textContent  = bannerMeta;
-      // Update home map card — geocodes and generates map if address changed
+
+      // Update home map card
       loadVenueMap(venueLocation, bannerTitle);
 
-      const freshEvents = timed.map(e => {
+      const allTimedEvents = timed.map(e => {
         const { desc, tags } = processDesc(stripHtmlLines(e.description || ''));
         return {
           id:       e.id,
@@ -4537,15 +4594,15 @@ function initializeConvocationCountdown(allDayEvents) {
         };
       });
 
-      if (freshEvents.length) {
-        allEvents = freshEvents;
+      if (allTimedEvents.length || activeRange) {
+        // Cache ALL timed events and all-day raw items so we can re-apply
+        // pickActiveAllDayEvent correctly on next load from cache
         Cache.set('calendar', {
           bannerTitle, bannerMeta, venueLocation,
-          events: freshEvents.map(e => ({ ...e, start: e.start.toISOString(), end: e.end.toISOString() }))
+          allDayRaw: allDay, // store raw all-day items for re-picking on cache restore
+          events: allTimedEvents.map(e => ({ ...e, start: e.start.toISOString(), end: e.end.toISOString() }))
         }, currentUser?.uid);
-        buildDateTabs();
-        // allDay is the filtered array from the fresh API response above
-        initializeConvocationCountdown(allDay);
+        applyActiveEvent(activeRange, allTimedEvents, bannerTitle, bannerMeta, venueLocation);
       } else if (!allEvents.length) {
         loadDemoEvents();
       }
@@ -4555,7 +4612,6 @@ function initializeConvocationCountdown(allDayEvents) {
         toast('Could not load calendar. Showing demo data.', 'error');
         loadDemoEvents();
       }
-      // If we had cached data, silently fail — no toast needed
     } finally {
       $('events-loading').classList.add('hidden');
     }
@@ -5344,10 +5400,31 @@ function initializeConvocationCountdown(allDayEvents) {
     $('stat-bookmarks').textContent = bmKeys.length;
     $('stat-upcoming').textContent  = bmKeys.filter(k => new Date(bookmarks[k].start) > new Date()).length;
     $('stat-notes').textContent     = Object.keys(notesByEvent).length;
+
     const none = $('no-bookmarks'), list = $('my-event-list');
     if (!bmKeys.length) { list.innerHTML=''; none.classList.remove('hidden'); return; }
+
+    // Only show bookmarks whose sessions exist in the current allEvents set
+    // (which is already filtered to the active event's date range).
+    // This prevents sessions from a past year's conference appearing in My Plan.
+    const matched = bmKeys.map(k => allEvents.find(e => e.id === k)).filter(Boolean)
+                          .sort((a, b) => a.start - b.start);
+
+    if (!matched.length) {
+      none.classList.remove('hidden');
+      list.innerHTML = '';
+      // Give a helpful hint if there are bookmarks but they belong to a different event
+      if (bmKeys.length && activeEventDateRange) {
+        const noneTitle = none.querySelector('.empty-title');
+        if (noneTitle) noneTitle.textContent = 'No saved sessions for this event';
+        const noneSub = none.querySelector('.muted-text');
+        if (noneSub) noneSub.textContent = 'Browse the Schedule to bookmark sessions for this event.';
+      }
+      return;
+    }
+
     none.classList.add('hidden');
-    list.innerHTML = bmKeys.map(k=>allEvents.find(e=>e.id===k)).filter(Boolean).sort((a,b)=>a.start-b.start).map(ev=>myScheduleCardHTML(ev)).join('');
+    list.innerHTML = matched.map(ev => myScheduleCardHTML(ev)).join('');
   };
 
   /* ══════════════════════════════════════════
