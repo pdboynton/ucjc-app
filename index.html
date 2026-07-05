@@ -1641,11 +1641,11 @@ service cloud.firestore {
       <!-- Greeting -->
       <div class="home-hero">
         <div class="home-greeting">Welcome back,<br/><em id="home-greeting-name">Friend</em></div>
-        <div class="home-subgreeting" id="home-subgreeting">UCJC Holy Convocation</div>
+        <div class="home-subgreeting" id="home-subgreeting"></div>
       </div>
 
       <div id="convocation-countdown-card" class="countdown-card">
-        <div class="countdown-label">Convocation Begins In</div>
+        <div class="countdown-label" id="countdown-label">Begins In</div>
         <div class="countdown-timer">
           <div class="countdown-unit"><span id="cd-days">0</span><small>Days</small></div>
           <div class="countdown-unit"><span id="cd-hours">0</span><small>Hours</small></div>
@@ -4546,6 +4546,16 @@ function initializeConvocationCountdown(allDayEvents) {
 
     if (bannerTitle) $('banner-title').textContent = bannerTitle;
     if (bannerMeta)  $('banner-meta').textContent  = bannerMeta;
+
+    // Update the home screen welcome subgreeting and countdown label
+    // with the name of the active event, replacing the old hardcoded strings
+    const eventName = (activeRange?.raw?.summary ? stripHtml(activeRange.raw.summary) : null)
+                   || bannerTitle || '';
+    const subGreeting = $('home-subgreeting');
+    if (subGreeting) subGreeting.textContent = eventName;
+    const cdLabel = $('countdown-label');
+    if (cdLabel) cdLabel.textContent = eventName ? `${eventName} Begins In` : 'Begins In';
+
     buildDateTabs();
     initializeConvocationCountdown(activeRange ? [activeRange.raw] : []);
   }
@@ -7467,7 +7477,7 @@ function initializeConvocationCountdown(allDayEvents) {
     const phEl    = $('home-map-placeholder');
 
     // Always update text labels immediately
-    if (venueEl) venueEl.textContent = venueName || 'UCJC Holy Convocation';
+    if (venueEl) venueEl.textContent = venueName || 'Venue TBA';
     if (addrEl)  addrEl.textContent  = address   || '';
 
     // No address → placeholder
@@ -7859,8 +7869,10 @@ function initializeConvocationCountdown(allDayEvents) {
     // Greeting with time of day
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-    const subEl = $('home-subgreeting');
-    if (subEl) subEl.textContent = greeting + ' · UCJC Holy Convocation';
+    // Update greeting name — the subgreeting text (event name) is set by
+    // applyActiveEvent() when calendar data loads, so we don't overwrite it here.
+    const nameEl = $('home-greeting-name');
+    if (nameEl) nameEl.textContent = userProfile?.displayName?.split(' ')[0] || 'Friend';
 
     // Today's sessions
     renderHomeTodaySessions();
