@@ -1764,6 +1764,7 @@ service cloud.firestore {
       DISABLED -->
 
       <!-- Fillout form banner — shown only during last 2 days of convocation -->
+      <!-- To hide this banner, add class="form-banner-card hidden" instead of just class="form-banner-card" -->
       <div id="home-form-banner" class="form-banner-card" onclick="openFormModal()">
         <span class="form-banner-icon">📋</span>
         <div class="form-banner-body">
@@ -1810,7 +1811,8 @@ service cloud.firestore {
       DISABLED ── -->
 
       <!-- Fillout form banner — shown only during last 2 days of convocation -->
-      <div id="annc-form-banner" class="form-banner-card hidden" onclick="openFormModal()">
+      <!-- To hide this banner, add class="form-banner-card hidden" instead of just class="form-banner-card" -->
+      <div id="annc-form-banner" class="form-banner-card" onclick="openFormModal()">
         <span class="form-banner-icon">📋</span>
         <div class="form-banner-body">
           <div class="form-banner-title">Convocation Feedback</div>
@@ -4418,7 +4420,8 @@ function initializeConvocationCountdown(allDayEvents) {
     window.convocationCountdownTimer = setInterval(tick, 1000);
 
     // Show the form banner during the last 2 days of the convocation
-    updateFormBanner(end);
+    // (Disabled — banner is always visible. Re-enable by uncommenting the line below.)
+    // updateFormBanner(end);
 }
 
   /* ══════════════════════════════════════════
@@ -4433,28 +4436,25 @@ function initializeConvocationCountdown(allDayEvents) {
   ══════════════════════════════════════════ */
   const FORM_URL = 'https://forms.fillout.com/t/esRkVqHQdkus';
 
-function updateFormBanner(convocationEnd) {
+  /* updateFormBanner — controls date-based visibility of the feedback survey banner.
+     Currently disabled: the banner is always visible (hidden class removed from HTML).
+     To re-enable automatic date-gating:
+       1. Add class="form-banner-card hidden" back to both banner divs in HTML
+       2. Uncomment updateFormBanner(end) in initializeConvocationCountdown above
+       3. Uncomment the function body below
+  function updateFormBanner(convocationEnd) {
     const banners = [$('home-form-banner'), $('annc-form-banner')];
-    if (!convocationEnd) {
-        banners.forEach(b => b && b.classList.add('hidden'));
-        return;
-    }
+    if (!convocationEnd) { banners.forEach(b => b && b.classList.add('hidden')); return; }
 
-    const now = new Date();
-
-    // Show beginning on the second-to-last day of the event
-    const twoDaysBefore = new Date(convocationEnd);
+    const now            = new Date();
+    const twoDaysBefore  = new Date(convocationEnd);
     twoDaysBefore.setDate(twoDaysBefore.getDate() - 1);
     twoDaysBefore.setHours(0, 0, 0, 0);
 
-    // Keep visible for 14 days after the event ends
-    const twoWeeksAfter = new Date(convocationEnd);
-    twoWeeksAfter.setDate(twoWeeksAfter.getDate() + 14);
-    twoWeeksAfter.setHours(23, 59, 59, 999);
-
-    const visible = now >= twoDaysBefore && now <= twoWeeksAfter;
+    const visible = now >= twoDaysBefore && now <= convocationEnd;
     banners.forEach(b => b && b.classList.toggle('hidden', !visible));
-}
+  }
+  */
 
   window.openFormModal = function () {
     const modal  = $('form-modal');
