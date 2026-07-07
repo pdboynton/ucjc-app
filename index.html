@@ -735,6 +735,14 @@
       align-items: center; justify-content: center; gap: 8px;
       color: var(--text-dim); font-size: 0.8rem;
     }
+    /* Greyed-out state shown when map image fails to load */
+    .home-map-img-placeholder.map-unavailable {
+      background: var(--bg-light);
+      color: var(--text-dim); opacity: 0.6;
+    }
+    .home-map-img-placeholder.map-unavailable svg {
+      opacity: 0.4;
+    }
     .home-map-directions-btn {
       position: absolute; bottom: 10px; right: 10px;
       background: rgba(0,0,0,0.62); backdrop-filter: blur(4px);
@@ -1735,7 +1743,7 @@ service cloud.firestore {
           </div>
           <img id="home-map-img" src="" alt="Venue map" style="display:none"
             onload="this.style.display='block';document.getElementById('home-map-placeholder').style.display='none'"
-            onerror="this.style.display='none'"/>
+            onerror="this.style.display='none';var p=document.getElementById('home-map-placeholder');p.classList.add('map-unavailable');p.innerHTML='<svg width=&quot;32&quot; height=&quot;32&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.4&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polygon points=&quot;1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6&quot;/><line x1=&quot;8&quot; y1=&quot;2&quot; x2=&quot;8&quot; y2=&quot;18&quot;/><line x1=&quot;16&quot; y1=&quot;6&quot; x2=&quot;16&quot; y2=&quot;22&quot;/></svg>No map image available';p.style.display='flex'"/>
           <button class="home-map-directions-btn" onclick="event.stopPropagation();openDirections()" title="Get directions">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
             Directions
