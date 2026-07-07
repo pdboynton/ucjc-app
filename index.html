@@ -8,6 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Convocation"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <title>UCJC Apostolic</title>
   <link rel="manifest" href="manifest.json"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -1445,6 +1446,74 @@
       font-size: 0.82rem; color: #2e7d32; margin-bottom: 12px;
     }
 
+    /* ══════════════════════════════════════════════
+       FIND A CHURCH SCREEN
+    ══════════════════════════════════════════════ */
+    #screen-find-church {
+      display: none; flex-direction: column; overflow: hidden; height: 100%;
+    }
+    #screen-find-church.active { display: flex; }
+
+    .church-search-bar {
+      padding: 12px 16px; background: var(--bg-card);
+      border-bottom: 1px solid var(--border-soft); flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .church-search-row {
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    }
+    .church-search-row .form-input {
+      flex: 1; min-width: 140px; font-size: 0.85rem; padding: 8px 12px;
+    }
+    .church-search-row select {
+      padding: 8px 10px; font-size: 0.85rem;
+      border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+      background: var(--input-bg); color: var(--text-primary); flex-shrink: 0;
+    }
+    .church-search-row .btn { flex-shrink: 0; font-size: 0.82rem; }
+    .church-status {
+      font-size: 0.75rem; color: var(--text-dim); padding: 0 2px;
+    }
+
+    /* Two-pane layout: list left, map right on wide screens;
+       stacked on narrow/mobile (the common case) */
+    .church-layout {
+      flex: 1; display: flex; flex-direction: column; overflow: hidden;
+    }
+    #church-finder-map {
+      height: 240px; flex-shrink: 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    #church-finder-list {
+      flex: 1; overflow-y: auto; padding: 10px 16px;
+      list-style: none; margin: 0;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .church-item-card {
+      background: var(--bg-card); border: 1px solid var(--border-soft);
+      border-radius: var(--radius); padding: 13px 15px;
+    }
+    .church-item-card h3 {
+      font-family: var(--font-display); font-size: 0.9rem;
+      color: var(--text-primary); margin: 0 0 5px;
+    }
+    .church-item-card p {
+      font-size: 0.78rem; color: var(--text-muted); margin: 2px 0;
+    }
+    .church-item-distance {
+      font-weight: 700; color: var(--gold); margin-top: 5px; font-size: 0.78rem;
+    }
+    .church-finder-empty {
+      text-align: center; padding: 28px 16px;
+      font-size: 0.85rem; color: var(--text-dim);
+    }
+
+    @media (min-width: 680px) {
+      .church-layout { flex-direction: row; }
+      #church-finder-map { height: auto; flex: 1; border-bottom: none; border-right: 1px solid var(--border-soft); }
+      #church-finder-list { flex: 1; max-height: none; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
@@ -1926,6 +1995,39 @@ service cloud.firestore {
         <button class="btn btn-outline btn-sm" onclick="retryDirectory()">Retry</button>
       </div>
       <div id="attendee-list" class="attendee-list"></div>
+    </div>
+
+    <!-- FIND A CHURCH -->
+    <div class="screen" id="screen-find-church">
+      <div class="church-search-bar">
+        <div class="church-search-row">
+          <button class="btn btn-outline btn-sm" onclick="churchUseMyLocation()">
+            📍 Use My Location
+          </button>
+          <input type="text" id="church-manual-input" class="form-input"
+            placeholder="Enter a city or zip code…"
+            onkeydown="if(event.key==='Enter')churchUseManualLocation()"/>
+          <button class="btn btn-primary btn-sm" onclick="churchUseManualLocation()">Search</button>
+        </div>
+        <div class="church-search-row">
+          <span style="font-size:0.82rem;color:var(--text-muted)">Within</span>
+          <select id="church-radius-select" onchange="churchRedisplay()">
+            <option value="5">5 miles</option>
+            <option value="10">10 miles</option>
+            <option value="15">15 miles</option>
+            <option value="20">20 miles</option>
+            <option value="25" selected>25 miles</option>
+            <option value="30">30 miles</option>
+            <option value="40">40 miles</option>
+            <option value="50">50 miles</option>
+          </select>
+        </div>
+        <div class="church-status" id="church-status">Loading church data…</div>
+      </div>
+      <div class="church-layout">
+        <div id="church-finder-map"></div>
+        <ul id="church-finder-list"></ul>
+      </div>
     </div>
 
     <!-- CHAT -->
@@ -2579,6 +2681,10 @@ service cloud.firestore {
         <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
         <span class="drawer-nav-label">Venue Map</span>
       </button>
+      <button class="drawer-nav-item" onclick="showScreenFromDrawer('find-church')">
+        <span class="drawer-nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+        <span class="drawer-nav-label">Find a Church</span>
+      </button>
       <!-- Live Stream button — hidden by default; shown only when channel is live -->
       <button class="drawer-nav-item hidden" id="drawer-live-btn" onclick="openLiveStream();closeDrawer()">
         <span class="drawer-nav-icon">🔴</span>
@@ -2940,6 +3046,10 @@ service cloud.firestore {
      module in the main script) — this tag is simply
      inert/no-op in that context.
 ════════════════════════════════════════════ -->
+<!-- Leaflet + PapaParse — used by the Find a Church screen -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 
 <!-- ════════════════════════════════════════════
@@ -3669,6 +3779,7 @@ service cloud.firestore {
     if (name === 'directory')     loadDirectory();
     if (name === 'chat')          initChat();
     if (name === 'profile')       updateAvatarUI();
+    if (name === 'find-church')   initChurchFinder();
   };
 
   /* ══════════════════════════════════════════
@@ -7874,6 +7985,211 @@ function initializeConvocationCountdown(allDayEvents) {
     liveStreamInfo = null;
     renderLiveStreamUI();
   }
+
+  /* ══════════════════════════════════════════
+     FIND A CHURCH
+     ─────────────────────────────────────────
+     Data source: public Google Sheet CSV via
+     PapaParse. Columns: Name, Address, Phone,
+     Lat, Lon (0-indexed).
+     Map: Leaflet + OpenStreetMap tiles.
+     Geocoding: Nominatim (no API key required).
+     Distance: Haversine formula, miles.
+
+     Lifecycle:
+     - initChurchFinder() called once on first
+       visit via showScreen('find-church').
+     - Leaflet map is invalidated on each visit
+       so tiles render correctly after being
+       hidden inside a display:none container.
+     - Data is fetched once and cached in
+       churchData[]. Subsequent visits skip
+       the fetch.
+  ══════════════════════════════════════════ */
+  const CHURCH_SHEET_URL =
+    'https://docs.google.com/spreadsheets/d/1jI7lYYOWocbwRKK2zoZhvbgpnay9mZllROT_KDoQiUc/gviz/tq?tqx=out:csv';
+
+  let churchData       = [];
+  let churchMap        = null;
+  let churchUserMarker = null;
+  let churchMarkers    = [];
+  let churchLastLat    = null;
+  let churchLastLon    = null;
+  let churchDataLoaded = false;
+  let churchMapInited  = false;
+
+  function initChurchFinder() {
+    // Initialise Leaflet map once — it must not be created while the
+    // container is display:none, which is why we defer to first visit.
+    if (!churchMapInited) {
+      churchMapInited = true;
+      churchMap = L.map('church-finder-map').setView([38.5, -97.0], 4);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(churchMap);
+    }
+    // Always invalidate size — fixes blank/tiled maps after the container
+    // was hidden (display:none strips layout, Leaflet loses its dimensions)
+    setTimeout(() => churchMap && churchMap.invalidateSize(), 120);
+
+    if (!churchDataLoaded) {
+      churchDataLoaded = true;
+      _fetchChurchData();
+    }
+  }
+
+  function _fetchChurchData() {
+    _setChurchStatus('Loading church data…');
+    Papa.parse(CHURCH_SHEET_URL, {
+      download:       true,
+      header:         false,
+      skipEmptyLines: true,
+      complete(results) {
+        const rows = results.data;
+        if (rows.length) rows.shift(); // remove header row
+        churchData = [];
+        let valid = 0;
+        rows.forEach(cols => {
+          if (!cols[0]) return;
+          const lat = parseFloat(cols[3]);
+          const lon = parseFloat(cols[4]);
+          churchData.push({
+            name:    cols[0] || 'Unknown Church',
+            address: cols[1] || '',
+            phone:   cols[2] || '',
+            lat:     isNaN(lat) ? null : lat,
+            lon:     isNaN(lon) ? null : lon,
+            distance: null
+          });
+          if (!isNaN(lat) && !isNaN(lon)) valid++;
+        });
+        _setChurchStatus(`${churchData.length} churches loaded (${valid} with coordinates). Use My Location or enter a zip code to search.`);
+      },
+      error(err) {
+        console.error('Church data fetch error:', err);
+        _setChurchStatus('Could not load church data. Please try again later.');
+        churchDataLoaded = false; // allow retry on next visit
+      }
+    });
+  }
+
+  function _setChurchStatus(msg) {
+    const el = $('church-status'); if (el) el.textContent = msg;
+  }
+
+  function _churchHaversine(lat1, lon1, lat2, lon2) {
+    const R = 3958.8;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function _churchSortAndDisplay(userLat, userLon) {
+    churchLastLat = userLat;
+    churchLastLon = userLon;
+    _setChurchStatus('Calculating distances…');
+    churchData.forEach(c => {
+      c.distance = (c.lat && c.lon)
+        ? _churchHaversine(userLat, userLon, c.lat, c.lon)
+        : 9999;
+    });
+    churchData.sort((a, b) => a.distance - b.distance);
+    _churchRedisplayResults(userLat, userLon);
+  }
+
+  function _churchRedisplayResults(userLat, userLon) {
+    const listEl  = $('church-finder-list'); if (!listEl) return;
+    const radius  = parseInt($('church-radius-select')?.value || '25', 10);
+    listEl.innerHTML = '';
+
+    // Remove old markers
+    churchMarkers.forEach(m => churchMap.removeLayer(m));
+    churchMarkers = [];
+    if (churchUserMarker) { churchMap.removeLayer(churchUserMarker); churchUserMarker = null; }
+
+    churchUserMarker = L.marker([userLat, userLon])
+      .addTo(churchMap)
+      .bindPopup('<b>Your Location</b>')
+      .openPopup();
+
+    const bounds = L.latLngBounds([[userLat, userLon]]);
+    let found = 0;
+
+    churchData.forEach(c => {
+      if (c.distance > radius) return;
+      found++;
+
+      // List card
+      const li = document.createElement('li');
+      li.className = 'church-item-card';
+      li.innerHTML = `
+        <h3>${escHtml(c.name)}</h3>
+        ${c.address ? `<p>📍 ${escHtml(c.address)}</p>` : ''}
+        ${c.phone   ? `<p>📞 ${escHtml(c.phone)}</p>` : ''}
+        <p class="church-item-distance">${c.distance.toFixed(1)} miles away</p>`;
+      listEl.appendChild(li);
+
+      // Map marker
+      if (c.lat && c.lon) {
+        const m = L.marker([c.lat, c.lon])
+          .addTo(churchMap)
+          .bindPopup(`<b>${escHtml(c.name)}</b><br>${escHtml(c.address)}`);
+        churchMarkers.push(m);
+        bounds.extend([c.lat, c.lon]);
+      }
+    });
+
+    if (found > 0) {
+      churchMap.fitBounds(bounds, { padding: [30, 30] });
+      _setChurchStatus(`${found} church${found !== 1 ? 'es' : ''} within ${radius} miles.`);
+    } else {
+      churchMap.setView([userLat, userLon], 10);
+      listEl.innerHTML = `<li class="church-finder-empty">No churches found within ${radius} miles.<br>Try increasing the search radius.</li>`;
+      _setChurchStatus('No results. Try a wider radius.');
+    }
+  }
+
+  // Called by the radius dropdown onchange
+  window.churchRedisplay = function () {
+    if (churchLastLat !== null && churchLastLon !== null) {
+      _churchRedisplayResults(churchLastLat, churchLastLon);
+    }
+  };
+
+  window.churchUseMyLocation = function () {
+    if (!churchMapInited) initChurchFinder();
+    _setChurchStatus('Locating you…');
+    if (!navigator.geolocation) {
+      _setChurchStatus('Geolocation is not supported by this browser.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => _churchSortAndDisplay(pos.coords.latitude, pos.coords.longitude),
+      ()  => _setChurchStatus('Location access denied. Please enter a city or zip code instead.')
+    );
+  };
+
+  window.churchUseManualLocation = async function () {
+    if (!churchMapInited) initChurchFinder();
+    const query = $('church-manual-input')?.value?.trim();
+    if (!query) return;
+    _setChurchStatus('Searching for location…');
+    try {
+      const res  = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        _churchSortAndDisplay(parseFloat(data[0].lat), parseFloat(data[0].lon));
+      } else {
+        _setChurchStatus('Could not find that location. Try a different city or zip code.');
+      }
+    } catch (e) {
+      console.error('Geocoding error:', e);
+      _setChurchStatus('Geocoding failed. Please check your connection and try again.');
+    }
+  };
 
   function loadHomeDashboard() {
     // Greeting with time of day
