@@ -1,6 +1,6 @@
-# UCJC Convocation — Progressive Web App
+# UCJC Apostolic — Progressive Web App
 
-A full-featured Progressive Web App (PWA) for the United Churches of Jesus Christ Holy Convocation. Built as a single-file web application with Firebase backend, OneSignal push notifications, and Median.co native wrapper support.
+A full-featured Progressive Web App (PWA) for the United Churches of Jesus Christ Apostolic. Built as a single-file web application with Firebase backend, OneSignal push notifications, and Median.co native wrapper support.
 
 ---
 
