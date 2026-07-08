@@ -1,14 +1,11 @@
 [
   {
-    "relation": [
-      "delegate_permission/common.handle_all_urls"
-    ],
+    "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
       "package_name": "app.vercel.ucjc_app.twa",
-      "sha256_cert_fingerprints": [
-        "D1:87:08:9B:D4:BF:B0:5C:18:72:1B:71:B0:DE:C0:7A:96:39:7C:4D:DA:22:15:E0:23:2B:67:70:BB:EC:77:55"
-      ]
+      "sha256_cert_fingerprints":
+        ["D1:87:08:9B:D4:BF:B0:5C:18:72:1B:71:B0:DE:C0:7A:96:39:7C:4D:DA:22:15:E0:23:2B:67:70:BB:EC:77:55"]
     }
   }
 ]
