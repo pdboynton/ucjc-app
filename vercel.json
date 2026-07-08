@@ -20,7 +20,7 @@
     {
       "src": "/(.*\\.(js|css|png|jpg|webp|svg|ico|json|webmanifest))",
       "dest": "/$1"
-    },
+    }
 
   ]
 }
